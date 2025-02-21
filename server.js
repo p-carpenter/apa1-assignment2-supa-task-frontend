@@ -1,10 +1,23 @@
 // server.js
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
+// const express = require('express');
+// const cors = require('cors');
+// const dotenv = require('dotenv');
+import express from 'express';
+import cors from 'cors'
+import dotenv from 'dotenv'
+import livereload from 'livereload';
+import connectLiveReload from 'connect-livereload'
 
 // Load environment variables
 dotenv.config();
+
+const liveReloadServer = livereload.createServer()
+liveReloadServer.server.once("connection", () => {
+  setTimeout(() => {
+    liveReloadServer.refresh("/");
+  }, 100);
+});
+liveReloadServer.watch("./public");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +26,7 @@ const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 // Middleware
 app.use(cors());
+app.use(connectLiveReload())
 app.use(express.json());
 app.use(express.static('public')); // Serve static files from 'public' directory
 
