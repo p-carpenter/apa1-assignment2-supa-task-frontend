@@ -4,20 +4,95 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task 2 Starter Template</title>
+  <title>Technology Failures</title>
   <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 
 <body>
-  <h1>Task 2 Starter Template</h1>
-  <button id="callFunction">Call Function</button>
-  <div id="result">Results will appear here...</div>
+
+  <div class="explorer-container" id="explorer-container">
+        <div class="explorer-window-bar">
+      <div class="folder-name">
+        <img src="assets/icons/win95-folder-icon.png"/>
+        <p>Technology Failures</p>
+      </div>
+      <div class="window-buttons">
+        <div id="close-button"></div>
+        <div id="min-button"></div>
+        <div id="max-button"></div>
+      </div>
+    </div>
+  <div class="explorer-header">
+    <div class="menu">
+      <p>File</p>
+      <p>Edit</p>
+      <p>View</p>
+      <p>Help</p>
+    </div>
+    <div class="path-display">
+      <p>Address</p>
+      <p id="explorer-path">C:\Technology Failures</p>
+      <div class="action-icons">
+        <img src="assets/icons/search.png"/>
+        <!-- <img src="assets/icons/addnew.png"/> -->
+    </div>
+    </div>
+    </div>
+
+    <div class="explorer-content" id="window-content">
+    </div>
+
+    
+    </div>
+
+    </div>
+  </div>
+  <!-- <button id="callFunction">Call Function</button>
+  <div class="item-container">
+    <div id="result">Results will appear here...</div>
+  </div> -->
+  </div>
 
   <script src="client.js"></script>
+  <script src="script.js"></script>
   <script>
     document.write('<script src="http://' + (location.host || 'localhost').split(':')[0] +
       ':35729/livereload.js?snipver=1"></' + 'script>')
   </script>
+
+  <div class="context-menu hidden" id="context-menu">
+    <p id="opt-addcase">Add new</p>
+    <p id="opt-delcase">Delete</p>
+    <p id="opt-searchcase">Search cases</p>
+    <p id="opt-sortcase">Sort</p>
+    <p id="opt-editcase">Edit</p>
+  </div>
+
+<div class="incident-window-container hidden" id="incident-details-window">
+    <div class="explorer-window-bar">
+      <div class="folder-name">
+        <p id="incident-title"></p>
+      </div>
+      <div class="window-buttons">
+        <div id="close-button"></div>
+        <div id="max-button"></div>
+      </div>
+    </div>
+    <div class="incident-content-container">
+      <p id="incident-date"></p>
+      <p id="incident-description"></p>
+      <p id="incident-category"></p>
+      <p id="incident-severity"></p>
+      <p id="incident-cause"></p>
+      <p id="incident-consequences"></p>
+      <p id="incident-resolution-time"></p>
+    </div>
+    <div id="popup-buttons">
+      <button class="popup-button">Try to fix</button>
+      <button class="popup-button" id="popup-close">Close</button>
+    </div>
+</div>
+
 </body>
 
 </html>
