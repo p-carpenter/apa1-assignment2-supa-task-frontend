@@ -1,7 +1,3 @@
-// server.js
-// const express = require('express');
-// const cors = require('cors');
-// const dotenv = require('dotenv');
 import express from 'express';
 import cors from 'cors'
 import dotenv from 'dotenv'
@@ -56,11 +52,11 @@ app.post('/api/new_message', async (req, res) => {
 });
 
 // New GET endpoint
-app.get('/api/messages', async (req, res) => {
+app.get('/api/technology-failures', async (req, res) => {
   try {
 
     // Call the Supabase Edge Function for messages
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/messages`, {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/technology-failures`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
