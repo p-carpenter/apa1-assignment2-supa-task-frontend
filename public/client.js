@@ -1,11 +1,11 @@
-// Writing a function to communicate with our local server
+let incidentData = [];
 
-const getMessages = async () => {
-  const resultElement = document.getElementById("result");
-  resultElement.textContent = "Loading...";
+const getData = async () => {
+  const windowContainer = document.getElementById("window-content");
+  // windowContainer.textContent = "Loading...";
 
   try {
-    const response = await fetch(`/api/messages`, {
+    const response = await fetch(`/api/technology-failures`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -17,15 +17,25 @@ const getMessages = async () => {
     }
 
     const data = await response.json();
-    resultElement.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    incidentData = data;
+
+    data.forEach((entry, index) => {
+      windowContainer.insertAdjacentHTML('beforeend',`<div class="case-container" data-index="${index}">
+          <div class="casefile">
+            <img src="assets/icons/computer.png">
+            <p>${entry.name}</p>
+          </div>
+        </div>`)
+    })
+
   } catch (error) {
-    resultElement.textContent = `Error: ${error.message}`;
+    windowContainer.textContent = `Error: ${error.message}`;
   }
 };
 
-const postMessage = async () => {
+const postData = async () => {
   const resultElement = document.getElementById("result");
-  resultElement.textContent = "Loading...";
+  windowContainer.textContent = "Loading...";
 
   try {
     const response = await fetch(`/api/new_message`, {
@@ -41,14 +51,15 @@ const postMessage = async () => {
     }
 
     const data = await response.json();
-    resultElement.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+    windowContainer.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
   } catch (error) {
-    resultElement.textContent = `Error: ${error.message}`;
+    windowContainer.textContent = `Error: ${error.message}`;
   }
 };
 
-document
-  .getElementById("callFunction")
-  .addEventListener("click", getMessages);
+// document
+//   .getElementById("callFunction")
+//   .addEventListener("click", getMessages);
 
+  document.addEventListener("DOMContentLoaded", getData)
 // To begin try adding another button to use the postMessage function
