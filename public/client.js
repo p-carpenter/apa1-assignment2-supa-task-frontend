@@ -20,13 +20,20 @@ const getData = async () => {
     incidentData = data;
 
     data.forEach((entry, index) => {
-      windowContainer.insertAdjacentHTML('beforeend',`<div class="case-container" data-index="${index}">
-          <div class="casefile">
-            <img src="assets/icons/computer.png">
-            <p>${entry.name}</p>
-          </div>
-        </div>`)
-    })
+windowContainer.insertAdjacentHTML('beforeend', `
+  <div class="case-container" data-index="${index}" style="position:relative;">
+    <div class="casefile">
+      <div style="position:relative;">
+        <img src="assets/icons/computer.png">
+        <div class="severity-dot ${entry.severity.toLowerCase()}"></div>
+      </div>
+      <p>${entry.name}</p>
+      <p class="category-label">${entry.category}</p>
+    </div>
+  </div>
+`);
+});
+
 
   } catch (error) {
     windowContainer.textContent = `Error: ${error.message}`;
