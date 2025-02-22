@@ -10,16 +10,27 @@
   src: url("assets/fonts/w95fa.woff2");
 }
 
+@font-face {
+  font-family: 'IBM VGA 8x16';
+  src: url("assets/fonts/IBM_VGA_8x14.woff");
+}
+
+@font-face {
+  font-family: 'IBM VGA 9x16';
+  src: url("assets/fonts/WebPlus_IBM_VGA_9x16.woff");
+}
+
 /* Ensures the body centers the window */
 body {
   font-family: 'W95FA', 'MS Sans Serif', sans-serif;
-  margin: 0;
+  margin: 10px;
   padding: 0;
   background-color: #00807F;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  overflow: hidden;
 }
 
 /* Hides elements when needed */
@@ -246,7 +257,7 @@ body {
   /* display: flex; */
   flex-direction: column;
   width: 300px;
-  height: 350px;
+  height: auto;
   border: 3px solid var(--border-colour);
   background-color: var(--win95-grey);
   position: absolute;
@@ -254,9 +265,34 @@ body {
 
 .incident-content-container {
   border: 3px outset var(--border-colour);
-  height: 300px;
+  height: auto;
   margin: auto;
 }
+
+.category-label {
+  font-size: 10px;
+  background: lightgray;
+  color: black;
+  padding: 2px 4px;
+  border: 1px solid black;
+  display: inline-block;
+}
+
+.severity-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  bottom: 2px;
+  right: 2px;
+}
+.critical { background: red; }
+.severe { background: darkorange; }
+.high { background: yellow; }
+.medium { background: blue; }
+.low { background: rgb(3, 255, 41); }
+
+
 
 #popup-buttons {
   display: flex;
@@ -271,3 +307,131 @@ body {
   border: 3px outset var(--border-colour);
   color: black;
 }
+
+.artifact[data-v-740fb236] {
+  z-index: 5;
+  transition: transform .12s ease,filter .12s ease;
+  text-align: left;
+  display: flex;
+  justify-content: center;
+  /* height: 70%; */
+  position: relative;
+  margin: 5px;
+  max-width: 45%;
+}
+
+.terminal[data-v-740fb236] {
+    background-color: #000;
+    color: #FFFF88;
+    text-shadow: 0 0 2px #ffff55bd;
+    width: 100%;
+    background: #000060;
+    font-size: calc(max(15px, min(1.4vw, 2.1vh)));
+    position: relative;
+    box-shadow: inset 0 0 10px rgba(0,0,0,.5);
+    aspect-ratio: 1.4;
+    padding-bottom: 4px;
+}
+
+.pre[data-v-740fb236], .terminal[data-v-740fb236] {
+  font-family: 'IBM VGA 9x16', monospace;
+  padding-left: 5px;
+}
+
+.code pre, .pre {
+  font-family: 'IBM VGA 9x16', monospace !important;
+}
+
+.tabs[data-v-740fb236] {
+    display: grid;
+    grid-template-columns: repeat(6,1fr);
+    align-items: center;
+    color: #000;
+    text-shadow: none;
+    width: 100%;
+    overflow-x: scroll;
+    overscroll-behavior-x: none;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 3;
+}
+
+.tab[data-v-740fb236] {
+    background: #b3b3b3;
+    padding: 3px 8px;
+    cursor: pointer;
+}
+
+.tab-inner[data-v-740fb236] {
+  padding-left: 5px;
+}
+
+.tab-inner::first-letter {
+  color: #a92323;
+}
+
+.tab-active .tab-inner::first-letter {
+  color: #ffffff;
+}
+
+.tab-active .tab-inner {
+  background-color: black;
+  color: white;
+}
+
+.view {
+  top: 22px;
+  left: 50%;
+  padding: 0 8px;
+  transform: translateX(-50%);
+  z-index: 2;
+  color: #e9eaff;
+}
+
+.view, .info {
+  background: #000060;
+}
+
+.line {
+  width: calc(100% - 8px);
+  top: 27px;
+  left: 4px;
+  height: 1px;
+  background: #a6abfd;
+}
+
+.line, .view {
+  position: absolute;
+}
+
+.info {
+  color: #a6abfd;
+  display: grid;
+  grid-template-columns: repeat(4,auto);
+  grid-gap: 0;
+  text-align: center;
+  padding: 13px 0 3px;
+  position: sticky;
+  top: 0;
+  left: 0;
+}
+
+.code {
+  width: calc(100% - 8px);
+  height: 100%;
+  overflow-y: scroll;
+  margin: 9px 4px 0;
+  border: 1px solid #a6abfd;
+  position: relative;
+  scroll-snap-type: y mandatory;
+  cursor: pointer;
+  overscroll-behavior: none;
+  scrollbar-width: none;
+}
+
+.pre {
+  line-height: 1.5em;
+  padding: 3px 3px 3px 6px;
+  height: auto;
+}
+
