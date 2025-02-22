@@ -19,6 +19,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 const incidentWindow = document.getElementById('incident-details-window');
                 incidentWindow.classList.remove('hidden');
                 incidentWindow.style.display = 'flex';
+
+                document.getElementById('morris-worm').style.zIndex = '200'
+                // document.getElementById('morris-worm').style.position = 'absolute'
+                document.getElementById('morris-worm').classList.remove('hidden')
             }
         }
     });
