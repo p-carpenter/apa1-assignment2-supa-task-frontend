@@ -1,22 +1,23 @@
 {
-  "name": "codespaces-blank",
-  "version": "1.0.0",
-  "type": "module",
-  "main": "index.js",
+  "name": "apa1-assignment2-supa-task-frontend",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js --watch './public' --watch './' -e js,mjs,cjs,json,css,html"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "connect-livereload": "^0.6.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "livereload": "^0.9.3",
-    "nodemon": "^3.1.9"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next": "15.1.7"
+  },
+  "devDependencies": {
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.7",
+    "@eslint/eslintrc": "^3"
   }
 }

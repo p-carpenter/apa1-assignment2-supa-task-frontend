@@ -1,18 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'W95FA';
+  src: url("/fonts/w95fa.woff2");
+}
+
+@font-face {
+  font-family: 'IBM VGA 9x16';
+  src: url("/fonts/WebPlus_IBM_VGA_9x16.woff");
+}
+
 :root {
+  --background: #ffffff;
+  --foreground: #171717;
   --border-colour: #c0c0c0;
   --win95-grey: #c0c0c0;
   --item-border: #979797;
   --win95-blue: #0a246a;
 }
 
-@font-face {
-  font-family: 'W95FA';
-  src: url("assets/fonts/w95fa.woff2");
-}
-
-@font-face {
-  font-family: 'IBM VGA 9x16';
-  src: url("assets/fonts/WebPlus_IBM_VGA_9x16.woff");
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 /* Ensures the body centers the window */
@@ -103,7 +116,7 @@ body {
   background-color: var(--win95-grey);
 }
 
-#explorer-path {
+.explorer-path {
   border: 2px inset #979797;
   background-color: white;
   padding: 2px 8px;
@@ -179,7 +192,7 @@ body {
   left: 0;
   width: 48px;
   height: 48px;
-  background: url('assets/icons/computer.png') no-repeat center;
+  background: url('/computer.png') no-repeat center;
   background-size: contain;
   opacity: 0.5;
   mix-blend-mode: screen;
@@ -289,7 +302,7 @@ body {
 
 
 
-#popup-buttons {
+.popup-button-container {
   display: flex;
   flex-direction: row;
   gap: 5px;
@@ -303,7 +316,7 @@ body {
   color: black;
 }
 
-.artifact[data-v-740fb236] {
+.artifact {
   z-index: 5;
   transition: transform .12s ease,filter .12s ease;
   text-align: left;
@@ -315,7 +328,7 @@ body {
   max-width: 45%;
 }
 
-.terminal[data-v-740fb236] {
+.terminal {
     background-color: #000;
     color: #FFFF88;
     text-shadow: 0 0 2px #ffff55bd;
@@ -337,7 +350,7 @@ body {
   font-family: 'IBM VGA 9x16', monospace !important;
 }
 
-.tabs[data-v-740fb236] {
+.tabs {
     display: grid;
     grid-template-columns: repeat(6,1fr);
     align-items: center;
@@ -429,4 +442,5 @@ body {
   padding: 3px 3px 3px 6px;
   height: auto;
 }
+
 
