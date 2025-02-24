@@ -2,9 +2,21 @@ export async function POST(req) {
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
 
   try {
-    const body = await req.json();
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/technology-failures`, {
+      const corsHeaders = {
+    "Access-Control-Allow-Origin": "*", // Allow all origins for testing
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+  };
+
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+    const body = await req.json();
+    console.log("Received body:", body);
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/tech-incidents`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
