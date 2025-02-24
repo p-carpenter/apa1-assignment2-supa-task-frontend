@@ -132,7 +132,7 @@ export default function TechIncidentViewer({ incident, onClose, incidents, curre
             onClick={goToNext}
             className="px-4 py-2 border border-[#c0b5a5] bg-white hover:bg-[#f0e5d0] flex items-center"
           >
-            <span>NEXT ARTIFACT →</span>
+            <span>NEXT →</span>
           </button>
         </div>
       </div>

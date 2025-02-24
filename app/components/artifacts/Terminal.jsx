@@ -54,8 +54,6 @@ export default function Terminal() {
         <span className="mobile-hide">Insert Indent Tab Fill Unindent</span>
     <span >C:{activeTab}</span>
     </div>
-
-          {/* Terminal Content */}
           <div>
             <pre>{fileContents[activeTab]}</pre>
           </div>
