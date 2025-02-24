@@ -7,7 +7,7 @@ export default function IncidentPopup({ incident, onClose }) {
       <div className="folder-name">
         <p>{incident.name}</p>
       </div>
-      <div class="window-buttons">
+      <div className="window-buttons">
         <div id="close-button"></div>
         <div id="max-button"></div>
       </div>
@@ -19,9 +19,9 @@ export default function IncidentPopup({ incident, onClose }) {
         <p>Category: {incident.category}</p>
         <p>Severity: {incident.severity}</p>
       </div>
-    <div class="popup-button-container">
-      <button class="popup-button">Try to fix</button>
-      <button class="popup-button" onClick={onClose}>Close</button>
+    <div className="popup-button-container">
+      <button className="popup-button">Try to fix</button>
+      <button className="popup-button" onClick={() => onClose()}>Close</button>
     </div>
   </div>
   </div>
