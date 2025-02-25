@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import ExplorerWindow from "@/app/components/ExplorerWindow";
-import IncidentPopup from "@/app/components/IncidentPopup";
-import ContextMenu from "@/app/components/ContextMenu";
-import AddNewIncident from "./components/AddNewIncident";
-import UpdateIncident from "./components/UpdateIncidentWindow";
-import FullScreenViewer from "./components/FullScreenViewer";
+import ExplorerWindow from "@/app/components/core/ExplorerWindow";
+import IncidentPopup from "@/app/components/core/IncidentPopup";
+import ContextMenu from "@/app/components/core/ContextMenu";
+import AddNewIncident from "./components/core/AddNewIncident";
+import UpdateIncident from "./components/core/UpdateIncidentWindow";
+import FullScreenViewer from "./components/core/FullScreenViewer";
 
 export default function Home() {
   const [incidentData, setIncidentData] = useState([]);

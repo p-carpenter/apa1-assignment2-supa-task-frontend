@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import IncidentVisualisationCard from "./viewer/IncidentVisualisationCard.jsx";
-import IncidentDescriptionCard from "./viewer/IncidentDescriptionCard.jsx";
+import IncidentVisualisationCard from "../viewer/IncidentVisualisationCard.jsx";
+import IncidentDescriptionCard from "../viewer/IncidentDescriptionCard.jsx";
 
 const CategoryThemes = {
   Security: {

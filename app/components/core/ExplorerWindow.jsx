@@ -1,16 +1,16 @@
 "use client";
 
-import MenuBar from "./catalog/MenuBar";
-import AddressBar from "./catalog/AddressBar";
-import WindowContainer from "./common/WindowContainer";
-import TitleBar from "./common/TitleBar";
-import FilterBar from "./catalog/FilterBar";
-import SelectionBox from "./catalog/SelectionBox";
-import useIncidentProcessor from "../hooks/useIncidentProcessor";
-import useIncidentFilter from "../hooks/useIncidentFilter";
-import useViewManager from "../hooks/useViewManager";
-import useSelectionManager from "../hooks/useSelectionManager";
-import CatalogItem from "./catalog/CatalogItem";
+import MenuBar from "../catalog/MenuBar";
+import AddressBar from "../catalog/AddressBar";
+import WindowContainer from "../common/WindowContainer";
+import TitleBar from "../common/TitleBar";
+import FilterBar from "../catalog/FilterBar";
+import SelectionBox from "../catalog/SelectionBox";
+import useIncidentProcessor from "../../hooks/useIncidentProcessor";
+import useIncidentFilter from "../../hooks/useIncidentFilter";
+import useViewManager from "../../hooks/useViewManager";
+import useSelectionManager from "../../hooks/useSelectionManager";
+import CatalogItem from "../catalog/CatalogItem";
 
 const ExplorerWindow = ({
   incidents,
