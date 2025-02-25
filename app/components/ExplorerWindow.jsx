@@ -152,16 +152,16 @@ export default function ExplorerWindow({
   return (
     <div
       ref={containerRef}
-      className="explorer-container"
+      className="explorer-container h-[80vh]"
       style={{ 
         userSelect: "none", 
-        position: "relative" // so absolutely positioned selection box lines up
+        position: "relative"
       }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onContextMenu={(e) => {
-        // Right-click on empty space?
+
         e.preventDefault();
         setContextMenu({
           visible: true,
