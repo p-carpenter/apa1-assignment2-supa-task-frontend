@@ -870,24 +870,13 @@ body {
   border: 2px inset rgb(237, 237, 237);
 }
 
-.firstcol {
+/* .firstcol {
   grid-column: 1;
 }
 
 .secondcol {
   grid-column: 2;
-}
-
-.polka-bg {
-  background-color: white;
-  background-image:
-    radial-gradient(circle, yellow 20%, transparent 20%),
-    radial-gradient(circle, yellow 20%, transparent 20%);
-  background-size: 6px 6px;
-  background-position:
-    0px 0px,
-    3px 3px;
-}
+} */
 
 .win95-folder-nav-button {
   width: 24px;
