@@ -142,7 +142,6 @@ export default function Home() {
     setDisplayedIncident(incident)
   }
 
-  // Add navigation handler
   const handleIncidentNavigation = (newIndex) => {
     setCurrentIncidentIndex(newIndex)
     setDisplayedIncident(incidentData[newIndex])
@@ -154,9 +153,9 @@ export default function Home() {
   return (
     <div
       className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
-      // If user left-clicks anywhere outside items, close context menu
+      
       onClick={() => closeContextMenu()}
-      // If user right-clicks on the background (empty space)
+
       onContextMenu={(e) => {
         e.preventDefault();
         closeContextMenu();
@@ -170,6 +169,7 @@ export default function Home() {
       }}
       style={{ position: "relative" }}
     >
+
       <ExplorerWindow
         incidents={incidentData}
         selectedIncidents={selectedIncidents}
