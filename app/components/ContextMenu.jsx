@@ -1,6 +1,6 @@
 "use client";
 
-export default function ContextMenu({
+const ContextMenu = ({
   visible,
   x,
   y,
@@ -10,7 +10,7 @@ export default function ContextMenu({
   setShowAddNew,
   setShowUpdate,
   onDeleteIncidents,
-}) {
+}) => {
   if (!visible) return null;
 
   const numSelected = incidents ? incidents.length : 0;
@@ -55,4 +55,6 @@ export default function ContextMenu({
       )}
     </div>
   );
-}
+};
+
+export default ContextMenu;
