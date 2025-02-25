@@ -191,7 +191,7 @@ body {
   max-width: 150px; /* Limit width */
 }
 
-.case-container.selected {
+.selected {
   background-color: var(--win95-blue);
   color: white;
 }

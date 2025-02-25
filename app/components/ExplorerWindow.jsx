@@ -1,17 +1,16 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+
 import MenuBar from "./catalog/MenuBar";
 import AddressBar from "./catalog/AddressBar";
-import WindowContainer from "./core/WindowContainer";
-import TitleBar from "./core/TitleBar";
+import WindowContainer from "./common/WindowContainer";
+import TitleBar from "./common/TitleBar";
 import FilterBar from "./catalog/FilterBar";
-import IncidentCard from "./catalog/IncidentCard";
-import YearFolder from "./catalog/YearFolder";
 import SelectionBox from "./catalog/SelectionBox";
 import useIncidentProcessor from "../hooks/useIncidentProcessor";
 import useIncidentFilter from "../hooks/useIncidentFilter";
 import useViewManager from "../hooks/useViewManager";
 import useSelectionManager from "../hooks/useSelectionManager";
+import CatalogItem from "./catalog/CatalogItem";
 
 const ExplorerWindow = ({
   incidents,
@@ -73,20 +72,29 @@ const ExplorerWindow = ({
     e.preventDefault();
   };
 
+  const handleContextMenu = (e, item, index) => {
+    const menuInfo = handleItemContextMenu(e, item, index, selectedIncidents);
+    setContextMenu(menuInfo);
+  };
+
+  // Get the correct items based on current view
+  const items = currentView === "years" ? decades : visibleIncidents;
+
   return (
     <WindowContainer
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
+      onMouseMove={(e) => handleMouseMove(e, items, currentView)}
       onMouseUp={handleMouseUp}
       onContextMenu={(e) => {
         e.preventDefault();
-        setContextMenu({
+        const menuInfo = {
           visible: true,
           x: e.clientX,
           y: e.clientY,
           onFile: false,
           incidents: [],
-        });
+        };
+        setContextMenu(menuInfo);
       }}
     >
       <TitleBar
@@ -123,29 +131,38 @@ const ExplorerWindow = ({
       <div className="explorer-content" ref={containerRef}>
         {currentView === "years" ? (
           filteredDecades.map((decade, index) => (
-            <YearFolder
+            <CatalogItem
               key={decade}
-              year={`${decade}s`}
-              incidentCount={incidentsByDecade[decade]?.length || 0}
+              type="folder"
+              item={{
+                name: `${decade}s`,
+                value: decade,
+                incidentCount: incidentsByDecade[decade]?.length || 0,
+              }}
               index={index}
+              isSelected={selectedIncidents.includes(decade)}
+              onClick={(e) =>
+                handleItemClick(e, decade, index, filteredDecades)
+              }
               onDoubleClick={() => handleFolderDoubleClick(decade)}
+              onContextMenu={(e) => handleContextMenu(e, decade, index)}
             />
           ))
         ) : visibleIncidents.length > 0 ? (
-          visibleIncidents.map((entry, index) => {
-            const isSelected = selectedIncidents.includes(entry);
-            return (
-              <IncidentCard
-                key={entry.id || index}
-                entry={entry}
-                index={index}
-                isSelected={isSelected}
-                onClick={(e) => handleItemClick(e, entry, index)}
-                onDoubleClick={() => handleItemDoubleClick(entry)}
-                onContextMenu={(e) => handleItemContextMenu(e, entry, index)}
-              />
-            );
-          })
+          visibleIncidents.map((incident, index) => (
+            <CatalogItem
+              key={incident.id || index}
+              type="incident"
+              item={incident}
+              index={index}
+              isSelected={selectedIncidents.includes(incident)}
+              onClick={(e) =>
+                handleItemClick(e, incident, index, visibleIncidents)
+              }
+              onDoubleClick={() => handleItemDoubleClick(incident)}
+              onContextMenu={(e) => handleContextMenu(e, incident, index)}
+            />
+          ))
         ) : (
           <div className="text-center my-8 w-full">
             <p>No incidents match your search criteria.</p>

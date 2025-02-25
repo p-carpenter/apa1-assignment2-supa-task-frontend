@@ -1,5 +1,5 @@
 import React from "react";
-import TitleBar from "../core/TitleBar";
+import TitleBar from "../common/TitleBar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Terminal from "../artifacts/Terminal.jsx";
 import WindowsNTBSOD from "../artifacts/WindowsNTBSOD.jsx";
