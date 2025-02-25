@@ -1,5 +1,5 @@
 import React from "react";
-import TitleBar from "../core/TitleBar";
+import TitleBar from "../common/TitleBar";
 
 const IncidentDescriptionCard = ({
   incident,
