@@ -48,13 +48,11 @@ export default function ContextMenu({
           <p onClick={handleEdit}>Edit</p>
           <div className="separator" />
           <p>Sort</p>
-          <p>Search cases</p>
         </>
       ) : (
         <>
           <p onClick={handleAddNew}>Add new</p>
           <p>Sort</p>
-          <p>Search cases</p>
         </>
       )}
     </div>

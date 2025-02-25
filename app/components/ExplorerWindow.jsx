@@ -148,11 +148,24 @@ export default function ExplorerWindow({
     );
   }
 
-  // 8) Render
+    const [activeFilter, setActiveFilter] = useState(null);
+
+    const handleFilterClick = (category) => {
+    if (activeFilter === category) {
+      setActiveFilter(null);
+    } else {
+      setActiveFilter(category);
+    }
+  };
+
+  const filteredIncidents = activeFilter 
+    ? incidents.filter(incident => incident.category === activeFilter)
+    : incidents;
+
   return (
     <div
       ref={containerRef}
-      className="explorer-container h-[80vh]"
+      className="explorer-container h-[80vh] w-[75vw] shadow-win95"
       style={{ 
         userSelect: "none", 
         position: "relative"
@@ -207,19 +220,20 @@ export default function ExplorerWindow({
         <div className="flex flex-row gap-3 items-center justify-start">
             <p>Category:</p> 
             {[...new Set(incidents.map(incident => incident.category))].map(category => (
-              <button 
-                key={category} 
-                className="filter-button hover:bg-win95blue hover:text-white"
-              >
-                {category}
-              </button>
-            ))}
+            <button 
+              key={category} 
+              className={`filter-button ${activeFilter === category ? 'bg-win95blue text-white' : 'hover:bg-win95blue hover:text-white'}`}
+              onClick={() => handleFilterClick(category)}
+            >
+              {category}
+            </button>
+          ))}
       </div>
       </div>
 
       <div className="explorer-content">
-        {incidents.map((entry, index) => {
-          const isSelected = selectedIncidents.includes(entry);
+        {filteredIncidents.map((entry, index) => {
+        const isSelected = selectedIncidents.includes(entry);
           return (
             <div
               key={entry.id}
