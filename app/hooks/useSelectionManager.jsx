@@ -2,7 +2,6 @@ import { useState, useRef } from "react";
 
 const useSelectionManager = (setSelectedIncidents) => {
   const containerRef = useRef(null);
-
   const [lastClickedIndex, setLastClickedIndex] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
@@ -35,7 +34,7 @@ const useSelectionManager = (setSelectedIncidents) => {
     }
   };
 
-  const handleItemContextMenu = (e, item, index, selectedItems) => {
+  const handleItemContextMenu = (e, item, index, selectedItems = []) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -49,12 +48,13 @@ const useSelectionManager = (setSelectedIncidents) => {
       x: e.clientX,
       y: e.clientY,
       onFile: true,
-      items: selectedItems.includes(item) ? selectedItems : [item],
+      incidents: selectedItems.includes(item) ? selectedItems : [item],
     };
   };
 
   const handleMouseDown = (e) => {
     if (e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey) return;
+    if (e.target !== containerRef.current) return;
 
     setIsSelecting(true);
     const rect = containerRef.current.getBoundingClientRect();
@@ -62,11 +62,10 @@ const useSelectionManager = (setSelectedIncidents) => {
     const y = e.clientY - rect.top;
     setStartPoint({ x, y });
     setSelectionBox({ x, y, width: 0, height: 0 });
-
     setSelectedIncidents([]);
   };
 
-  const handleMouseMove = (e, currentItems, currentView) => {
+  const handleMouseMove = (e, currentItems = [], currentView = "incidents") => {
     if (!isSelecting) return;
     e.preventDefault();
 
@@ -84,10 +83,10 @@ const useSelectionManager = (setSelectedIncidents) => {
 
     const newlySelected = [];
 
-    for (let i = 0; i < currentItems.length; i++) {
+    currentItems.forEach((item, i) => {
       const itemType = currentView === "years" ? "folder" : "incident";
       const itemEl = document.getElementById(`${itemType}-${i}`);
-      if (!itemEl) continue;
+      if (!itemEl) return;
 
       const itemRect = itemEl.getBoundingClientRect();
       const itemBox = {
@@ -98,15 +97,14 @@ const useSelectionManager = (setSelectedIncidents) => {
       };
 
       if (boxesIntersect(newBox, itemBox)) {
-        newlySelected.push(currentItems[i]);
+        newlySelected.push(item);
       }
-    }
+    });
 
     setSelectedIncidents(newlySelected);
   };
 
-  const handleMouseUp = (e) => {
-    if (e.button !== 0) return;
+  const handleMouseUp = () => {
     setIsSelecting(false);
   };
 

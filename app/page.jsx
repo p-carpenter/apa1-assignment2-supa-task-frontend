@@ -11,7 +11,6 @@ import FullScreenViewer from "./components/FullScreenViewer";
 export default function Home() {
   const [incidentData, setIncidentData] = useState([]);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
-  // If user double-clicks on a single incident, we show a popup
   const [displayedIncident, setDisplayedIncident] = useState(null);
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
 
