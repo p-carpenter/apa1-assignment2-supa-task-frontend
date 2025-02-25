@@ -13,7 +13,7 @@ import useIncidentFilter from "../hooks/useIncidentFilter";
 import useViewManager from "../hooks/useViewManager";
 import useSelectionManager from "../hooks/useSelectionManager";
 
-const ExplorerWindow2 = ({
+const ExplorerWindow = ({
   incidents,
   selectedIncidents,
   setSelectedIncidents,
@@ -75,7 +75,6 @@ const ExplorerWindow2 = ({
 
   return (
     <WindowContainer
-      ref={containerRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -121,7 +120,7 @@ const ExplorerWindow2 = ({
         onBackClick={handleBackClick}
       />
 
-      <div className="explorer-content">
+      <div className="explorer-content" ref={containerRef}>
         {currentView === "years" ? (
           filteredDecades.map((decade, index) => (
             <YearFolder
@@ -157,4 +156,6 @@ const ExplorerWindow2 = ({
       <SelectionBox isSelecting={isSelecting} selectionBox={selectionBox} />
     </WindowContainer>
   );
-}
+};
+
+export default ExplorerWindow;
