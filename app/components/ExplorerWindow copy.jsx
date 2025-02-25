@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState } from "react";
 import MenuBar from "./catalog/MenuBar";
 import AddressBar from "./catalog/AddressBar";
 import WindowContainer from "./core/WindowContainer";
@@ -8,6 +8,9 @@ import FilterBar from "./catalog/FilterBar";
 import IncidentCard from "./catalog/IncidentCard";
 import YearFolder from "./catalog/YearFolder";
 import SelectionBox from "./catalog/SelectionBox";
+import useIncidentProcessor from "../hooks/useIncidentProcessor";
+import useIncidentFilter from "../hooks/useIncidentFilter";
+import useViewManager from "../hooks/useViewManager";
 
 export default function ExplorerWindow2({
   incidents,
@@ -27,22 +30,29 @@ export default function ExplorerWindow2({
     height: 0,
   });
 
-  const [currentView, setCurrentView] = useState("years");
-  const [currentYear, setCurrentYear] = useState(null);
+  const { incidentsByDecade, decades } = useIncidentProcessor(incidents);
 
-  const incidentsByDecade = useMemo(() => {
-    return incidents.reduce((acc, incident) => {
-      const year = new Date(incident.incident_date).getFullYear();
-      const decade = Math.floor(year / 10) * 10;
-      if (!acc[decade]) {
-        acc[decade] = [];
-      }
-      acc[decade].push(incident);
-      return acc;
-    }, {});
-  }, [incidents]);
+  const {
+    activeFilter,
+    searchQuery,
+    filteredIncidents,
+    handleFilterClick,
+    handleSearchChange,
+    handleSearchClear,
+  } = useIncidentFilter(incidents);
 
-  const decades = Object.keys(incidentsByDecade).sort();
+  const {
+    currentView,
+    currentYear,
+    setCurrentView,
+    setCurrentYear,
+    filteredDecades,
+    visibleIncidents,
+    navigateToYear,
+    navigateToRoot,
+    currentPath,
+    windowTitle,
+  } = useViewManager(incidents, incidentsByDecade, filteredIncidents);
 
   const handleItemClick = (e, incident, index) => {
     e.stopPropagation();
@@ -69,14 +79,12 @@ export default function ExplorerWindow2({
   };
 
   const handleFolderDoubleClick = (decade) => {
-    setCurrentView("incidents");
-    setCurrentYear(decade); // We'll keep the state name as currentYear for now
+    navigateToYear(decade);
     setSelectedIncidents([]);
   };
 
   const handleBackClick = () => {
-    setCurrentView("years");
-    setCurrentYear(null);
+    navigateToRoot();
     setSelectedIncidents([]);
   };
 
@@ -130,8 +138,7 @@ export default function ExplorerWindow2({
     setSelectionBox(newBox);
 
     const newlySelected = [];
-    const items =
-      currentView === "years" ? years : incidentsByYear[currentYear];
+    const items = currentView === "years" ? filteredDecades : visibleIncidents;
 
     for (let i = 0; i < items.length; i++) {
       const itemEl = document.getElementById(
@@ -148,11 +155,7 @@ export default function ExplorerWindow2({
       };
 
       if (boxesIntersect(newBox, itemBox)) {
-        if (currentView === "years") {
-          newlySelected.push(years[i]);
-        } else {
-          newlySelected.push(incidentsByYear[currentYear][i]);
-        }
+        newlySelected.push(items[i]);
       }
     }
     setSelectedIncidents(newlySelected);
@@ -172,58 +175,9 @@ export default function ExplorerWindow2({
     );
   }
 
-  const [activeFilter, setActiveFilter] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const handleFilterClick = (category) => {
-    if (activeFilter === category) {
-      setActiveFilter(null);
-    } else {
-      setActiveFilter(category);
-    }
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
   const handleSearchSubmit = (e) => {
     e.preventDefault();
   };
-
-  const filteredIncidents = useMemo(() => {
-    incidents.filter((incident) => {
-      if (activeFilter && incident.category !== activeFilter) {
-        return false;
-      }
-
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        return (
-          incident.name.toLowerCase().includes(query) ||
-          incident.category.toLowerCase().includes(query) ||
-          (incident.severity && incident.severity.toLowerCase().includes(query))
-        );
-      }
-
-      return true;
-    });
-  });
-
-  const filteredDecades =
-    searchQuery || activeFilter
-      ? decades.filter((decade) => {
-          return incidentsByDecade[decade].some((incident) =>
-            filteredIncidents.includes(incident)
-          );
-        })
-      : decades;
-
-  const visibleIncidents = currentYear
-    ? incidentsByDecade[currentYear].filter((incident) =>
-        filteredIncidents.includes(incident)
-      )
-    : [];
 
   return (
     <WindowContainer
@@ -243,7 +197,7 @@ export default function ExplorerWindow2({
       }}
     >
       <TitleBar
-        title={`Technology Incidents${currentYear ? ` - ${currentYear}s` : ""}`}
+        title={windowTitle}
         icon="/win95-folder-icon.png"
         onMinimize={() => {
           /* handle minimize */
@@ -257,7 +211,7 @@ export default function ExplorerWindow2({
       />
       <MenuBar />
       <AddressBar
-        currentPath={`C:\\Technology Incidents${currentYear ? `\\${currentYear}s` : ""}\\`}
+        currentPath={currentPath}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
         onSearchSubmit={(e) => e.key === "Enter" && handleSearchSubmit(e)}
@@ -279,7 +233,7 @@ export default function ExplorerWindow2({
             <YearFolder
               key={decade}
               year={`${decade}s`} // Add 's' to show it's a decade
-              incidentCount={incidentsByDecade[decade].length}
+              incidentCount={incidentsByDecade[decade]?.length || 0}
               index={index}
               onDoubleClick={() => handleFolderDoubleClick(decade)}
             />
@@ -289,6 +243,7 @@ export default function ExplorerWindow2({
             const isSelected = selectedIncidents.includes(entry);
             return (
               <IncidentCard
+                key={entry.id || index}
                 entry={entry}
                 index={index}
                 isSelected={isSelected}
