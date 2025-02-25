@@ -35,15 +35,13 @@ export default function ContextMenu({
   return (
     <div
       className="context-menu"
-      style={{ position: 'fixed', top: `${y}px`, left: `${x}px` }}
+      style={{ position: "fixed", top: `${y}px`, left: `${x}px` }}
       onClick={(e) => e.stopPropagation()} // so clicking inside menu won't close it
     >
       {onFile ? (
         <>
           <p onClick={handleDelete}>
-            {numSelected > 1
-              ? `Delete (${numSelected} items)`
-              : "Delete"}
+            {numSelected > 1 ? `Delete (${numSelected} items)` : "Delete"}
           </p>
           <p onClick={handleEdit}>Edit</p>
           <div className="separator" />

@@ -8,20 +8,21 @@ import Terminal from "@/app/components/artifacts/Terminal";
 import AddNewIncident from "./components/AddNewIncident";
 import UpdateIncident from "./components/UpdateIncidentWindow";
 import FullScreenViewer from "./components/FullScreenViewer";
+import ExplorerWindow2 from "./components/ExplorerWindow copy";
 
 export default function Home() {
   const [incidentData, setIncidentData] = useState([]);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
   // If user double-clicks on a single incident, we show a popup
   const [displayedIncident, setDisplayedIncident] = useState(null);
-  const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0)
+  const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
 
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
     y: 0,
-    onFile: false,  // if we clicked on an incident or empty space
-    incidents: [],  // the selected incidents at the time of right-click
+    onFile: false, // if we clicked on an incident or empty space
+    incidents: [], // the selected incidents at the time of right-click
   });
 
   // Show/hide windows
@@ -51,12 +52,12 @@ export default function Home() {
 
   const handleAddNewIncident = async (formData) => {
     try {
-      const response = await fetch('/api/new-incident', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/new-incident", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ addition: formData }),
       });
-      if (!response.ok) throw new Error('Failed to create incident');
+      if (!response.ok) throw new Error("Failed to create incident");
       const updatedData = await response.json();
       setIncidentData(updatedData);
       setShowAddNew(false);
@@ -72,21 +73,22 @@ export default function Home() {
       // We can update the currently displayed incident (if you double-clicked),
       // or if exactly one is selected in the Explorer
       const incidentToUpdate =
-        displayedIncident || (selectedIncidents.length === 1 ? selectedIncidents[0] : null);
+        displayedIncident ||
+        (selectedIncidents.length === 1 ? selectedIncidents[0] : null);
 
       if (!incidentToUpdate) {
         throw new Error("No single incident to update");
       }
 
-      const response = await fetch('/api/update-incident', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+      const response = await fetch("/api/update-incident", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           id: incidentToUpdate.id,
-          update: formData 
+          update: formData,
         }),
       });
-      if (!response.ok) throw new Error('Failed to update incident');
+      if (!response.ok) throw new Error("Failed to update incident");
 
       const updatedData = await response.json();
       setIncidentData(updatedData);
@@ -97,34 +99,34 @@ export default function Home() {
     }
   };
 
- const handleDeleteIncidents = async () => {
-  if (!selectedIncidents.length) return;
+  const handleDeleteIncidents = async () => {
+    if (!selectedIncidents.length) return;
 
-  try {
-    const idArray = selectedIncidents.map((inc) => inc.id);
+    try {
+      const idArray = selectedIncidents.map((inc) => inc.id);
 
-    const response = await fetch("/api/delete-incident", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: idArray }),
-    });
+      const response = await fetch("/api/delete-incident", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: idArray }),
+      });
 
-    if (!response.ok) {
-      throw new Error("Failed to delete incidents");
+      if (!response.ok) {
+        throw new Error("Failed to delete incidents");
+      }
+
+      // Refresh
+      const updatedData = await response.json();
+      setIncidentData(updatedData);
+
+      // Clear selection and close menu
+      setSelectedIncidents([]);
+      setContextMenu({ ...contextMenu, visible: false });
+    } catch (error) {
+      console.error(error);
+      return error.message;
     }
-
-    // Refresh
-    const updatedData = await response.json();
-    setIncidentData(updatedData);
-
-    // Clear selection and close menu
-    setSelectedIncidents([]);
-    setContextMenu({ ...contextMenu, visible: false });
-  } catch (error) {
-    console.error(error);
-    return error.message;
-  }
-};
+  };
 
   // =======================================================================
   // 3. Context Menu
@@ -135,17 +137,17 @@ export default function Home() {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
-    // Update the handler for double-click
+  // Update the handler for double-click
   const handleIncidentDoubleClick = (incident) => {
-    const index = incidentData.findIndex((inc) => inc.id === incident.id)
-    setCurrentIncidentIndex(index)
-    setDisplayedIncident(incident)
-  }
+    const index = incidentData.findIndex((inc) => inc.id === incident.id);
+    setCurrentIncidentIndex(index);
+    setDisplayedIncident(incident);
+  };
 
   const handleIncidentNavigation = (newIndex) => {
-    setCurrentIncidentIndex(newIndex)
-    setDisplayedIncident(incidentData[newIndex])
-  }
+    setCurrentIncidentIndex(newIndex);
+    setDisplayedIncident(incidentData[newIndex]);
+  };
 
   // =======================================================================
   // 4. Render
@@ -153,9 +155,7 @@ export default function Home() {
   return (
     <div
       className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
-      
       onClick={() => closeContextMenu()}
-
       onContextMenu={(e) => {
         e.preventDefault();
         closeContextMenu();
@@ -164,18 +164,17 @@ export default function Home() {
           x: e.clientX,
           y: e.clientY,
           onFile: false,
-          incidents: [], 
+          incidents: [],
         });
       }}
       style={{ position: "relative" }}
     >
-
-      <ExplorerWindow
+      <ExplorerWindow2
         incidents={incidentData}
         selectedIncidents={selectedIncidents}
         setSelectedIncidents={setSelectedIncidents}
-        setDisplayedIncident={setDisplayedIncident}  // for double-click to open popup
-        setContextMenu={setContextMenu}              // so ExplorerWindow can open context menu
+        setDisplayedIncident={setDisplayedIncident} // for double-click to open popup
+        setContextMenu={setContextMenu} // so ExplorerWindow can open context menu
       />
 
       {/* If the user double-clicked on a single incident, show popup */}

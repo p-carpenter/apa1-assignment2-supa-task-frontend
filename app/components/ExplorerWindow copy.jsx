@@ -1,7 +1,15 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
+import MenuBar from "./catalog/MenuBar";
+import AddressBar from "./catalog/AddressBar";
+import WindowContainer from "./core/WindowContainer";
+import TitleBar from "./core/TitleBar";
+import FilterBar from "./catalog/FilterBar";
+import IncidentCard from "./catalog/IncidentCard";
+import YearFolder from "./catalog/YearFolder";
+import SelectionBox from "./catalog/SelectionBox";
 
-export default function ExplorerWindow({
+export default function ExplorerWindow2({
   incidents,
   selectedIncidents,
   setSelectedIncidents,
@@ -22,16 +30,17 @@ export default function ExplorerWindow({
   const [currentView, setCurrentView] = useState("years");
   const [currentYear, setCurrentYear] = useState(null);
 
-  const incidentsByYear = incidents.reduce((acc, incident) => {
+  const incidentsByDecade = incidents.reduce((acc, incident) => {
     const year = new Date(incident.incident_date).getFullYear();
-    if (!acc[year]) {
-      acc[year] = [];
+    const decade = Math.floor(year / 10) * 10;
+    if (!acc[decade]) {
+      acc[decade] = [];
     }
-    acc[year].push(incident);
+    acc[decade].push(incident);
     return acc;
   }, {});
 
-  const years = Object.keys(incidentsByYear).sort();
+  const decades = Object.keys(incidentsByDecade).sort();
 
   const handleItemClick = (e, incident, index) => {
     e.stopPropagation();
@@ -57,9 +66,9 @@ export default function ExplorerWindow({
     setDisplayedIncident(incident);
   };
 
-  const handleFolderDoubleClick = (year) => {
+  const handleFolderDoubleClick = (decade) => {
     setCurrentView("incidents");
-    setCurrentYear(year);
+    setCurrentYear(decade); // We'll keep the state name as currentYear for now
     setSelectedIncidents([]);
   };
 
@@ -197,29 +206,24 @@ export default function ExplorerWindow({
     return true;
   });
 
-  const filteredYears =
+  const filteredDecades =
     searchQuery || activeFilter
-      ? years.filter((year) => {
-          return incidentsByYear[year].some((incident) =>
+      ? decades.filter((decade) => {
+          return incidentsByDecade[decade].some((incident) =>
             filteredIncidents.includes(incident)
           );
         })
-      : years;
+      : decades;
 
   const visibleIncidents = currentYear
-    ? incidentsByYear[currentYear].filter((incident) =>
+    ? incidentsByDecade[currentYear].filter((incident) =>
         filteredIncidents.includes(incident)
       )
     : [];
 
   return (
-    <div
+    <WindowContainer
       ref={containerRef}
-      className="explorer-container h-[80vh] w-[75vw] shadow-win95"
-      style={{
-        userSelect: "none",
-        position: "relative",
-      }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -234,107 +238,60 @@ export default function ExplorerWindow({
         });
       }}
     >
-      <div className="explorer-window-bar">
-        <div className="folder-name">
-          <img src="/win95-folder-icon.png" alt="Folder Icon" />
-          <p>Technology Incidents{currentYear ? ` - ${currentYear}` : ""}</p>
-        </div>
-        <div className="window-buttons">
-          <div id="min-button"></div>
-          <div id="max-button"></div>
-          <div id="close-button"></div>
-        </div>
-      </div>
+      <TitleBar
+        title={`Technology Incidents${currentYear ? ` - ${currentYear}s` : ""}`}
+        icon="/win95-folder-icon.png"
+        onMinimize={() => {
+          /* handle minimize */
+        }}
+        onMaximize={() => {
+          /* handle maximize */
+        }}
+        onClose={() => {
+          /* handle close */
+        }}
+      />
+      <MenuBar />
+      <AddressBar
+        currentPath={`C:\\Technology Incidents${currentYear ? `\\${currentYear}s` : ""}\\`}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
+        onSearchSubmit={(e) => e.key === "Enter" && handleSearchSubmit(e)}
+      />
 
-      <div className="explorer-header">
-        <div className="menu">
-          <p>File</p>
-          <p>Edit</p>
-          <p>View</p>
-          <p>Help</p>
-        </div>
-        <div className="path-display">
-          <p>Address</p>
-          <div className="explorer-path flex-1 flex items-center">
-            <p className="whitespace-nowrap">
-              C:\Technology Incidents{currentYear ? `\\${currentYear}` : ""}\
-            </p>
-            <input
-              type="text"
-              className="flex-1 outline-none border-none bg-transparent"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onKeyDown={(e) => e.key === "Enter" && handleSearchSubmit(e)}
-            />
-          </div>
-        </div>
-      </div>
-      <div className="filter-bar">
-        <div className="flex flex-row gap-3 items-center justify-start">
-          {currentView === "incidents" && (
-            <button
-              className="win95-folder-nav-button"
-              onClick={handleBackClick}
-            >
-              <div className="arrow-left"></div>
-            </button>
-          )}
-          <p>Category:</p>
-          {[...new Set(incidents.map((incident) => incident.category))].map(
-            (category) => (
-              <button
-                key={category}
-                className={`filter-button ${activeFilter === category ? "bg-win95blue text-white" : "hover:bg-win95blue hover:text-white"}`}
-                onClick={() => handleFilterClick(category)}
-              >
-                {category}
-              </button>
-            )
-          )}
-        </div>
-      </div>
+      <FilterBar
+        currentView={currentView}
+        categories={[
+          ...new Set(incidents.map((incident) => incident.category)),
+        ]}
+        activeFilter={activeFilter}
+        onFilterClick={handleFilterClick}
+        onBackClick={handleBackClick}
+      />
 
       <div className="explorer-content">
         {currentView === "years" ? (
-          filteredYears.map((year, index) => (
-            <div
-              key={year}
-              id={`folder-${index}`}
-              className="flex flex-col items-center justify-center gap-1 p-2 cursor-pointer hover:bg-blue-100"
-              onDoubleClick={() => handleFolderDoubleClick(year)}
-            >
-              <img src="/win95-folder-icon.png" className="w-8 h-8" />
-              <p>{year}</p>
-              <p className="text-xs text-gray-500">
-                {incidentsByYear[year].length} incidents
-              </p>
-            </div>
+          filteredDecades.map((decade, index) => (
+            <YearFolder
+              key={decade}
+              year={`${decade}s`} // Add 's' to show it's a decade
+              incidentCount={incidentsByDecade[decade].length}
+              index={index}
+              onDoubleClick={() => handleFolderDoubleClick(decade)}
+            />
           ))
         ) : visibleIncidents.length > 0 ? (
           visibleIncidents.map((entry, index) => {
             const isSelected = selectedIncidents.includes(entry);
             return (
-              <div
-                key={entry.id}
-                id={`incident-${index}`}
-                className={`case-container ${isSelected ? "selected" : ""}`}
-                style={{ position: "relative" }}
+              <IncidentCard
+                entry={entry}
+                index={index}
+                isSelected={isSelected}
                 onClick={(e) => handleItemClick(e, entry, index)}
                 onDoubleClick={() => handleItemDoubleClick(entry)}
                 onContextMenu={(e) => handleItemContextMenu(e, entry, index)}
-              >
-                <div className="casefile">
-                  <img src="/computer.png" className="w-12 h-12" />
-                  <div
-                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full ${entry.severity.toLowerCase()}`}
-                  />
-                </div>
-                <p>{entry.name}</p>
-                <p className="text-xs bg-gray-300 px-2 category-label">
-                  {entry.category}
-                </p>
-              </div>
+              />
             );
           })
         ) : (
@@ -344,20 +301,7 @@ export default function ExplorerWindow({
         )}
       </div>
 
-      {isSelecting && (
-        <div
-          style={{
-            position: "absolute",
-            border: "1px dashed black",
-            background: "transparent",
-            left: selectionBox.x,
-            top: selectionBox.y,
-            width: selectionBox.width,
-            height: selectionBox.height,
-            pointerEvents: "none",
-          }}
-        />
-      )}
-    </div>
+      <SelectionBox isSelecting={isSelecting} selectionBox={selectionBox} />
+    </WindowContainer>
   );
 }
