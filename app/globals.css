@@ -782,4 +782,31 @@ grid-column: 2;
     background-position: 0px 0px, 3px 3px;
 }
 
+.win95-folder-nav-button {
+  width: 24px;
+  height: 24px;
+  border: 2px solid;
+  border-color: #fff #808080 #808080 #fff;
+  background-color: #c0c0c0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 1px 1px 0 0 #000;
+  outline: 1px solid #000;
+  cursor: pointer;
+  padding: 0;
+}
 
+.win95-nav-button:active {
+  border-color: #808080 #fff #fff #808080;
+  padding: 1px 0 0 1px;
+}
+
+.arrow-left {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid #404040;
+  margin-right: 2px;
+}
