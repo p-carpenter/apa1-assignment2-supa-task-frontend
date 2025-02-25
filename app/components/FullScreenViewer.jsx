@@ -126,7 +126,7 @@ export default function TechIncidentViewer({ incident, onClose, incidents, curre
         {/* Description Content */}
         <div className="flex-grow bg-win95gray p-4 overflow-auto grid grid-cols-[auto, 1fr] gap-4">
           <div className="flex justify-end p-2 bg-win95gray border-t border-[#808080] col-2">
-  <button
+  {/* <button
     onClick={goToPrevious}
     className="px-4 py-2 border border-[#808080] bg-[#dfdfdf] text-black shadow-inner-win95 active:shadow-none mr-2"
   >
@@ -137,7 +137,7 @@ export default function TechIncidentViewer({ incident, onClose, incidents, curre
     className="px-4 py-2 border border-[#808080] bg-[#dfdfdf] text-black shadow-inner-win95 active:shadow-none"
   >
     NEXT →
-  </button>
+  </button> */}
 </div>
 
           <h2 className="text-xl font-bold mb-2 col-1">{incident.name}</h2>

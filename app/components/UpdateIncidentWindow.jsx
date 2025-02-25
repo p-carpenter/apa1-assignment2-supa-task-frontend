@@ -68,14 +68,14 @@ const handleSubmit = async (e) => {
     if (error) {
         setError(error);
     } else {
-        onClose(); // Close form after successful submission
+        onClose();
     }
 }
 if (!incident) {
   return <div>No incident selected</div>;
 }
   return (
-    <div className="new-incident-window">
+    <div className="new-incident-window absolute items-center justify-center bg-win95gray w-[30vw] h-[auto] border-2 border-win95border shadow-win95">
       <div className="explorer-window-bar">
         <div className="folder-name">
           <p>Update {incident ? incident.name : 'Incident'}</p>

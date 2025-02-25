@@ -58,7 +58,7 @@ const handleSubmit = async (e) => {
 }
 
   return (
-    <div className="new-incident-window">
+    <div className="new-incident-window absolute items-center justify-center bg-win95gray w-[30vw] h-[auto] border-2 border-win95border shadow-win95">
       <div className="explorer-window-bar">
         <div className="folder-name">
           <p>Add new incident</p>
