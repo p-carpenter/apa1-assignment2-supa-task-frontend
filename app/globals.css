@@ -12,6 +12,16 @@
   src: url("/fonts/WebPlus_IBM_VGA_9x16.woff");
 }
 
+@font-face {
+  font-family: 'MS Sans Serif';
+  src: url("/fonts/mssansserif.ttf");
+}
+
+@font-face {
+  font-family: 'Pixel Operator';
+  src: url("/fonts/PixelOperator.ttf");
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -50,8 +60,8 @@ body {
 .explorer-container {
   display: flex;
   flex-direction: column;
-  width: 70vw; /* Adjust as needed */
-  height: 90vh; /* Ensures it has a fixed height */
+  max-width: 70vw; /* Adjust as needed */
+  max-height: 90vh; /* Ensures it has a fixed height */
   border: 3px solid var(--border-colour);
   background-color: white;
 }
@@ -748,3 +758,28 @@ body {
 .severity-low {
   background-color: #00cc00;
 }
+
+.customgrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  border: 2px inset rgb(237, 237, 237);
+}
+
+.firstcol {
+grid-column: 1;
+}
+
+.secondcol {
+grid-column: 2;
+}
+
+.polka-bg {
+    background-color: white;
+    background-image:
+        radial-gradient(circle, yellow 20%, transparent 20%),
+        radial-gradient(circle, yellow 20%, transparent 20%);
+    background-size: 6px 6px;
+    background-position: 0px 0px, 3px 3px;
+}
+
+

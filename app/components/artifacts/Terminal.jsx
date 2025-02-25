@@ -31,7 +31,7 @@ export default function Terminal() {
   return (
     <>
       {isVisible && (
-        <div className="artifact">
+        <div className="artifact fixed">
         <div className="terminal">
           <div className="tabs">
             {tabs.map((tab) => (

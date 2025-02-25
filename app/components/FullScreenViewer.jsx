@@ -87,55 +87,85 @@ export default function TechIncidentViewer({ incident, onClose, incidents, curre
   if (!incident) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-11/12 max-w-5xl bg-[#f5e9d7] pb-12 relative">
-        <div className="flex justify-end items-center px-4 py-2">
-          <button 
-            className="px-3 py-1 opacity-70 hover:opacity-100"
-            onClick={onClose}
-          >
-            Catalog
+    // Teal desktop background
+    <div className="fixed inset-0 w-full h-full bg-teal z-50 flex items-center justify-center">
+      <div className="flex flex-row justify-center items-start gap-4">
+      {/* Left Window: Visualization Container */}
+      <div className="explorer-container w-[auto] max-w-4xl h-[70vh] flex flex-col border-4 border-gray-300 shadow-win95 mr-4">
+        {/* Title Bar */}
+        <div className="explorer-window-bar flex justify-between items-center h-8 px-2 bg-win95blue text-white">
+          <div className="flex items-center gap-2">
+            <img src="/win95-folder-icon.png" alt="Folder Icon" className="w-4 h-4" />
+            <p className="text-sm">{incident.name} - Visualization</p>
+          </div>
+          <button onClick={onClose} className="bg-gray-200 text-black px-2 text-xs">
+            X
           </button>
         </div>
 
-          <div className="flex flex-col md:flex-row px-4 gap-6">
-            <div className="md:w-3/5 shadow-lg">
-              <div className={`w-full ${theme.background} ${theme.fontFamily} ${theme.text}`}>
-                {renderVisualization()}
-              </div>
-            </div>
-            
-            <div className="md:w-2/5">
-              <div className="border border-[#c0b5a5] bg-white p-6">
-                <h2 className="text-2xl font-serif mb-2 uppercase">{incident.name}</h2>
-                <div className="prose prose-sm">
-                  <p className="mb-4">{incident.description}</p>
-                  <p>Date: {incident.incident_date}</p>
-                  <p>Category: {incident.category}</p>
-                  <p className="flex items-center">
-                    Severity: 
-                    <span className={`ml-2 w-3 h-3 rounded-full bg-${incident.severity === 'High' ? 'red' : incident.severity === 'Medium' ? 'yellow' : 'green'}-500`}></span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        <div className="absolute bottom-4 right-4 flex space-x-2">
-          <button
-            onClick={goToPrevious}
-            className="px-4 py-2 border border-[#c0b5a5] bg-white hover:bg-[#f0e5d0] flex items-center"
-          >
-            <span>PREV</span>
-          </button>
-          <button
-            onClick={goToNext}
-            className="px-4 py-2 border border-[#c0b5a5] bg-white hover:bg-[#f0e5d0] flex items-center"
-          >
-            <span>NEXT →</span>
-          </button>
+        {/* Visualization Content */}
+        <div className="flex-grow bg-gray-100 flex items-center justify-center p-2">
+          {renderVisualization()}
         </div>
       </div>
+      
+      {/* Right Window: Description Panel (floating) */}
+      <div className="explorer-container w-[30vw] max-w-sm h-[auto] flex flex-col border-4 border-gray-300 shadow-win95 overflow-hidden">
+        {/* Title Bar */}
+        <div className="explorer-window-bar flex justify-between items-center h-8 px-2 bg-win95blue text-white">
+          <div className="flex items-center gap-2 m-1">
+            <p className="text-sm">{incident.name} - Details</p>
+          </div>
+          <div className="flex">
+            <button className="bg-gray-200 text-black px-2 text-xs ml-1">_</button>
+            <button className="bg-gray-200 text-black px-2 text-xs ml-1">□</button>
+            <button onClick={onClose} className="bg-gray-200 text-black px-2 text-xs ml-1">X</button>
+          </div>
+        </div>
+
+        {/* Description Content */}
+        <div className="flex-grow bg-win95gray p-4 overflow-auto grid grid-cols-[auto, 1fr] gap-4">
+          <div className="flex justify-end p-2 bg-win95gray border-t border-[#808080] col-2">
+  <button
+    onClick={goToPrevious}
+    className="px-4 py-2 border border-[#808080] bg-[#dfdfdf] text-black shadow-inner-win95 active:shadow-none mr-2"
+  >
+    PREV
+  </button>
+  <button
+    onClick={goToNext}
+    className="px-4 py-2 border border-[#808080] bg-[#dfdfdf] text-black shadow-inner-win95 active:shadow-none"
+  >
+    NEXT →
+  </button>
+</div>
+
+          <h2 className="text-xl font-bold mb-2 col-1">{incident.name}</h2>
+          <div className="polka-bg items-center justify-center p-4 grid customgrid col-1">
+          <img src="winNTlightbulb.svg" alt="Lightbulb Icon" className="h-10 firstcol"/>
+          <p className="font-mssansserif text-xs font-bold secondcol m-3">Did you know...</p>
+          <div className="secondcol ml-3 text-xs font-mssansserif">
+          <p className="mb-4">{incident.description}</p>
+          <p className="mb-2">Date: {incident.incident_date}</p>
+          <p className="mb-2">Category: {incident.category}</p>
+          <p className="flex items-center mb-2">
+            Severity: 
+            <span className={`ml-2 w-3 h-3 rounded-full ${
+              incident.severity === 'High'
+                ? 'bg-red-500'
+                : incident.severity === 'Medium'
+                ? 'bg-yellow-500'
+                : 'bg-green-500'
+            }`}/>
+          </p>
+          <p className="mb-2">Cause: {incident.cause}</p>
+          <p className="mb-2">Consequences: {incident.consequences}</p>
+          <p className="mb-2">Time to resolve: {incident.time_to_resolve}</p>
+          </div>
+        </div>
+        </div>
+      </div>
+      </div>
     </div>
-  )
+  );
 }
