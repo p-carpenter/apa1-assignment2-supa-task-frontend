@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useMemo } from "react";
 import MenuBar from "./catalog/MenuBar";
 import AddressBar from "./catalog/AddressBar";
 import WindowContainer from "./core/WindowContainer";
@@ -30,15 +30,17 @@ export default function ExplorerWindow2({
   const [currentView, setCurrentView] = useState("years");
   const [currentYear, setCurrentYear] = useState(null);
 
-  const incidentsByDecade = incidents.reduce((acc, incident) => {
-    const year = new Date(incident.incident_date).getFullYear();
-    const decade = Math.floor(year / 10) * 10;
-    if (!acc[decade]) {
-      acc[decade] = [];
-    }
-    acc[decade].push(incident);
-    return acc;
-  }, {});
+  const incidentsByDecade = useMemo(() => {
+    return incidents.reduce((acc, incident) => {
+      const year = new Date(incident.incident_date).getFullYear();
+      const decade = Math.floor(year / 10) * 10;
+      if (!acc[decade]) {
+        acc[decade] = [];
+      }
+      acc[decade].push(incident);
+      return acc;
+    }, {});
+  }, [incidents]);
 
   const decades = Object.keys(incidentsByDecade).sort();
 
@@ -189,21 +191,23 @@ export default function ExplorerWindow2({
     e.preventDefault();
   };
 
-  const filteredIncidents = incidents.filter((incident) => {
-    if (activeFilter && incident.category !== activeFilter) {
-      return false;
-    }
+  const filteredIncidents = useMemo(() => {
+    incidents.filter((incident) => {
+      if (activeFilter && incident.category !== activeFilter) {
+        return false;
+      }
 
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      return (
-        incident.name.toLowerCase().includes(query) ||
-        incident.category.toLowerCase().includes(query) ||
-        (incident.severity && incident.severity.toLowerCase().includes(query))
-      );
-    }
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        return (
+          incident.name.toLowerCase().includes(query) ||
+          incident.category.toLowerCase().includes(query) ||
+          (incident.severity && incident.severity.toLowerCase().includes(query))
+        );
+      }
 
-    return true;
+      return true;
+    });
   });
 
   const filteredDecades =
