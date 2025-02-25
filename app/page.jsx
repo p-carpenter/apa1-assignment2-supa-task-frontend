@@ -4,11 +4,9 @@ import { useEffect, useState } from "react";
 import ExplorerWindow from "@/app/components/ExplorerWindow";
 import IncidentPopup from "@/app/components/IncidentPopup";
 import ContextMenu from "@/app/components/ContextMenu";
-import Terminal from "@/app/components/artifacts/Terminal";
 import AddNewIncident from "./components/AddNewIncident";
 import UpdateIncident from "./components/UpdateIncidentWindow";
 import FullScreenViewer from "./components/FullScreenViewer";
-import ExplorerWindow2 from "./components/ExplorerWindow copy";
 
 export default function Home() {
   const [incidentData, setIncidentData] = useState([]);
@@ -169,7 +167,7 @@ export default function Home() {
       }}
       style={{ position: "relative" }}
     >
-      <ExplorerWindow2
+      <ExplorerWindow
         incidents={incidentData}
         selectedIncidents={selectedIncidents}
         setSelectedIncidents={setSelectedIncidents}
