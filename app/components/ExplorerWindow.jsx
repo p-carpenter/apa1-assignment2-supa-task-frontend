@@ -8,26 +8,20 @@ export default function ExplorerWindow({
   setDisplayedIncident,
   setContextMenu,
 }) {
-  // For SHIFT-click we track the last clicked index
   const [lastClickedIndex, setLastClickedIndex] = useState(null);
-
-  // For drag selection
   const containerRef = useRef(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [startPoint, setStartPoint] = useState({ x: 0, y: 0 });
   const [selectionBox, setSelectionBox] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
-  // 1) Handle normal clicks (Shift, Ctrl, etc.)
   const handleItemClick = (e, incident, index) => {
     e.stopPropagation();
-    // If SHIFT => select range
     if (e.shiftKey && lastClickedIndex !== null) {
       const start = Math.min(lastClickedIndex, index);
       const end = Math.max(lastClickedIndex, index);
       const range = incidents.slice(start, end + 1);
       setSelectedIncidents(range);
     }
-    // If CTRL/META => toggle
     else if (e.ctrlKey || e.metaKey) {
       if (selectedIncidents.includes(incident)) {
         setSelectedIncidents(selectedIncidents.filter((i) => i !== incident));
@@ -36,30 +30,25 @@ export default function ExplorerWindow({
       }
       setLastClickedIndex(index);
     }
-    // Otherwise => single select
     else {
       setSelectedIncidents([incident]);
       setLastClickedIndex(index);
     }
   };
 
-  // 2) Double click => open popup
   const handleItemDoubleClick = (incident) => {
     setDisplayedIncident(incident);
   };
 
-  // 3) Right click => open context menu
   const handleItemContextMenu = (e, incident, index) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // If item isn't in selection, select it alone
     if (!selectedIncidents.includes(incident)) {
       setSelectedIncidents([incident]);
       setLastClickedIndex(index);
     }
 
-    // Show context menu
     setContextMenu({
       visible: true,
       x: e.clientX,
@@ -71,17 +60,9 @@ export default function ExplorerWindow({
     });
   };
 
-  // 4) Start drag selection if user clicked on empty space
-  //    We'll do this onMouseDown of the container.
-  //    If user clicks an item, it’s handled in handleItemClick above,
-  //    so we can skip setting isSelecting in that scenario.
   const handleMouseDown = (e) => {
-    // Only left-click, and only if not holding SHIFT/CTRL:
     if (e.button !== 0 || e.shiftKey || e.ctrlKey || e.metaKey) return;
 
-    // Check if the click was on the container (not an item).
-    // Because items do e.stopPropagation(), a click on an item
-    // won't bubble here. So if we get here, it's empty space.
     setIsSelecting(true);
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -89,14 +70,12 @@ export default function ExplorerWindow({
     setStartPoint({ x, y });
     setSelectionBox({ x, y, width: 0, height: 0 });
 
-    // Clear existing selection if you want to start fresh:
     setSelectedIncidents([]);
   };
 
-  // 5) On mouse move, update selectionBox
   const handleMouseMove = (e) => {
     if (!isSelecting) return;
-    e.preventDefault(); // prevent text highlight
+    e.preventDefault();
 
     const rect = containerRef.current.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
@@ -110,14 +89,12 @@ export default function ExplorerWindow({
     };
     setSelectionBox(newBox);
 
-    // Real-time highlight: find all items that intersect newBox
     const newlySelected = [];
     for (let i = 0; i < incidents.length; i++) {
       const itemEl = document.getElementById(`incident-${i}`);
       if (!itemEl) continue;
       const itemRect = itemEl.getBoundingClientRect();
 
-      // Convert itemRect to container coords:
       const itemBox = {
         x: itemRect.left - rect.left,
         y: itemRect.top - rect.top,
@@ -132,13 +109,11 @@ export default function ExplorerWindow({
     setSelectedIncidents(newlySelected);
   };
 
-  // 6) On mouse up, finalize selection
   const handleMouseUp = (e) => {
-    if (e.button !== 0) return; // only left button
+    if (e.button !== 0) return;
     setIsSelecting(false);
   };
 
-  // 7) A helper function to detect bounding-box intersections
   function boxesIntersect(a, b) {
     return !(
       a.x + a.width < b.x ||
@@ -148,9 +123,10 @@ export default function ExplorerWindow({
     );
   }
 
-    const [activeFilter, setActiveFilter] = useState(null);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-    const handleFilterClick = (category) => {
+  const handleFilterClick = (category) => {
     if (activeFilter === category) {
       setActiveFilter(null);
     } else {
@@ -158,9 +134,30 @@ export default function ExplorerWindow({
     }
   };
 
-  const filteredIncidents = activeFilter 
-    ? incidents.filter(incident => incident.category === activeFilter)
-    : incidents;
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
+
+  const filteredIncidents = incidents.filter(incident => {
+    if (activeFilter && incident.category !== activeFilter) {
+      return false;
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      return (
+        incident.name.toLowerCase().includes(query) ||
+        incident.category.toLowerCase().includes(query) ||
+        (incident.severity && incident.severity.toLowerCase().includes(query))
+      );
+    }
+    
+    return true;
+  });
 
   return (
     <div
@@ -185,7 +182,6 @@ export default function ExplorerWindow({
         });
       }}
     >
-            {/* Window Bar */}
       <div className="explorer-window-bar">
         <div className="folder-name">
           <img src="/win95-folder-icon.png" alt="Folder Icon" />
@@ -198,7 +194,6 @@ export default function ExplorerWindow({
         </div>
       </div>
 
-      {/* Explorer Header */}
       <div className="explorer-header">
         <div className="menu">
           <p>File</p>
@@ -208,15 +203,20 @@ export default function ExplorerWindow({
         </div>
         <div className="path-display">
           <p>Address</p>
-          <p className="explorer-path">C:\Technology Failures</p>
-          <div className="action-icons">
-            <img src="/search.png" />
+            <div className="explorer-path flex-1 flex items-center">
+            <p className="whitespace-nowrap">C:\Technology Incidents\</p>
+            <input 
+              type="text" 
+              className="flex-1 outline-none border-none bg-transparent"
+              placeholder="Search..." 
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchSubmit(e)}
+            />
           </div>
         </div>
       </div>
       <div className="filter-bar">
-        <input type="text" placeholder="Search..." />
-        <button>Search</button>
         <div className="flex flex-row gap-3 items-center justify-start">
             <p>Category:</p> 
             {[...new Set(incidents.map(incident => incident.category))].map(category => (
@@ -259,7 +259,6 @@ export default function ExplorerWindow({
         })}
       </div>
 
-      {/* Show the selection box overlay if isSelecting */}
       {isSelecting && (
         <div
           style={{
