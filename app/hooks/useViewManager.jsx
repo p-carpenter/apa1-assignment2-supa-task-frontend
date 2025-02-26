@@ -49,7 +49,6 @@ const useViewManager = (filteredIncidents) => {
   return {
     currentView,
     currentYear,
-    currentDecade,
     decades,
     filteredDecades,
     visibleIncidents,

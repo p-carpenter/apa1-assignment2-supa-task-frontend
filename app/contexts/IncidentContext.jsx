@@ -15,6 +15,11 @@ export const IncidentProvider = ({
   const [currentDecade, setCurrentDecade] = useState(null);
   const [currentYear, setCurrentYear] = useState(null);
 
+  const calculateDecadeFromYear = (year) => {
+    if (!year) return null;
+    return Math.floor(year / 10) * 10;
+  };
+
   // Group incidents by decade
   const incidentsByDecade = useMemo(() => {
     return incidents.reduce((acc, incident) => {
@@ -38,8 +43,24 @@ export const IncidentProvider = ({
   };
 
   const handleIncidentNavigation = (newIndex) => {
-    setCurrentIncidentIndex(newIndex);
-    setDisplayedIncident(incidents[newIndex]);
+    if (newIndex >= 0 && newIndex < incidents.length) {
+      const nextIncident = incidents[newIndex];
+      setCurrentIncidentIndex(newIndex);
+      setDisplayedIncident(nextIncident);
+
+      // Extract and set the decade from the incident date
+      try {
+        const year = new Date(nextIncident.incident_date).getFullYear();
+        const decade = calculateDecadeFromYear(year);
+        setCurrentDecade(decade);
+      } catch (error) {
+        console.error(
+          "Error extracting decade from incident:",
+          nextIncident,
+          error
+        );
+      }
+    }
   };
 
   // View management functions
