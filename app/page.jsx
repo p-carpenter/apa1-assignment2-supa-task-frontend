@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { IncidentProvider } from "./contexts/IncidentContext";
-import useIncidentProcessor from "./hooks/useIncidentProcessor";
+import { useState } from "react";
+import { useIncidents } from "./contexts/IncidentContext";
 import useIncidentFilter from "./hooks/useIncidentFilter";
 import useViewManager from "./hooks/useViewManager";
 import IncidentCatalog from "@/app/components/core/IncidentCatalog";
@@ -13,7 +11,14 @@ import UpdateIncident from "./components/core/UpdateIncidentWindow";
 import IncidentGallery from "./components/core/IncidentGallery";
 
 export default function Home() {
-  const [incidentData, setIncidentData] = useState([]);
+  const {
+    incidents,
+    setIncidents,
+    selectedIncidents,
+    setSelectedIncidents,
+    displayedIncident,
+  } = useIncidents();
+
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -27,24 +32,7 @@ export default function Home() {
   const [showUpdate, setShowUpdate] = useState(false);
 
   // =======================================================================
-  // 1. Load Incidents from DB
-  // =======================================================================
-  useEffect(() => {
-    const fetchIncidents = async () => {
-      try {
-        const response = await fetch("/api/tech-incidents");
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const data = await response.json();
-        setIncidentData(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchIncidents();
-  }, []);
-
-  // =======================================================================
-  // 2. Handlers for Add / Update / Delete
+  // Handlers for Add / Update / Delete
   // =======================================================================
 
   const handleAddNewIncident = async (formData) => {
@@ -56,7 +44,7 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Failed to create incident");
       const updatedData = await response.json();
-      setIncidentData(updatedData);
+      setIncidents(updatedData);
       setShowAddNew(false);
     } catch (error) {
       console.error(error);
@@ -88,7 +76,7 @@ export default function Home() {
       if (!response.ok) throw new Error("Failed to update incident");
 
       const updatedData = await response.json();
-      setIncidentData(updatedData);
+      setIncidents(updatedData);
       setShowUpdate(false);
     } catch (error) {
       console.error(error);
@@ -114,7 +102,7 @@ export default function Home() {
 
       // Refresh
       const updatedData = await response.json();
-      setIncidentData(updatedData);
+      setIncidents(updatedData);
 
       // Clear selection and close menu
       setSelectedIncidents([]);
@@ -126,7 +114,7 @@ export default function Home() {
   };
 
   // =======================================================================
-  // 3. Context Menu
+  // Context Menu
   // =======================================================================
 
   // Close the context menu (called whenever user left-clicks anywhere, etc.)
@@ -134,82 +122,73 @@ export default function Home() {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
-  // Move view management logic to root
-  const { incidentsByDecade } = useIncidentProcessor(incidentData);
+  // Get filtered incidents
+  const { filteredIncidents } = useIncidentFilter(incidents);
 
-  const { filteredIncidents } = useIncidentFilter(incidentData);
-
-  const { currentDecade } = useViewManager(
-    incidentData,
-    incidentsByDecade,
-    filteredIncidents
-  );
+  // Use our view manager with the filtered incidents
+  useViewManager(filteredIncidents);
 
   // =======================================================================
-  // 4. Render
+  // Render
   // =======================================================================
   return (
-    <IncidentProvider incidents={incidentData} currentDecade={currentDecade}>
-      <ThemeProvider>
-        <div
-          className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
-          onClick={() => closeContextMenu()}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            closeContextMenu();
-            setContextMenu({
-              visible: true,
-              x: e.clientX,
-              y: e.clientY,
-              onFile: false,
-              incidents: [],
-            });
-          }}
-          style={{ position: "relative" }}
-        >
-          <IncidentCatalog
-            setContextMenu={setContextMenu}
-            setShowAddNew={setShowAddNew}
-            setShowUpdate={setShowUpdate}
-          />
+    <div
+      className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
+      onClick={() => closeContextMenu()}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        closeContextMenu();
+        setContextMenu({
+          visible: true,
+          x: e.clientX,
+          y: e.clientY,
+          onFile: false,
+          incidents: [],
+        });
+      }}
+      style={{ position: "relative" }}
+    >
+      <IncidentCatalog
+        setContextMenu={setContextMenu}
+        setShowAddNew={setShowAddNew}
+        setShowUpdate={setShowUpdate}
+      />
 
-          <IncidentGallery />
+      <IncidentGallery />
 
-          {/* Context Menu */}
-          {contextMenu.visible && (
-            <ContextMenu
-              visible={contextMenu.visible}
-              x={contextMenu.x}
-              y={contextMenu.y}
-              onFile={contextMenu.onFile}
-              incidents={contextMenu.incidents}
-              closeContextMenu={closeContextMenu}
-              setShowAddNew={setShowAddNew}
-              setShowUpdate={setShowUpdate}
-              onDeleteIncidents={handleDeleteIncidents}
-            />
-          )}
+      {/* Context Menu */}
+      {contextMenu.visible && (
+        <ContextMenu
+          visible={contextMenu.visible}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onFile={contextMenu.onFile}
+          incidents={contextMenu.incidents}
+          closeContextMenu={closeContextMenu}
+          setShowAddNew={setShowAddNew}
+          setShowUpdate={setShowUpdate}
+          onDeleteIncidents={handleDeleteIncidents}
+        />
+      )}
 
-          {/* Add New Incident Window */}
-          {showAddNew && (
-            <AddNewIncident
-              onClose={() => setShowAddNew(false)}
-              onSubmit={handleAddNewIncident}
-            />
-          )}
+      {/* Add New Incident Window */}
+      {showAddNew && (
+        <AddNewIncident
+          onClose={() => setShowAddNew(false)}
+          onSubmit={handleAddNewIncident}
+        />
+      )}
 
-          {/* Update Incident Window */}
-          {showUpdate && (
-            <UpdateIncident
-              incident={
-                selectedIncidents.length === 1 ? selectedIncidents[0] : null
-              }
-              onClose={() => setShowUpdate(false)}
-              onSubmit={handleUpdateIncident}
-            />
-          )}
-        </div>
-      </ThemeProvider>
-    </IncidentProvider>
+      {/* Update Incident Window */}
+      {showUpdate && (
+        <UpdateIncident
+          incident={
+            selectedIncidents.length === 1 ? selectedIncidents[0] : null
+          }
+          onClose={() => setShowUpdate(false)}
+          onSubmit={handleUpdateIncident}
+        />
+      )}
+    </div>
   );
 }

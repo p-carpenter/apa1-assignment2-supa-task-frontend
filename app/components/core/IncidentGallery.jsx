@@ -2,7 +2,7 @@
 
 import { useIncidents } from "../../contexts/IncidentContext";
 import { useTheme } from "../../contexts/ThemeContext";
-import ThemedIncidentViewer from "../gallery/ThemedIncidentViewer";
+import ThemedGalleryDisplay from "../gallery/ThemedGalleryDisplay";
 
 const IncidentGallery = () => {
   const { theme } = useTheme();

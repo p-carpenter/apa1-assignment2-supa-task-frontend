@@ -29,7 +29,7 @@ const DecadeThemes = {
     },
   },
   1990: {
-    background: "bg-[#008080]", // Teal background typical of Win95
+    background: "bg-[#008080]", // Teal background
     text: "text-white",
     fontFamily: "font-WFA95",
     accent: "text-yellow-400",
@@ -50,12 +50,10 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
   const { currentDecade } = useIncidents();
-  console.log('ThemeContext - received currentDecade:', currentDecade);
-  
+
   const decadeKey = Object.keys(DecadeThemes).includes(String(currentDecade))
     ? currentDecade
     : 1990;
-  console.log('ThemeContext - using decadeKey:', decadeKey);
 
   const value = {
     decade: decadeKey,

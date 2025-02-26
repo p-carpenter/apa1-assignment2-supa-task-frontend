@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
+import { useIncidents } from "../contexts/IncidentContext";
 
-const useIncidentFilter = (incidents = []) => {
+const useIncidentFilter = () => {
+  const { incidents } = useIncidents();
   const [activeFilter, setActiveFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 

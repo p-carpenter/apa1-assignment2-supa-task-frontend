@@ -1,11 +1,16 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useIncidents } from "../contexts/IncidentContext";
 
-const useViewManager = (incidents, incidentsByDecade, filteredIncidents) => {
-  const { setCurrentDecade, setSelectedIncidents, handleIncidentDoubleClick } =
-    useIncidents();
-  const [currentView, setCurrentView] = useState("years");
-  const [currentYear, setCurrentYear] = useState(null);
+const useViewManager = (filteredIncidents) => {
+  const {
+    incidentsByDecade,
+    currentDecade,
+    currentYear,
+    setSelectedIncidents,
+    handleFolderDoubleClick,
+    handleIncidentDoubleClick,
+    navigateToRoot,
+  } = useIncidents();
 
   // Get all decades from incidentsByDecade
   const decades = useMemo(() => {
@@ -23,12 +28,6 @@ const useViewManager = (incidents, incidentsByDecade, filteredIncidents) => {
     );
   }, [decades, incidentsByDecade, filteredIncidents]);
 
-  // Calculate current decade based on currentYear - single source of truth
-  const currentDecade = useMemo(() => {
-    if (!currentYear) return null;
-    return Math.floor(currentYear / 10) * 10;
-  }, [currentYear]);
-
   // Get visible incidents for the current year
   const visibleIncidents = useMemo(() => {
     if (!currentYear) return [];
@@ -39,23 +38,12 @@ const useViewManager = (incidents, incidentsByDecade, filteredIncidents) => {
     );
   }, [currentYear, incidentsByDecade, filteredIncidents]);
 
-  // Enhanced navigation handlers
-  const handleFolderDoubleClick = (decade) => {
-    setCurrentView("incidents");
-    setCurrentYear(decade);
-    setSelectedIncidents([]);
-    setCurrentDecade(currentDecade);
-  };
+  // Determine current view based on currentYear
+  const currentView = currentYear ? "incidents" : "years";
 
+  // Handle clicking on an incident directly
   const handleIncidentClick = (incident) => {
     handleIncidentDoubleClick(incident);
-  };
-
-  const navigateToRoot = () => {
-    setCurrentView("years");
-    setCurrentYear(null);
-    setSelectedIncidents([]);
-    setCurrentDecade(null);
   };
 
   return {
