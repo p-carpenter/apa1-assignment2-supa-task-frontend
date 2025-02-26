@@ -1,5 +1,5 @@
 import React from "react";
-import IncidentVisualisationCard from "../viewer/IncidentVisualisationCard";
+import IncidentVisualisationCard from "./IncidentVisualisationCard";
 import IncidentDescriptionCard from "./IncidentDescriptionCard";
 
 const ThemedGalleryDisplay = ({
