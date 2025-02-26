@@ -1,16 +1,16 @@
 "use client";
 
-import { useIncidents } from "../../contexts/IncidentContext";
-import useSelectionManager from "../../hooks/useSelectionManager";
-import useIncidentFilter from "../../hooks/useIncidentFilter";
-import useViewManager from "../../hooks/useViewManager";
-import MenuBar from "../catalog/MenuBar";
-import AddressBar from "../catalog/AddressBar";
-import WindowContainer from "../common/WindowContainer";
-import TitleBar from "../common/TitleBar";
-import FilterBar from "../catalog/FilterBar";
-import SelectionBox from "../catalog/SelectionBox";
-import CatalogItem from "../catalog/CatalogItem";
+import { useIncidents } from "../../../contexts/IncidentContext";
+import useSelectionManager from "../../../hooks/useSelectionManager";
+import useIncidentFilter from "../../../hooks/useIncidentFilter";
+import useViewManager from "../../../hooks/useViewManager";
+import MenuBar from "../../ui/win95/MenuBar";
+import AddressBar from "../../ui/win95/AddressBar";
+import WindowContainer from "../../ui/win95/Win95WindowContainer";
+import TitleBar from "../../ui/win95/Win95TitleBar";
+import FilterBar from "../../ui/win95/FilterBar";
+import SelectionBox from "../../ui/win95/SelectionBox";
+import CatalogItem from "../../ui/win95/CatalogItem";
 import { useEffect } from "react";
 
 const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {

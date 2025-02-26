@@ -1,11 +1,10 @@
 "use client";
 
-import { useIncidents } from "../../contexts/IncidentContext";
-import { useTheme } from "../../contexts/ThemeContext";
-import ThemedGalleryDisplay from "../gallery/ThemedGalleryDisplay";
+import { useIncidents } from "@/app/contexts/IncidentContext";
+import { useTheme } from "@/app/contexts/ThemeContext";
 
 const IncidentGallery = () => {
-  const { theme } = useTheme();
+  const { GalleryDisplay, theme } = useTheme();
   const {
     displayedIncident,
     setDisplayedIncident,
@@ -18,7 +17,7 @@ const IncidentGallery = () => {
   if (!displayedIncident) return null;
 
   return (
-    <ThemedGalleryDisplay
+    <GalleryDisplay
       incident={displayedIncident}
       incidents={incidents}
       onClose={() => setDisplayedIncident(null)}

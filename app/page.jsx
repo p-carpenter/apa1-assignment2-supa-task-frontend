@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useIncidents } from "./contexts/IncidentContext";
 import useIncidentFilter from "./hooks/useIncidentFilter";
 import useViewManager from "./hooks/useViewManager";
-import IncidentCatalog from "@/app/components/core/IncidentCatalog";
-import ContextMenu from "@/app/components/core/ContextMenu";
-import AddNewIncident from "./components/core/AddNewIncident";
-import UpdateIncident from "./components/core/UpdateIncidentWindow";
-import IncidentGallery from "./components/core/IncidentGallery";
+import IncidentCatalog from "@/app/components/features/catalog/IncidentCatalog";
+import ContextMenu from "@/app/components/common/ContextMenu";
+import AddNewIncident from "./components/features/forms/AddNewIncident";
+import UpdateIncident from "./components/features/forms/UpdateIncidentWindow";
+import IncidentGallery from "./components/features/gallery/IncidentGallery";
 
 export default function Home() {
   const {

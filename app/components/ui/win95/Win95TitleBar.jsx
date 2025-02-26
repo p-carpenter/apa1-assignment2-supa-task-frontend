@@ -1,5 +1,5 @@
 import React from "react";
-import WindowButtons from "./WindowButtons";
+import WindowButtons from "./Win95WindowButtons";
 
 const TitleBar = ({
   title,

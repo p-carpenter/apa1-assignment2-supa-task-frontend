@@ -1,26 +1,23 @@
 import React from "react";
+import { useTheme } from "../../../contexts/ThemeContext";
 import IncidentVisualisationCard from "./IncidentVisualisationCard";
 import IncidentDescriptionCard from "./IncidentDescriptionCard";
 
-const ThemedGalleryDisplay = ({
+const Win95GalleryDisplay = ({
   incident,
   incidents,
   onClose,
   currentIndex,
   onNavigate,
-  decade,
-  theme,
 }) => {
-  const getDecadeSpecificStyles = () => {
-    return {
-      container: `fixed inset-0 w-full h-full ${theme.background} z-50 flex items-center justify-center ${theme.fontFamily}`,
-      contentWrapper: `flex flex-row justify-center items-start gap-4 ${theme.text}`,
-    };
-  };
-
-  const styles = getDecadeSpecificStyles();
+  const { theme } = useTheme();
 
   if (!incident) return null;
+
+  const styles = {
+    container: `fixed inset-0 w-full h-full ${theme.background} z-50 flex items-center justify-center ${theme.fontFamily}`,
+    contentWrapper: `flex flex-row justify-center items-start gap-4 ${theme.text}`,
+  };
 
   return (
     <div className={styles.container}>
@@ -28,7 +25,7 @@ const ThemedGalleryDisplay = ({
         <IncidentVisualisationCard
           incident={incident}
           onClose={onClose}
-          decade={decade}
+          decade={1990}
           theme={theme}
         />
 
@@ -38,7 +35,7 @@ const ThemedGalleryDisplay = ({
           onClose={onClose}
           currentIndex={currentIndex}
           onNavigate={onNavigate}
-          decade={decade}
+          decade={1990}
           theme={theme}
         />
       </div>
@@ -46,4 +43,4 @@ const ThemedGalleryDisplay = ({
   );
 };
 
-export default ThemedGalleryDisplay;
+export default Win95GalleryDisplay;

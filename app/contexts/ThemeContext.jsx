@@ -2,48 +2,38 @@
 
 import React, { createContext, useContext } from "react";
 import { useIncidents } from "./IncidentContext";
+import DOSGalleryDisplay from "../components/features/gallery/80sGalleryDisplay";
+import Win95GalleryDisplay from "../components/features/gallery/90sGalleryDisplay";
 
-// import * as Era80s from "@/app/components/era-ui/1980s";
-import * as Era90s from "../components/era-ui/1990s";
-// import * as Era00s from "./era-ui/2000s";
-// import * as Era10s from "./era-ui/2010s";
-// import * as Era20s from "./era-ui/2020s";
-
-const EraComponents = {
-  //   1980: Era80s,
-  1990: Era90s,
-  //   2000: Era00s,
-  //   2010: Era10s,
-  //   2020: Era20s,
+// Map of gallery display components by decade
+const GalleryDisplays = {
+  1980: DOSGalleryDisplay,
+  1990: Win95GalleryDisplay,
+  // Add more display components for other decades
 };
 
+// Basic theme properties still useful for global styling and smaller components
 const DecadeThemes = {
   1980: {
-    background: "bg-black",
-    text: "text-[#00ff00]",
+    name: "DOS",
+    background: "bg-[#0000aa]",
+    text: "text-[#ffff00]",
     fontFamily: "font-mono",
-    accent: "text-[#00ff00]",
-    effects: {
-      hasScanLines: true,
-      hasBlinkingCursor: true,
-    },
+    accent: "text-[#00ffff]",
   },
   1990: {
-    background: "bg-[#008080]", // Teal background
+    name: "Windows 95",
+    background: "bg-[#008080]",
     text: "text-white",
     fontFamily: "font-WFA95",
     accent: "text-yellow-400",
-    effects: {
-      hasScanLines: false,
-      hasBlinkingCursor: false,
-    },
   },
 };
 
 const ThemeContext = createContext({
   decade: 1990,
   theme: DecadeThemes[1990],
-  components: EraComponents[1990],
+  GalleryDisplay: GalleryDisplays[1990],
 });
 
 export const useTheme = () => useContext(ThemeContext);
@@ -58,7 +48,7 @@ export const ThemeProvider = ({ children }) => {
   const value = {
     decade: decadeKey,
     theme: DecadeThemes[decadeKey],
-    components: EraComponents[decadeKey],
+    GalleryDisplay: GalleryDisplays[decadeKey],
   };
 
   return (
