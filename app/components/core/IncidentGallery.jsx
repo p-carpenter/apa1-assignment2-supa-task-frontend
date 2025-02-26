@@ -2,9 +2,9 @@
 
 import { useIncidents } from "../../contexts/IncidentContext";
 import { useTheme } from "../../contexts/ThemeContext";
-import ThemedIncidentViewer from "../viewer/ThemedIncidentViewer";
+import ThemedIncidentViewer from "../gallery/ThemedIncidentViewer";
 
-const FullScreenViewer = () => {
+const IncidentGallery = () => {
   const { theme } = useTheme();
   const {
     displayedIncident,
@@ -18,7 +18,7 @@ const FullScreenViewer = () => {
   if (!displayedIncident) return null;
 
   return (
-    <ThemedIncidentViewer
+    <ThemedGalleryDisplay
       incident={displayedIncident}
       incidents={incidents}
       onClose={() => setDisplayedIncident(null)}
@@ -30,4 +30,4 @@ const FullScreenViewer = () => {
   );
 };
 
-export default FullScreenViewer;
+export default IncidentGallery;

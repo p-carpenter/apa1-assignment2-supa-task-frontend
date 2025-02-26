@@ -6,11 +6,11 @@ import { IncidentProvider } from "./contexts/IncidentContext";
 import useIncidentProcessor from "./hooks/useIncidentProcessor";
 import useIncidentFilter from "./hooks/useIncidentFilter";
 import useViewManager from "./hooks/useViewManager";
-import ExplorerWindow from "@/app/components/core/ExplorerWindow";
+import IncidentCatalog from "@/app/components/core/IncidentCatalog";
 import ContextMenu from "@/app/components/core/ContextMenu";
 import AddNewIncident from "./components/core/AddNewIncident";
 import UpdateIncident from "./components/core/UpdateIncidentWindow";
-import FullScreenViewer from "./components/core/FullScreenViewer";
+import IncidentGallery from "./components/core/IncidentGallery";
 
 export default function Home() {
   const [incidentData, setIncidentData] = useState([]);
@@ -167,13 +167,13 @@ export default function Home() {
           }}
           style={{ position: "relative" }}
         >
-          <ExplorerWindow
+          <IncidentCatalog
             setContextMenu={setContextMenu}
             setShowAddNew={setShowAddNew}
             setShowUpdate={setShowUpdate}
           />
 
-          <FullScreenViewer />
+          <IncidentGallery />
 
           {/* Context Menu */}
           {contextMenu.visible && (

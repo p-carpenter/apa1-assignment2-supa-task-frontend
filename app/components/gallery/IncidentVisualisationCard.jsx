@@ -1,15 +1,15 @@
 import React from "react";
 import TitleBar from "../common/TitleBar";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Terminal from "../visualisations/Terminal.jsx";
-import WindowsNTBSOD from "../visualisations/WindowsNTBSOD.jsx";
-import ATTNetworkCollapse from "../visualisations/ATTNetworkCollapse.jsx";
-import Y2KBug from "../visualisations/Y2KBug.jsx";
-import Therac25Accidents from "../visualisations/Therac25Accidents.jsx";
-import SpaceInvadersLvl from "../visualisations/SpaceInvadersLvl.jsx";
-import YTViewCounter from "../visualisations/YTViewCounter.jsx";
-import Win95RecycleBin from "../visualisations/Win95RecycleBin.jsx";
-import MarsClimateCrash from "../visualisations/MarsClimateCrash.jsx";
+import Terminal from "../artifacts/Terminal.jsx";
+import WindowsNTBSOD from "../artifacts/WindowsNTBSOD.jsx";
+import ATTNetworkCollapse from "../artifacts/ATTNetworkCollapse.jsx";
+import Y2KBug from "../artifacts/Y2KBug.jsx";
+import Therac25Accidents from "../artifacts/Therac25Accidents.jsx";
+import SpaceInvadersLvl from "../artifacts/SpaceInvadersLvl.jsx";
+import YTViewCounter from "../artifacts/YTViewCounter.jsx";
+import Win95RecycleBin from "../artifacts/Win95RecycleBin.jsx";
+import MarsClimateCrash from "../artifacts/MarsClimateCrash.jsx";
 
 const IncidentVisualisationCard = ({ incident, onClose, decade, theme }) => {
   const renderVisualization = () => {

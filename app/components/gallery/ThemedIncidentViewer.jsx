@@ -1,20 +1,20 @@
 import React from "react";
-import IncidentVisualisationCard from "./IncidentVisualisationCard";
+import IncidentVisualisationCard from "../viewer/IncidentVisualisationCard";
 import IncidentDescriptionCard from "./IncidentDescriptionCard";
 
-const ThemedIncidentViewer = ({
+const ThemedGalleryDisplay = ({
   incident,
   incidents,
   onClose,
   currentIndex,
   onNavigate,
   decade,
-  theme
+  theme,
 }) => {
   const getDecadeSpecificStyles = () => {
     return {
       container: `fixed inset-0 w-full h-full ${theme.background} z-50 flex items-center justify-center ${theme.fontFamily}`,
-      contentWrapper: `flex flex-row justify-center items-start gap-4 ${theme.text}`
+      contentWrapper: `flex flex-row justify-center items-start gap-4 ${theme.text}`,
     };
   };
 
@@ -25,8 +25,8 @@ const ThemedIncidentViewer = ({
   return (
     <div className={styles.container}>
       <div className={styles.contentWrapper}>
-        <IncidentVisualisationCard 
-          incident={incident} 
+        <IncidentVisualisationCard
+          incident={incident}
           onClose={onClose}
           decade={decade}
           theme={theme}
@@ -46,4 +46,4 @@ const ThemedIncidentViewer = ({
   );
 };
 
-export default ThemedIncidentViewer;
+export default ThemedGalleryDisplay;

@@ -13,7 +13,7 @@ import SelectionBox from "../catalog/SelectionBox";
 import CatalogItem from "../catalog/CatalogItem";
 import { useEffect } from "react";
 
-const ExplorerWindow = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
+const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
   const {
     incidents,
     incidentsByDecade,
@@ -146,4 +146,4 @@ const ExplorerWindow = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
   );
 };
 
-export default ExplorerWindow;
+export default IncidentCatalog;
