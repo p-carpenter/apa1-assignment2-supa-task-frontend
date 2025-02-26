@@ -7,6 +7,8 @@ const IncidentDescriptionCard = ({
   onClose,
   currentIndex,
   onNavigate,
+  decade,
+  theme
 }) => {
   const goToNext = () => {
     const nextIndex = (currentIndex + 1) % incidents.length;
@@ -20,16 +22,18 @@ const IncidentDescriptionCard = ({
   };
 
   return (
-    <div className="explorer-container w-[30vw] max-w-sm h-[auto] flex flex-col border-4 border-gray-300 shadow-win95 overflow-hidden">
+    <div className={`explorer-container w-[30vw] max-w-sm h-[auto] flex flex-col ${
+      decade >= 1990 ? 'border-4 border-gray-300 shadow-win95' : 'border border-[#00ff00]'
+    } overflow-hidden`}>
       <TitleBar
         title={`${incident.name} - Visualization`}
         onClose={onClose}
         showMaximize={false}
         showMinimize={false}
+        theme={theme}
       />
 
-      {/* Main content area with two columns */}
-      <div className="flex-grow bg-win95gray grid grid-cols-[3fr,1fr] gap-2">
+      <div className={`flex-grow ${theme.background} grid grid-cols-[3fr,1fr] gap-2 ${theme.text}`}>
         {/* Left Column - Description Content (wider) */}
         <div className="p-4 overflow-auto">
           <h2 className="text-xl font-bold mb-2">{incident.name}</h2>

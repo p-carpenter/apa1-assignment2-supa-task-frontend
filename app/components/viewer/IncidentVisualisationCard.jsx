@@ -11,7 +11,7 @@ import YTViewCounter from "../visualisations/YTViewCounter.jsx";
 import Win95RecycleBin from "../visualisations/Win95RecycleBin.jsx";
 import MarsClimateCrash from "../visualisations/MarsClimateCrash.jsx";
 
-const IncidentVisualisationCard = ({ incident, onClose }) => {
+const IncidentVisualisationCard = ({ incident, onClose, decade, theme }) => {
   const renderVisualization = () => {
     switch (incident.name) {
       case "Morris Worm":
@@ -44,14 +44,17 @@ const IncidentVisualisationCard = ({ incident, onClose }) => {
   };
 
   return (
-    <div className="w-[auto] max-w-4xl h-[70vh] flex flex-col border-[3px] border-win95gray shadow-win95 mr-4">
+    <div className={`w-[auto] max-w-4xl h-[70vh] flex flex-col ${
+      decade >= 1990 ? 'border-[3px] border-win95gray shadow-win95' : 'border border-[#00ff00]'
+    } mr-4`}>
       <TitleBar
-        icon={"win95-folder-icon.png"}
+        icon={decade >= 1990 ? "win95-folder-icon.png" : null}
         title={`${incident.name} - Visualization`}
         onClose={onClose}
+        theme={theme}
       />
 
-      <div className="flex-grow bg-gray-100 flex items-center justify-center p-2">
+      <div className={`flex-grow ${theme.background} flex items-center justify-center p-2`}>
         {renderVisualization()}
       </div>
     </div>

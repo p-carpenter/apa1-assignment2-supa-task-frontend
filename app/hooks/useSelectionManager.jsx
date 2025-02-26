@@ -12,7 +12,7 @@ const useSelectionManager = (setSelectedIncidents) => {
     height: 0,
   });
 
-  const handleItemClick = (e, item, index, items) => {
+  const handleItemSelect = (e, item, index, items) => {
     e.stopPropagation();
     if (e.shiftKey && lastClickedIndex !== null) {
       const start = Math.min(lastClickedIndex, index);
@@ -122,7 +122,7 @@ const useSelectionManager = (setSelectedIncidents) => {
     lastClickedIndex,
     isSelecting,
     selectionBox,
-    handleItemClick,
+    handleItemSelect,
     handleItemContextMenu,
     handleMouseDown,
     handleMouseMove,

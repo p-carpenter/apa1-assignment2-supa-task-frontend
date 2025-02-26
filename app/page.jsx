@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { IncidentProvider } from "./contexts/IncidentContext";
+import useIncidentProcessor from "./hooks/useIncidentProcessor";
+import useIncidentFilter from "./hooks/useIncidentFilter";
+import useViewManager from "./hooks/useViewManager";
 import ExplorerWindow from "@/app/components/core/ExplorerWindow";
-import IncidentPopup from "@/app/components/core/IncidentPopup";
 import ContextMenu from "@/app/components/core/ContextMenu";
 import AddNewIncident from "./components/core/AddNewIncident";
 import UpdateIncident from "./components/core/UpdateIncidentWindow";
@@ -10,10 +14,6 @@ import FullScreenViewer from "./components/core/FullScreenViewer";
 
 export default function Home() {
   const [incidentData, setIncidentData] = useState([]);
-  const [selectedIncidents, setSelectedIncidents] = useState([]);
-  const [displayedIncident, setDisplayedIncident] = useState(null);
-  const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
-
   const [contextMenu, setContextMenu] = useState({
     visible: false,
     x: 0,
@@ -134,90 +134,82 @@ export default function Home() {
     setContextMenu({ ...contextMenu, visible: false });
   };
 
-  // Update the handler for double-click
-  const handleIncidentDoubleClick = (incident) => {
-    const index = incidentData.findIndex((inc) => inc.id === incident.id);
-    setCurrentIncidentIndex(index);
-    setDisplayedIncident(incident);
-  };
+  // Move view management logic to root
+  const { incidentsByDecade } = useIncidentProcessor(incidentData);
 
-  const handleIncidentNavigation = (newIndex) => {
-    setCurrentIncidentIndex(newIndex);
-    setDisplayedIncident(incidentData[newIndex]);
-  };
+  const { filteredIncidents } = useIncidentFilter(incidentData);
+
+  const { currentDecade } = useViewManager(
+    incidentData,
+    incidentsByDecade,
+    filteredIncidents
+  );
 
   // =======================================================================
   // 4. Render
   // =======================================================================
   return (
-    <div
-      className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
-      onClick={() => closeContextMenu()}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        closeContextMenu();
-        setContextMenu({
-          visible: true,
-          x: e.clientX,
-          y: e.clientY,
-          onFile: false,
-          incidents: [],
-        });
-      }}
-      style={{ position: "relative" }}
-    >
-      <ExplorerWindow
-        incidents={incidentData}
-        selectedIncidents={selectedIncidents}
-        setSelectedIncidents={setSelectedIncidents}
-        setDisplayedIncident={setDisplayedIncident} // for double-click to open popup
-        setContextMenu={setContextMenu} // so ExplorerWindow can open context menu
-      />
+    <IncidentProvider incidents={incidentData} currentDecade={currentDecade}>
+      <ThemeProvider>
+        <div
+          className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
+          onClick={() => closeContextMenu()}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            closeContextMenu();
+            setContextMenu({
+              visible: true,
+              x: e.clientX,
+              y: e.clientY,
+              onFile: false,
+              incidents: [],
+            });
+          }}
+          style={{ position: "relative" }}
+        >
+          <ExplorerWindow
+            setContextMenu={setContextMenu}
+            setShowAddNew={setShowAddNew}
+            setShowUpdate={setShowUpdate}
+          />
 
-      {/* If the user double-clicked on a single incident, show popup */}
-      {displayedIncident && (
-        <FullScreenViewer
-          incident={displayedIncident}
-          incidents={incidentData}
-          currentIndex={currentIncidentIndex}
-          onClose={() => setDisplayedIncident(null)}
-          onNavigate={handleIncidentNavigation}
-        />
-      )}
+          <FullScreenViewer />
 
-      {/* Context Menu */}
-      {contextMenu.visible && (
-        <ContextMenu
-          visible={contextMenu.visible}
-          x={contextMenu.x}
-          y={contextMenu.y}
-          onFile={contextMenu.onFile}
-          incidents={contextMenu.incidents}
-          closeContextMenu={closeContextMenu}
-          setShowAddNew={setShowAddNew}
-          setShowUpdate={setShowUpdate}
-          onDeleteIncidents={handleDeleteIncidents}
-        />
-      )}
+          {/* Context Menu */}
+          {contextMenu.visible && (
+            <ContextMenu
+              visible={contextMenu.visible}
+              x={contextMenu.x}
+              y={contextMenu.y}
+              onFile={contextMenu.onFile}
+              incidents={contextMenu.incidents}
+              closeContextMenu={closeContextMenu}
+              setShowAddNew={setShowAddNew}
+              setShowUpdate={setShowUpdate}
+              onDeleteIncidents={handleDeleteIncidents}
+            />
+          )}
 
-      {/* Add New Incident Window */}
-      {showAddNew && (
-        <AddNewIncident
-          onClose={() => setShowAddNew(false)}
-          onSubmit={handleAddNewIncident}
-        />
-      )}
+          {/* Add New Incident Window */}
+          {showAddNew && (
+            <AddNewIncident
+              onClose={() => setShowAddNew(false)}
+              onSubmit={handleAddNewIncident}
+            />
+          )}
 
-      {/* Update Incident Window */}
-      {showUpdate && (
-        <UpdateIncident
-          incident={
-            selectedIncidents.length === 1 ? selectedIncidents[0] : null
-          }
-          onClose={() => setShowUpdate(false)}
-          onSubmit={handleUpdateIncident}
-        />
-      )}
-    </div>
+          {/* Update Incident Window */}
+          {showUpdate && (
+            <UpdateIncident
+              incident={
+                selectedIncidents.length === 1 ? selectedIncidents[0] : null
+              }
+              onClose={() => setShowUpdate(false)}
+              onSubmit={handleUpdateIncident}
+            />
+          )}
+        </div>
+      </ThemeProvider>
+    </IncidentProvider>
   );
 }

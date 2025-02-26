@@ -1,25 +1,25 @@
 "use client";
 
+import { useIncidents } from "../../contexts/IncidentContext";
+import useSelectionManager from "../../hooks/useSelectionManager";
+import useIncidentFilter from "../../hooks/useIncidentFilter";
+import useViewManager from "../../hooks/useViewManager";
 import MenuBar from "../catalog/MenuBar";
 import AddressBar from "../catalog/AddressBar";
 import WindowContainer from "../common/WindowContainer";
 import TitleBar from "../common/TitleBar";
 import FilterBar from "../catalog/FilterBar";
 import SelectionBox from "../catalog/SelectionBox";
-import useIncidentProcessor from "../../hooks/useIncidentProcessor";
-import useIncidentFilter from "../../hooks/useIncidentFilter";
-import useViewManager from "../../hooks/useViewManager";
-import useSelectionManager from "../../hooks/useSelectionManager";
 import CatalogItem from "../catalog/CatalogItem";
+import { useEffect } from "react";
 
-const ExplorerWindow = ({
-  incidents,
-  selectedIncidents,
-  setSelectedIncidents,
-  setDisplayedIncident,
-  setContextMenu,
-}) => {
-  const { incidentsByDecade, decades } = useIncidentProcessor(incidents);
+const ExplorerWindow = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
+  const {
+    incidents,
+    incidentsByDecade,
+    selectedIncidents,
+    setSelectedIncidents,
+  } = useIncidents();
 
   const {
     activeFilter,
@@ -27,17 +27,14 @@ const ExplorerWindow = ({
     filteredIncidents,
     handleFilterClick,
     handleSearchChange,
-    handleSearchClear,
   } = useIncidentFilter(incidents);
 
   const {
     currentView,
-    currentYear,
-    setCurrentView,
-    setCurrentYear,
     filteredDecades,
     visibleIncidents,
-    navigateToYear,
+    handleFolderDoubleClick,
+    handleIncidentClick,
     navigateToRoot,
     currentPath,
     windowTitle,
@@ -47,38 +44,19 @@ const ExplorerWindow = ({
     containerRef,
     isSelecting,
     selectionBox,
-    handleItemClick,
+    handleItemSelect,
     handleItemContextMenu,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
   } = useSelectionManager(setSelectedIncidents);
 
-  const handleItemDoubleClick = (incident) => {
-    setDisplayedIncident(incident);
-  };
-
-  const handleFolderDoubleClick = (decade) => {
-    navigateToYear(decade);
-    setSelectedIncidents([]);
-  };
-
-  const handleBackClick = () => {
-    navigateToRoot();
-    setSelectedIncidents([]);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-  };
+  const items = currentView === "years" ? filteredDecades : visibleIncidents;
 
   const handleContextMenu = (e, item, index) => {
     const menuInfo = handleItemContextMenu(e, item, index, selectedIncidents);
     setContextMenu(menuInfo);
   };
-
-  // Get the correct items based on current view
-  const items = currentView === "years" ? decades : visibleIncidents;
 
   return (
     <WindowContainer
@@ -87,35 +65,28 @@ const ExplorerWindow = ({
       onMouseUp={handleMouseUp}
       onContextMenu={(e) => {
         e.preventDefault();
-        const menuInfo = {
+        setContextMenu({
           visible: true,
           x: e.clientX,
           y: e.clientY,
           onFile: false,
           incidents: [],
-        };
-        setContextMenu(menuInfo);
+        });
       }}
     >
       <TitleBar
         title={windowTitle}
         icon="/win95-folder-icon.png"
-        onMinimize={() => {
-          /* handle minimize */
-        }}
-        onMaximize={() => {
-          /* handle maximize */
-        }}
-        onClose={() => {
-          /* handle close */
-        }}
+        onMinimize={() => {}}
+        onMaximize={() => {}}
+        onClose={() => {}}
       />
       <MenuBar />
       <AddressBar
         currentPath={currentPath}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}
-        onSearchSubmit={(e) => e.key === "Enter" && handleSearchSubmit(e)}
+        onSearchSubmit={(e) => e.preventDefault()}
       />
 
       <FilterBar
@@ -125,7 +96,7 @@ const ExplorerWindow = ({
         ]}
         activeFilter={activeFilter}
         onFilterClick={handleFilterClick}
-        onBackClick={handleBackClick}
+        onBackClick={navigateToRoot}
       />
 
       <div className="explorer-content" ref={containerRef}>
@@ -142,7 +113,7 @@ const ExplorerWindow = ({
               index={index}
               isSelected={selectedIncidents.includes(decade)}
               onClick={(e) =>
-                handleItemClick(e, decade, index, filteredDecades)
+                handleItemSelect(e, decade, index, filteredDecades)
               }
               onDoubleClick={() => handleFolderDoubleClick(decade)}
               onContextMenu={(e) => handleContextMenu(e, decade, index)}
@@ -157,9 +128,9 @@ const ExplorerWindow = ({
               index={index}
               isSelected={selectedIncidents.includes(incident)}
               onClick={(e) =>
-                handleItemClick(e, incident, index, visibleIncidents)
+                handleItemSelect(e, incident, index, visibleIncidents)
               }
-              onDoubleClick={() => handleItemDoubleClick(incident)}
+              onDoubleClick={() => handleIncidentClick(incident)}
               onContextMenu={(e) => handleContextMenu(e, incident, index)}
             />
           ))
