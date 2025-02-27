@@ -12,7 +12,6 @@ const DOSGalleryDisplay = ({
   incidents,
   onClose,
   currentIndex,
-  onNavigate,
   decade,
 }) => {
   const { theme } = useTheme();
@@ -108,26 +107,6 @@ const DOSGalleryDisplay = ({
               <span className="dos-info-label">Time to resolve: </span>
               {incident.time_to_resolve}
             </div>
-          </div>
-
-          {/* Navigation buttons */}
-          <div className="dos-navigation">
-            <button
-              onClick={() =>
-                onNavigate(
-                  currentIndex === 0 ? incidents.length - 1 : currentIndex - 1
-                )
-              }
-              className="dos-nav-button"
-            >
-              « Prev
-            </button>
-            <button
-              onClick={() => onNavigate((currentIndex + 1) % incidents.length)}
-              className="dos-nav-button"
-            >
-              Next »
-            </button>
           </div>
         </DOSPanel>
       </div>

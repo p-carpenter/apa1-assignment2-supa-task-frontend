@@ -1,0 +1,172 @@
+/* Timeline container - contains both years and catalog button */
+.timeline-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  background-color: #c0c0c0; /* Classic Win95 gray */
+  border: 2px solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  box-shadow: 1px 1px 0 #000;
+  padding: 5px;
+  min-height: 30px;
+}
+
+/* The timeline section that shows the years */
+.timeline-inner-container {
+  width: 300px; /* Width for 5 year buttons (50px each) + gaps (10px each) */
+  overflow: hidden;
+}
+
+/* Inner timeline that slides left/right */
+.timeline-inner {
+  display: flex;
+  flex-direction: row;
+  transition: transform 0.3s ease-in-out;
+  min-width: 100%;
+}
+
+/* Year button styling */
+.year-button {
+  background-color: #c0c0c0;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  padding: 2px 8px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 50px;
+  flex: 0 0 50px;
+  text-align: center;
+  position: relative;
+  user-select: none; /* Prevent text selection while clicking */
+  margin: 0 5px;
+}
+
+.year-button:active {
+  border-color: #555 #dfdfdf #dfdfdf #555;
+  box-shadow: none;
+  transform: translate(
+    1px,
+    1px
+  ); /* Use transform instead of padding to create press effect */
+}
+
+.year-button--active {
+  background-color: #000080; /* Win95 selection blue */
+  color: white;
+  font-weight: bold;
+  z-index: 1;
+}
+
+/* Apply a subtle glow to the active year for emphasis */
+.year-button--active::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border: 1px solid #ffffff55;
+  pointer-events: none;
+}
+
+/* Active year button highlight animation */
+.year-button--active {
+  position: relative;
+  overflow: hidden;
+}
+
+.year-button--active::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}
+
+/* Catalog button styling */
+.catalog-button {
+  background-color: #c0c0c0;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  padding: 2px 8px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 70px;
+  text-align: center;
+  position: relative;
+  user-select: none;
+  margin-left: 10px; /* Add spacing between timeline and catalog button */
+}
+
+.catalog-button:active {
+  border-color: #555 #dfdfdf #dfdfdf #555;
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+
+/* Placeholder for when no years are available */
+.year-placeholder {
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  font-size: 14px;
+  color: #777;
+  text-align: center;
+  padding: 2px 5px;
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .timeline-inner-container {
+    width: 250px;
+  }
+
+  .year-button {
+    min-width: 40px;
+    flex: 0 0 40px;
+    padding: 1px 6px;
+  }
+
+  .catalog-button {
+    padding: 1px 6px;
+    min-width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .timeline-inner-container {
+    width: 210px;
+  }
+
+  .year-button {
+    min-width: 35px;
+    flex: 0 0 35px;
+    padding: 1px 5px;
+    font-size: 12px;
+    margin: 0 3px;
+  }
+
+  .catalog-button {
+    padding: 1px 5px;
+    min-width: 50px;
+    font-size: 12px;
+  }
+}
