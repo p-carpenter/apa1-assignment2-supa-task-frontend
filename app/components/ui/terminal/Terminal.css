@@ -1,0 +1,16 @@
+.terminal {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  overflow: hidden;
+  position: relative; /* Add position relative */
+}
+
+.terminal-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent any overflow from causing resize */
+}

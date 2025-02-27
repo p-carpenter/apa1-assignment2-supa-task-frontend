@@ -1,0 +1,70 @@
+.gallery-nav-buttons {
+  position: fixed;
+  top: 50%;
+  width: 100%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  pointer-events: none; /* Makes container transparent to clicks */
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.gallery-nav-button {
+  /* Windows 95 button styling */
+  background-color: #c0c0c0; /* Classic Win95 gray */
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  color: #000;
+  cursor: pointer;
+  pointer-events: auto;
+
+  /* Classic Win95 3D border effect */
+  border-width: 2px;
+  border-style: solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  box-shadow: 1px 1px 0 #000;
+
+  /* No rounded corners in Win95 */
+  border-radius: 0;
+}
+
+/* Win95 pressed button effect */
+.gallery-nav-button:active {
+  border-color: #555 #dfdfdf #dfdfdf #555;
+  box-shadow: none;
+  padding-top: 1px;
+  padding-left: 1px;
+}
+
+/* Win95 focus style */
+.gallery-nav-button:focus {
+  outline: 1px dotted #000;
+  outline-offset: -5px;
+}
+
+/* Responsive adjustments - keeping Win95 feel */
+@media (max-width: 768px) {
+  .gallery-nav-button {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-nav-button {
+    width: 34px;
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .gallery-nav-buttons {
+    padding: 0 10px;
+  }
+}

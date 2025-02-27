@@ -1,6 +1,6 @@
-import { WormIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-import "@/app/components/common/StandardArtifact.css";
+import "@/app/components/ui/terminal/Terminal.css";
+import "./MorrisWorm.css";
 
 const MorrisWorm = () => {
   const [activeTab, setActiveTab] = useState("Worm.c");
@@ -36,9 +36,9 @@ const MorrisWorm = () => {
 
   // The artifact content only - no wrapper logic here
   return (
-    <div className="standard-artifact">
-      <div className="standard-artifact-content">
-        <div className="terminal">
+    <div className="terminal">
+      <div className="terminal-wrapper">
+        <div className="morris-worm-container">
           <div className="tabs">
             {tabs.map((tab) => (
               <div
@@ -61,8 +61,8 @@ const MorrisWorm = () => {
               </span>
               <span>C:{activeTab}</span>
             </div>
-            <div>
-              <pre>{fileContents[activeTab]}</pre>
+            <div style={{ height: "calc(100% - 40px)", overflow: "auto" }}>
+              <pre>{fileContents[activeTab] || "Loading..."}</pre>
             </div>
           </div>
         </div>
