@@ -1,17 +1,19 @@
 import React from "react";
 
-const DOSPanel = ({ title, children, className = "" }) => {
+const DOSPanel = ({ title, children, className = "", position = "left" }) => {
+  // Ensure position is either "left" or "right", defaulting to "left"
+  const validPosition = ["left", "right"].includes(position)
+    ? position
+    : "left";
+
   return (
-    <div
-      className={`flex flex-col border-4 border-double border-[#00ffff] ${className}`}
-    >
-      <div className="relative bg-[#00ffff] text-[#0000aa] text-center font-bold h-6">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-[#00ffff] px-2 z-10">
-          {title}
-        </div>
-        <div className="absolute top-1/2 left-0 right-0 h-1 bg-[#00ffff] z-0"></div>
+    <div className={`dos-panel ${className}`}>
+      <div className="dos-panel__title">
+        <div className={`dos-panel__title-text ${validPosition}`}>{title}</div>
+        <div className="dos-panel__title-line-left"></div>
+        <div className="dos-panel__title-line-right"></div>
       </div>
-      <div className="flex-1 bg-[#0000aa] text-[#ffff00]">{children}</div>
+      <div className="dos-panel__content">{children}</div>
     </div>
   );
 };

@@ -1,6 +1,13 @@
 import React from "react";
 import DOSPanel from "../../ui/dos/DOSPanel";
+// import ArtifactContainer from "../../common/ArtifactContainer"; // New standardized component
 import { useTheme } from "../../../contexts/ThemeContext";
+import "./80sGalleryDisplay.styles.css";
+import { formatDate } from "@/app/utils/dateUtils";
+import MorrisWorm from "../../artifacts/1980s/MorrisWorm"; // Your artifact components
+import Therac25Accidents from "../../artifacts/1980s/Therac25Accidents";
+import StandardArtifact from "../../common/StandardArtifact";
+// Import other artifact components...
 
 const DOSGalleryDisplay = ({
   incident,
@@ -8,6 +15,7 @@ const DOSGalleryDisplay = ({
   onClose,
   currentIndex,
   onNavigate,
+  decade,
 }) => {
   const { theme } = useTheme();
 
@@ -24,84 +32,137 @@ const DOSGalleryDisplay = ({
     onNavigate(prevIndex);
   };
 
+  // Helper function to render the appropriate artifact
+  const renderArtifact = () => {
+    // Get appropriate expansion ratio for this artifact type
+    const getExpandRatio = () => {
+      switch (incident.name) {
+        case "Morris Worm":
+          return 1.4; // Wider for code display
+        case "Therac-25 Radiation Accidents":
+          return 1.3; // Custom ratio for this artifact
+        default:
+          return 1.25; // Default ratio
+      }
+    };
+
+    // Component selection based on incident name
+    const getArtifactComponent = () => {
+      switch (incident.name) {
+        case "Morris Worm":
+          return <MorrisWorm />;
+        case "Therac-25 Radiation Accidents":
+          return <Therac25Accidents />;
+        // Add other cases for your 80s artifacts
+        default:
+          // Fallback for simple content types
+          if (incident.artifactType === "image") {
+            return (
+              <img
+                src={incident.artifactContent}
+                alt={incident.name}
+                className="artifact-image"
+              />
+            );
+          } else if (incident.artifactType === "code") {
+            return (
+              <pre className="artifact-code">{incident.artifactContent}</pre>
+            );
+          } else {
+            return <div>No visualization available</div>;
+          }
+      }
+    };
+
+    // Render the selected artifact within the container
+    return (
+      <ArtifactContainer
+        title={incident.name}
+        slug={incident.name.toLowerCase().replace(/\s+/g, "-")}
+        date={incident.incident_date}
+        decade={1980}
+        expandRatio={getExpandRatio()}
+        description={incident.description} // Pass description as prop
+      >
+        {getArtifactComponent()}
+      </ArtifactContainer>
+    );
+  };
+
   // Norton Commander style display with two panels
   return (
-    <div className="fixed inset-0 w-full h-full bg-[#0000aa] z-50 flex flex-col p-2 font-mono">
+    <div className="dos-gallery">
       {/* Main container with two panels */}
-      <div className="flex-1 flex gap-2 mb-2">
-        {/* Left Panel - File Browser */}
-        <DOSPanel title={`Incident: ${incident.name}`} className="flex-1">
-          <div className="flex border-b-4 border-double border-[#00ffff] text-[#00ffff] font-bold">
-            <div className="flex-3 text-center border-r-4 border-double border-[#00ffff] py-1">
-              Name
-            </div>
-            <div className="flex-2 text-center border-r-4 border-double border-[#00ffff] py-1">
-              Type
-            </div>
-            <div className="flex-2 text-center py-1">Date</div>
-          </div>
-
-          <div className="overflow-auto h-[calc(100%-2rem)]">
-            {incidents.map((inc, idx) => (
-              <div
-                key={inc.id}
-                className={`flex py-1 cursor-pointer ${idx === currentIndex ? "bg-[#00ffff] text-[#0000aa]" : ""}`}
-                onClick={() => onNavigate(idx)}
+      <div className="dos-gallery__main-container">
+        {/* Left Panel - File Browser/Artifact Display */}
+        <DOSPanel
+          title={`C:/TECHNOLOGY INCIDENTS/${decade}S/${incident.name.toUpperCase()}`}
+          className="dos-panel__file-browser"
+          position="left"
+        >
+          <div className="dos-panel-left__content">
+            <div className="item-wrapper">
+              <StandardArtifact
+                decade={1980}
+                title={incident.name}
+                date={formatDate(incident.incident_date, "dos")}
               >
-                <div className="flex-3 pl-4 overflow-hidden text-ellipsis whitespace-nowrap">
-                  {inc.name}
-                </div>
-                <div
-                  className={`flex-2 text-center ${idx === currentIndex ? "text-[#0000aa]" : "text-[#00ffff]"}`}
-                >
-                  {inc.category}
-                </div>
-                <div
-                  className={`flex-2 text-right pr-4 ${idx === currentIndex ? "text-[#0000aa]" : "text-[#00ffff]"}`}
-                >
-                  {inc.incident_date}
-                </div>
-              </div>
-            ))}
+                {/* Render appropriate artifact content */}
+                {incident.name === "Morris Worm" && <MorrisWorm />}
+                {incident.name === "Therac-25 Radiation Accidents" && (
+                  <Therac25Accidents />
+                )}
+                {/* etc. */}
+              </StandardArtifact>
+            </div>
+            <div className="dos-panel-footer">
+              <p>{formatDate(incident.incident_date, "dos")}</p>
+              <p>
+                {new Date().toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            </div>
           </div>
         </DOSPanel>
 
-        {/* Right Panel - Info */}
-        <DOSPanel title="Info" className="w-1/2">
-          <div className="p-4 h-full overflow-auto">
-            <div className="mb-4 text-center">
-              <div className="text-lg mb-2">{incident.name}</div>
-              <div className="text-[#00ffff] border-t border-b border-[#00ffff] py-1 mb-4">
-                {incident.incident_date}
+        {/* Right Panel - Info (Keep this as is) */}
+        <DOSPanel title="Info" className="dos-panel__info" position="right">
+          <div className="dos-info-content">
+            <div className="dos-info-header">
+              <div className="dos-info-title">{incident.name}</div>
+              <div className="dos-info-date">
+                {formatDate(incident.incident_date)}
               </div>
             </div>
 
-            <div className="mb-3">{incident.description}</div>
+            <div className="dos-info-description">{incident.description}</div>
 
-            <div className="mb-2">
-              <span className="text-[#00ffff]">Severity: </span>
+            <div className="dos-info-field">
+              <span className="dos-info-label">Severity: </span>
               {incident.severity}
             </div>
-            <div className="mb-2">
-              <span className="text-[#00ffff]">Cause: </span>
+            <div className="dos-info-field">
+              <span className="dos-info-label">Cause: </span>
               {incident.cause}
             </div>
-            <div className="mb-2">
-              <span className="text-[#00ffff]">Consequences: </span>
+            <div className="dos-info-field">
+              <span className="dos-info-label">Consequences: </span>
               {incident.consequences}
             </div>
-            <div className="mb-2">
-              <span className="text-[#00ffff]">Time to resolve: </span>
+            <div className="dos-info-field">
+              <span className="dos-info-label">Time to resolve: </span>
               {incident.time_to_resolve}
             </div>
           </div>
 
           {/* Navigation buttons */}
-          <div className="flex justify-between border-t-4 border-double border-[#00ffff] p-2">
-            <button onClick={goToPrevious} className="text-[#00ffff] font-bold">
+          <div className="dos-navigation">
+            <button onClick={goToPrevious} className="dos-nav-button">
               « Prev
             </button>
-            <button onClick={goToNext} className="text-[#00ffff] font-bold">
+            <button onClick={goToNext} className="dos-nav-button">
               Next »
             </button>
           </div>
@@ -109,20 +170,20 @@ const DOSGalleryDisplay = ({
       </div>
 
       {/* Bottom Function Keys Bar */}
-      <div className="border-4 border-double border-[#00ffff] py-1 px-2 flex justify-between">
-        <div className="text-[#ffff00]">
+      <div className="dos-function-bar">
+        <div className="dos-path">
           Path: Incidents/{incident.category}/{incident.name}
         </div>
-        <div className="flex gap-3">
+        <div className="dos-function-keys">
           <span>
-            <span className="text-[#00ffff] font-bold">F1</span> Help
+            <span className="dos-function-key">F1</span> Help
           </span>
           <span>
-            <span className="text-[#00ffff] font-bold">F3</span> View
+            <span className="dos-function-key">F3</span> View
           </span>
           <span>
-            <span className="text-[#00ffff] font-bold">F10</span>
-            <span onClick={onClose} className="cursor-pointer">
+            <span className="dos-function-key">F10</span>
+            <span onClick={onClose} className="dos-clickable">
               {" "}
               Quit
             </span>

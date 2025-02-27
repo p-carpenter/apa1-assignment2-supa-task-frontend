@@ -44,7 +44,7 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Failed to create incident");
       const updatedData = await response.json();
-      setIncidents(updatedData);
+      setIncidents(updatedData); // Our enhanced setIncidents will format dates
       setShowAddNew(false);
     } catch (error) {
       console.error(error);
@@ -76,7 +76,7 @@ export default function Home() {
       if (!response.ok) throw new Error("Failed to update incident");
 
       const updatedData = await response.json();
-      setIncidents(updatedData);
+      setIncidents(updatedData); // Our enhanced setIncidents will format dates
       setShowUpdate(false);
     } catch (error) {
       console.error(error);
@@ -102,7 +102,7 @@ export default function Home() {
 
       // Refresh
       const updatedData = await response.json();
-      setIncidents(updatedData);
+      setIncidents(updatedData); // Our enhanced setIncidents will format dates
 
       // Clear selection and close menu
       setSelectedIncidents([]);

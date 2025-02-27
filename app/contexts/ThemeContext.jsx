@@ -16,17 +16,17 @@ const GalleryDisplays = {
 const DecadeThemes = {
   1980: {
     name: "DOS",
-    background: "bg-[#0000aa]",
-    text: "text-[#ffff00]",
-    fontFamily: "font-mono",
+    background: "bg-[#0402ac]",
+    text: "text-[#00ffff]",
+    fontFamily: ["IBM VGA 9x16", "monospace"],
     accent: "text-[#00ffff]",
   },
   1990: {
     name: "Windows 95",
     background: "bg-[#008080]",
-    text: "text-white",
+    text: "text-black",
     fontFamily: "font-WFA95",
-    accent: "text-yellow-400",
+    accent: "bg-win95gray",
   },
 };
 

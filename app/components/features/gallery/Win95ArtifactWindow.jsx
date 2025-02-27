@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import TitleBar from "../../ui/win95/Win95TitleBar";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import Terminal from "../../artifacts/1980s/MorrisWorm.jsx";
+import StandardArtifact from "../../common/StandardArtifact";
 import WindowsNTBSOD from "../../artifacts/2000s/WindowsNTBSOD.jsx";
 import ATTNetworkCollapse from "../../artifacts/1990s/ATTNetworkCollapse.jsx";
 import Y2KBug from "../../artifacts/1990s/Y2KBug.jsx";
@@ -10,17 +9,23 @@ import YTViewCounter from "../../artifacts/2010s/YTViewCounter.jsx";
 import Win95RecycleBin from "../../artifacts/1990s/Win95RecycleBin.jsx";
 import MarsClimateCrash from "../../artifacts/1990s/MarsClimateCrash.jsx";
 
-const IncidentVisualisationCard = ({ incident, onClose, decade, theme }) => {
+const Win95ArtifactWindow = ({ incident, onClose, decade, theme }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Get artifact-specific dimensions and ratio
+  const getArtifactDimensions = () => {
+    return {
+      baseWidth: "1024px",
+      baseHeight: "auto",
+    };
+  };
+
   const renderVisualization = () => {
     switch (incident.name) {
-      case "Morris Worm":
-        return <Terminal />;
       case "Y2K Bug":
         return <Y2KBug />;
       case "Mars Climate Orbiter Crash":
         return <MarsClimateCrash />;
-      case "Space Invaders Kill Screen":
-        return <SpaceInvadersLvl />;
       case "Gangnam Style View Counter Break":
         return <YTViewCounter />;
       case "Windows 95 RecycleBin Path Length Bug":
@@ -42,28 +47,20 @@ const IncidentVisualisationCard = ({ incident, onClose, decade, theme }) => {
     }
   };
 
+  const { baseWidth, baseHeight } = getArtifactDimensions();
+
   return (
     <div
-      className={`w-[auto] max-w-4xl h-[70vh] flex flex-col ${
-        decade >= 1990
-          ? "border-[3px] border-win95gray shadow-win95"
-          : "border border-[#00ff00]"
-      } mr-4`}
+      className="win95-artifact-window"
+      style={{ width: baseWidth, height: baseHeight }}
     >
-      <TitleBar
-        icon={decade >= 1990 ? "win95-folder-icon.png" : null}
-        title={`${incident.name} - Visualization`}
-        onClose={onClose}
-        theme={theme}
-      />
-
-      <div
-        className={`flex-grow ${theme.background} flex items-center justify-center p-2`}
-      >
+      <TitleBar title={incident.name} onClose={onClose} />
+      <StandardArtifact decade={decade} title={incident.name}>
         {renderVisualization()}
-      </div>
+        {/* etc. */}
+      </StandardArtifact>
     </div>
   );
 };
 
-export default IncidentVisualisationCard;
+export default Win95ArtifactWindow;

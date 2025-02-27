@@ -12,20 +12,25 @@ const IncidentGallery = () => {
     currentIncidentIndex,
     handleIncidentNavigation,
     currentDecade,
+    slideDirection,
   } = useIncidents();
 
   if (!displayedIncident) return null;
 
   return (
-    <GalleryDisplay
-      incident={displayedIncident}
-      incidents={incidents}
-      onClose={() => setDisplayedIncident(null)}
-      currentIndex={currentIncidentIndex}
-      onNavigate={handleIncidentNavigation}
-      decade={currentDecade}
-      theme={theme}
-    />
+    <div
+      className={`gallery-container ${theme.background} incident-content ${slideDirection ? `slide-${slideDirection}` : ""}`}
+    >
+      <GalleryDisplay
+        incident={displayedIncident}
+        incidents={incidents}
+        onClose={() => setDisplayedIncident(null)}
+        currentIndex={currentIncidentIndex}
+        onNavigate={handleIncidentNavigation}
+        decade={currentDecade}
+        theme={theme}
+      />
+    </div>
   );
 };
 

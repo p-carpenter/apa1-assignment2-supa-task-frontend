@@ -1,7 +1,10 @@
 import React from "react";
 import { useTheme } from "../../../contexts/ThemeContext";
-import IncidentVisualisationCard from "./IncidentVisualisationCard";
-import IncidentDescriptionCard from "./IncidentDescriptionCard";
+import Win95ArtifactWindow from "./Win95ArtifactWindow";
+import Win95DescriptionWindow from "./Win95DescriptionWindow";
+import Win95Taskbar from "../../ui/win95/Win95Taskbar";
+import Win95DesktopIcons from "../../ui/win95/Win95DesktopIcons";
+import "./90sGalleryDisplay.styles.css";
 
 const Win95GalleryDisplay = ({
   incident,
@@ -14,31 +17,34 @@ const Win95GalleryDisplay = ({
 
   if (!incident) return null;
 
-  const styles = {
-    container: `fixed inset-0 w-full h-full ${theme.background} z-50 flex items-center justify-center ${theme.fontFamily}`,
-    contentWrapper: `flex flex-row justify-center items-start gap-4 ${theme.text}`,
-  };
-
   return (
-    <div className={styles.container}>
-      <div className={styles.contentWrapper}>
-        <IncidentVisualisationCard
-          incident={incident}
-          onClose={onClose}
-          decade={1990}
-          theme={theme}
-        />
+    <div className="win95-gallery-container">
+      <Win95DesktopIcons />
 
-        <IncidentDescriptionCard
-          incident={incident}
-          incidents={incidents}
-          onClose={onClose}
-          currentIndex={currentIndex}
-          onNavigate={onNavigate}
-          decade={1990}
-          theme={theme}
-        />
+      <div className="win95-desktop-area">
+        <div className="win95-windows-container">
+          {/* Artifact window with fixed size */}
+          <Win95ArtifactWindow
+            incident={incident}
+            onClose={onClose}
+            decade={1990}
+            theme={theme}
+          />
+
+          {/* Description window justified to the top */}
+          <Win95DescriptionWindow
+            incident={incident}
+            incidents={incidents}
+            onClose={onClose}
+            currentIndex={currentIndex}
+            onNavigate={onNavigate}
+            decade={1990}
+            theme={theme}
+          />
+        </div>
       </div>
+
+      <Win95Taskbar activeWindow={incident.name} decade={1990} />
     </div>
   );
 };
