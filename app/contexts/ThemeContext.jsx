@@ -5,14 +5,11 @@ import { useIncidents } from "./IncidentContext";
 import DOSGalleryDisplay from "../components/features/gallery/80sGalleryDisplay";
 import Win95GalleryDisplay from "../components/features/gallery/90sGalleryDisplay";
 
-// Map of gallery display components by decade
 const GalleryDisplays = {
   1980: DOSGalleryDisplay,
   1990: Win95GalleryDisplay,
-  // Add more display components for other decades
 };
 
-// Basic theme properties still useful for global styling and smaller components
 const DecadeThemes = {
   1980: {
     name: "DOS",
@@ -41,6 +38,8 @@ export const useTheme = () => useContext(ThemeContext);
 export const ThemeProvider = ({ children }) => {
   const { currentDecade } = useIncidents();
 
+  // Determine the correct decade to use
+  // First check currentDecade from context, then fallback to 1990
   const decadeKey = Object.keys(DecadeThemes).includes(String(currentDecade))
     ? currentDecade
     : 1990;

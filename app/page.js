@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useIncidents } from "./contexts/IncidentContext";
 import useIncidentFilter from "./hooks/useIncidentFilter";
 import useViewManager from "./hooks/useViewManager";
-import IncidentCatalog from "@/app/components/features/catalog/IncidentCatalog";
+import IncidentCatalog from "@/app/catalog/page";
 import ContextMenu from "@/app/components/common/ContextMenu";
 import AddNewIncident from "./components/features/forms/AddNewIncident";
 import UpdateIncident from "./components/features/forms/UpdateIncidentWindow";
-import IncidentGallery from "./components/features/gallery/IncidentGallery";
+import IncidentGallery from "./gallery/page";
 import Homepage from "./components/features/homepage/Homepage";
 
 export default function Home() {
@@ -133,63 +133,65 @@ export default function Home() {
   // Render
   // =======================================================================
   return (
-    <div
-      className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
-      onClick={() => closeContextMenu()}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        closeContextMenu();
-        setContextMenu({
-          visible: true,
-          x: e.clientX,
-          y: e.clientY,
-          onFile: false,
-          incidents: [],
-        });
-      }}
-      style={{ position: "relative" }}
-    >
-      <IncidentCatalog
-        setContextMenu={setContextMenu}
-        setShowAddNew={setShowAddNew}
-        setShowUpdate={setShowUpdate}
-      />
+    // <div
+    //   className="flex items-center justify-center h-screen bg-[rgb(0,128,127)]"
+    //   onClick={() => closeContextMenu()}
+    //   onContextMenu={(e) => {
+    //     e.preventDefault();
+    //     closeContextMenu();
+    //     setContextMenu({
+    //       visible: true,
+    //       x: e.clientX,
+    //       y: e.clientY,
+    //       onFile: false,
+    //       incidents: [],
+    //     });
+    //   }}
+    //   style={{ position: "relative" }}
+    // >
+    //   <IncidentCatalog
+    //     setContextMenu={setContextMenu}
+    //     setShowAddNew={setShowAddNew}
+    //     setShowUpdate={setShowUpdate}
+    //   />
 
-      <IncidentGallery />
+    //   <IncidentGallery />
 
-      {/* Context Menu */}
-      {contextMenu.visible && (
-        <ContextMenu
-          visible={contextMenu.visible}
-          x={contextMenu.x}
-          y={contextMenu.y}
-          onFile={contextMenu.onFile}
-          incidents={contextMenu.incidents}
-          closeContextMenu={closeContextMenu}
-          setShowAddNew={setShowAddNew}
-          setShowUpdate={setShowUpdate}
-          onDeleteIncidents={handleDeleteIncidents}
-        />
-      )}
+    //   {/* Context Menu */}
+    //   {contextMenu.visible && (
+    //     <ContextMenu
+    //       visible={contextMenu.visible}
+    //       x={contextMenu.x}
+    //       y={contextMenu.y}
+    //       onFile={contextMenu.onFile}
+    //       incidents={contextMenu.incidents}
+    //       closeContextMenu={closeContextMenu}
+    //       setShowAddNew={setShowAddNew}
+    //       setShowUpdate={setShowUpdate}
+    //       onDeleteIncidents={handleDeleteIncidents}
+    //     />
+    //   )}
 
-      {/* Add New Incident Window */}
-      {showAddNew && (
-        <AddNewIncident
-          onClose={() => setShowAddNew(false)}
-          onSubmit={handleAddNewIncident}
-        />
-      )}
+    //   {/* Add New Incident Window */}
+    //   {showAddNew && (
+    //     <AddNewIncident
+    //       onClose={() => setShowAddNew(false)}
+    //       onSubmit={handleAddNewIncident}
+    //     />
+    //   )}
 
-      {/* Update Incident Window */}
-      {showUpdate && (
-        <UpdateIncident
-          incident={
-            selectedIncidents.length === 1 ? selectedIncidents[0] : null
-          }
-          onClose={() => setShowUpdate(false)}
-          onSubmit={handleUpdateIncident}
-        />
-      )}
+    //   {/* Update Incident Window */}
+    //   {showUpdate && (
+    //     <UpdateIncident
+    //       incident={
+    //         selectedIncidents.length === 1 ? selectedIncidents[0] : null
+    //       }
+    //       onClose={() => setShowUpdate(false)}
+    //       onSubmit={handleUpdateIncident}
+    //     />
+    //   )}
+    <div>
+      <Homepage />
     </div>
   );
 }

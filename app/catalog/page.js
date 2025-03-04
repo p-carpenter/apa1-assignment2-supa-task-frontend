@@ -1,17 +1,20 @@
 "use client";
 
-import { useIncidents } from "../../../contexts/IncidentContext";
-import useSelectionManager from "../../../hooks/useSelectionManager";
-import useIncidentFilter from "../../../hooks/useIncidentFilter";
-import useViewManager from "../../../hooks/useViewManager";
-import MenuBar from "../../ui/win95/MenuBar";
-import AddressBar from "../../ui/win95/AddressBar";
-import WindowContainer from "../../ui/win95/Win95WindowContainer";
-import TitleBar from "../../ui/win95/Win95TitleBar";
-import FilterBar from "../../ui/win95/FilterBar";
-import SelectionBox from "../../ui/win95/SelectionBox";
-import CatalogItem from "../../ui/win95/CatalogItem";
+import { useIncidents } from "../contexts/IncidentContext";
+import useSelectionManager from "../hooks/useSelectionManager";
+import useIncidentFilter from "../hooks/useIncidentFilter";
+import useViewManager from "../hooks/useViewManager";
+import MenuBar from "../components/ui/win95/MenuBar";
+import AddressBar from "../components/ui/win95/AddressBar";
+import WindowContainer from "../components/ui/win95/Win95WindowContainer";
+import TitleBar from "../components/ui/win95/Win95TitleBar";
+import FilterBar from "../components/ui/win95/FilterBar";
+import SelectionBox from "../components/ui/win95/SelectionBox";
+import CatalogItem from "../components/ui/win95/CatalogItem";
+import Link from "next/link";
 import { useEffect } from "react";
+import { generateSlug } from "@/app/utils/slugUtils";
+import { useSearchParams } from "next/navigation";
 
 const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
   const {
@@ -19,6 +22,9 @@ const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
     incidentsByDecade,
     selectedIncidents,
     setSelectedIncidents,
+    setDisplayedIncident,
+    setCurrentIncidentIndex,
+    filteredIncidents: contextFilteredIncidents,
   } = useIncidents();
 
   const {
@@ -34,11 +40,24 @@ const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
     filteredDecades,
     visibleIncidents,
     handleFolderDoubleClick,
-    handleIncidentClick,
     navigateToRoot,
     currentPath,
     windowTitle,
-  } = useViewManager(incidents, incidentsByDecade, filteredIncidents);
+  } = useViewManager(filteredIncidents);
+
+  const searchParams = useSearchParams();
+  const resetView = searchParams.get("reset");
+
+  // Reset to root view if coming from gallery with reset parameter
+  useEffect(() => {
+    if (resetView === "true") {
+      navigateToRoot();
+
+      // Optionally remove the query parameter from URL without navigation
+      const url = window.location.pathname;
+      window.history.replaceState({ path: url }, "", url);
+    }
+  }, [resetView, navigateToRoot]);
 
   const {
     containerRef,
@@ -56,6 +75,12 @@ const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
   const handleContextMenu = (e, item, index) => {
     const menuInfo = handleItemContextMenu(e, item, index, selectedIncidents);
     setContextMenu(menuInfo);
+  };
+
+  const handleViewIncidentInGallery = (incident) => {
+    const index = incidents.findIndex((inc) => inc.id === incident.id);
+    setCurrentIncidentIndex(index);
+    setDisplayedIncident(incident);
   };
 
   return (
@@ -108,7 +133,10 @@ const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
               item={{
                 name: `${decade}s`,
                 value: decade,
-                incidentCount: incidentsByDecade[decade]?.length || 0,
+                incidentCount:
+                  incidentsByDecade[decade]?.filter((inc) =>
+                    filteredIncidents.includes(inc)
+                  ).length || 0,
               }}
               index={index}
               isSelected={selectedIncidents.includes(decade)}
@@ -121,18 +149,29 @@ const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
           ))
         ) : visibleIncidents.length > 0 ? (
           visibleIncidents.map((incident, index) => (
-            <CatalogItem
+            <Link
+              href={`/gallery?incident=${generateSlug(incident.name)}`}
               key={incident.id || index}
-              type="incident"
-              item={incident}
-              index={index}
-              isSelected={selectedIncidents.includes(incident)}
-              onClick={(e) =>
-                handleItemSelect(e, incident, index, visibleIncidents)
-              }
-              onDoubleClick={() => handleIncidentClick(incident)}
-              onContextMenu={(e) => handleContextMenu(e, incident, index)}
-            />
+              onClick={() => {
+                setDisplayedIncident(incident);
+                const incidentIndex = incidents.findIndex(
+                  (inc) => inc.id === incident.id
+                );
+                setCurrentIncidentIndex(incidentIndex >= 0 ? incidentIndex : 0);
+              }}
+              style={{ textDecoration: "none", color: "inherit" }}
+            >
+              <CatalogItem
+                type="incident"
+                item={incident}
+                index={index}
+                isSelected={selectedIncidents.includes(incident)}
+                onClick={(e) =>
+                  handleItemSelect(e, incident, index, visibleIncidents)
+                }
+                onContextMenu={(e) => handleContextMenu(e, incident, index)}
+              />
+            </Link>
           ))
         ) : (
           <div className="text-center my-8 w-full">

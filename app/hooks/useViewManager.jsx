@@ -1,15 +1,19 @@
 import { useMemo } from "react";
 import { useIncidents } from "../contexts/IncidentContext";
+import { useRouter } from "next/navigation";
 
 const useViewManager = (filteredIncidents) => {
+  const router = useRouter();
   const {
+    incidents,
     incidentsByDecade,
     currentDecade,
     currentYear,
     setSelectedIncidents,
     handleFolderDoubleClick,
-    handleIncidentDoubleClick,
     navigateToRoot,
+    setDisplayedIncident,
+    setCurrentIncidentIndex,
   } = useIncidents();
 
   // Get all decades from incidentsByDecade
@@ -21,6 +25,8 @@ const useViewManager = (filteredIncidents) => {
 
   // Filter decades based on filteredIncidents
   const filteredDecades = useMemo(() => {
+    if (!filteredIncidents?.length) return decades;
+    
     return decades.filter((decade) =>
       incidentsByDecade[decade]?.some((incident) =>
         filteredIncidents.includes(incident)
@@ -28,14 +34,14 @@ const useViewManager = (filteredIncidents) => {
     );
   }, [decades, incidentsByDecade, filteredIncidents]);
 
-  // Get visible incidents for the current year
+  // Get visible incidents for the current year, filtered by search/category
   const visibleIncidents = useMemo(() => {
     if (!currentYear) return [];
-    return (
-      incidentsByDecade[currentYear]?.filter((incident) =>
-        filteredIncidents.includes(incident)
-      ) || []
-    );
+    if (!filteredIncidents?.length) return [];
+    
+    return incidentsByDecade[currentYear]?.filter((incident) =>
+      filteredIncidents.includes(incident)
+    ) || [];
   }, [currentYear, incidentsByDecade, filteredIncidents]);
 
   // Determine current view based on currentYear
@@ -43,7 +49,12 @@ const useViewManager = (filteredIncidents) => {
 
   // Handle clicking on an incident directly
   const handleIncidentClick = (incident) => {
-    handleIncidentDoubleClick(incident);
+    // Set the incident in context for the gallery page
+    const index = incidents.findIndex((inc) => inc.id === incident.id);
+    if (index >= 0) {
+      setCurrentIncidentIndex(index);
+      setDisplayedIncident(incident);
+    }
   };
 
   return {
@@ -57,8 +68,12 @@ const useViewManager = (filteredIncidents) => {
     handleIncidentClick,
     navigateToRoot,
     // Path information
-    currentPath: `C:\\Technology Incidents${currentDecade ? `\\${currentDecade}s` : ""}\\`,
-    windowTitle: `Technology Incidents${currentDecade ? ` - ${currentDecade}s` : ""}`,
+    currentPath: `C:\\Technology Incidents${
+      currentDecade ? `\\${currentDecade}s` : ""
+    }\\`,
+    windowTitle: `Technology Incidents${
+      currentDecade ? ` - ${currentDecade}s` : ""
+    }`,
   };
 };
 

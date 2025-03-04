@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 
 const IncidentContext = createContext(null);
 
@@ -14,6 +20,8 @@ export const IncidentProvider = ({
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
   const [currentDecade, setCurrentDecade] = useState(null);
   const [currentYear, setCurrentYear] = useState(null);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;
@@ -35,11 +43,54 @@ export const IncidentProvider = ({
     }, {});
   }, [incidents]);
 
+  // Filter incidents based on category and search query
+  const filteredIncidents = useMemo(() => {
+    if (!incidents.length) return [];
+
+    let result = [...incidents];
+
+    if (activeFilter) {
+      result = result.filter(
+        (incident) =>
+          incident.category &&
+          incident.category.toLowerCase() === activeFilter.toLowerCase()
+      );
+    }
+
+    if (searchQuery && searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter((incident) => {
+        return (
+          (incident.name && incident.name.toLowerCase().includes(query)) ||
+          (incident.description &&
+            incident.description.toLowerCase().includes(query))
+        );
+      });
+    }
+
+    return result;
+  }, [incidents, activeFilter, searchQuery]);
+
+  // Clear filters
+  const clearFilters = useCallback(() => {
+    setActiveFilter(null);
+    setSearchQuery("");
+  }, []);
+
+  // Handle filter category click
+  const handleFilterClick = useCallback((category) => {
+    setActiveFilter((prevFilter) =>
+      prevFilter === category ? null : category
+    );
+  }, []);
+
   // Handler functions
   const handleIncidentDoubleClick = (incident) => {
+    // Just set the current incident info - navigation will be handled separately
     const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index);
     setDisplayedIncident(incident);
+    // Note: No longer directly displaying the gallery here
   };
 
   const handleIncidentNavigation = (newIndex) => {
@@ -87,11 +138,20 @@ export const IncidentProvider = ({
     displayedIncident,
     setDisplayedIncident,
     currentIncidentIndex,
+    setCurrentIncidentIndex,
     // Navigation state
     currentDecade,
     setCurrentDecade,
     currentYear,
     setCurrentYear,
+    // Filter state
+    activeFilter,
+    setActiveFilter,
+    searchQuery,
+    setSearchQuery,
+    filteredIncidents,
+    clearFilters,
+    handleFilterClick,
     // Action handlers
     handleIncidentDoubleClick,
     handleIncidentNavigation,
