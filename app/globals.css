@@ -42,7 +42,7 @@ body {
   font-family: "W95FA", "MS Sans Serif", sans-serif;
   margin: 10px;
   padding: 0;
-  background-image: url("/newspaper_clippings.png");
+  /* background-image: url("/newspaper_clippings.png"); */
   display: flex;
   justify-content: center;
   align-items: center;

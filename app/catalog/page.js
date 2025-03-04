@@ -179,8 +179,6 @@ const IncidentCatalog = ({ setContextMenu, setShowAddNew, setShowUpdate }) => {
           </div>
         )}
       </div>
-
-      <SelectionBox isSelecting={isSelecting} selectionBox={selectionBox} />
     </WindowContainer>
   );
 };
