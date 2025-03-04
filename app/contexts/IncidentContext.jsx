@@ -14,7 +14,6 @@ export const IncidentProvider = ({
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
   const [currentDecade, setCurrentDecade] = useState(null);
   const [currentYear, setCurrentYear] = useState(null);
-  const [slideDirection, setSlideDirection] = useState(null); // Add this for animation
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;
@@ -46,10 +45,6 @@ export const IncidentProvider = ({
   const handleIncidentNavigation = (newIndex) => {
     if (newIndex >= 0 && newIndex < incidents.length) {
       const nextIncident = incidents[newIndex];
-
-      // Set slide direction based on index change
-      setSlideDirection(newIndex > currentIncidentIndex ? "right" : "left");
-
       setCurrentIncidentIndex(newIndex);
       setDisplayedIncident(nextIncident);
 
@@ -65,51 +60,6 @@ export const IncidentProvider = ({
           error
         );
       }
-
-      // Reset slide direction after animation completes
-      setTimeout(() => setSlideDirection(null), 500);
-    }
-  };
-
-  // New function to navigate to the first incident from a specific year
-  const navigateToIncidentByYear = (year) => {
-    const incidentIndex = incidents.findIndex((incident) => {
-      try {
-        const incidentYear = new Date(incident.incident_date).getFullYear();
-        return incidentYear === year;
-      } catch (error) {
-        return false;
-      }
-    });
-
-    if (incidentIndex !== -1) {
-      // Get current year safely
-      let currentYear = null;
-      try {
-        currentYear = displayedIncident?.incident_date
-          ? new Date(displayedIncident.incident_date).getFullYear()
-          : null;
-      } catch (error) {
-        console.error("Error getting current year:", error);
-      }
-
-      // Set slide direction based on year change
-      if (currentYear !== null && year !== currentYear) {
-        setSlideDirection(year > currentYear ? "right" : "left");
-
-        // Add animation class to the year pagination
-        const paginationElement = document.querySelector(
-          ".gallery-year-pagination"
-        );
-        if (paginationElement) {
-          paginationElement.classList.add("sliding");
-          setTimeout(() => {
-            paginationElement.classList.remove("sliding");
-          }, 500);
-        }
-      }
-
-      handleIncidentNavigation(incidentIndex);
     }
   };
 
@@ -142,13 +92,11 @@ export const IncidentProvider = ({
     setCurrentDecade,
     currentYear,
     setCurrentYear,
-    slideDirection,
     // Action handlers
     handleIncidentDoubleClick,
     handleIncidentNavigation,
     handleFolderDoubleClick,
     navigateToRoot,
-    navigateToIncidentByYear,
   };
 
   return (

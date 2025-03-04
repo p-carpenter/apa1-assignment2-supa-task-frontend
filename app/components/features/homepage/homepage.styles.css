@@ -1,0 +1,259 @@
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Lora:wght@400;500&display=swap");
+
+body {
+  background-image: url("/newspaper_clippings.png");
+  margin: 0;
+  padding: 0;
+}
+
+/* Base document styles */
+.archive-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  font-family: "Lora", Georgia, serif;
+  padding: 3rem 1.5rem;
+  box-sizing: border-box;
+}
+
+/* Content wrapper */
+.archive-content {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  padding: 4rem 2rem;
+  background-color: rgba(249, 243, 233, 0.8);
+  border: 1px solid #c6b499;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.archive-content::before,
+.archive-content::after {
+  content: "";
+  position: absolute;
+  width: 40px;
+  height: 100%;
+  top: 0;
+  background: linear-gradient(to bottom, transparent, rgba(198, 180, 153, 0.2) 30%, rgba(198, 180, 153, 0.2) 70%, transparent);
+}
+
+.archive-content::before {
+  left: -20px;
+}
+
+.archive-content::after {
+  right: -20px;
+}
+
+/* Ornamental elements */
+.archive-ornament {
+  height: 20px;
+  width: 60%;
+  max-width: 600px;
+  background-repeat: repeat-x;
+  background-size: contain;
+}
+
+.top-ornament {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,10 C30,15 70,15 100,10 L100,20 L0,20 L0,10 Z' fill='%23c6b499' fill-opacity='0.15'/%3E%3C/svg%3E");
+  margin-bottom: 2rem;
+}
+
+.bottom-ornament {
+  background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,10 C30,5 70,5 100,10 L100,0 L0,0 L0,10 Z' fill='%23c6b499' fill-opacity='0.15'/%3E%3C/svg%3E");
+  margin-top: 2rem;
+}
+
+/* Title styling */
+.archive-title {
+  font-family: "Playfair Display", serif;
+  font-weight: 700;
+  font-size: 3.2rem;
+  color: #3a2921;
+  margin: 0 0 1.5rem;
+  line-height: 1.1;
+  letter-spacing: 2px;
+  position: relative;
+  padding-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.archive-title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 25%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #a89578, transparent);
+}
+
+.title-prefix {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #7d6e59;
+  margin-bottom: 0.8rem;
+  font-family: "Lora", Georgia, serif;
+}
+
+/* Subtitle */
+.archive-subtitle {
+  font-family: "Lora", Georgia, serif;
+  font-size: 1rem;
+  color: #7d6e59;
+  margin: 2rem 0;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+/* Entry button */
+.archive-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  font-family: "Playfair Display", serif;
+  font-size: 1.1rem;
+  color: #3a2921;
+  text-decoration: none;
+  margin-top: 2rem;
+  padding: 0.7rem 2rem;
+  border: 1px solid #a89578;
+  position: relative;
+  transition: all 0.3s ease;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.archive-entry::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(168, 149, 120, 0.5);
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+
+.archive-entry:hover {
+  background-color: rgba(168, 149, 120, 0.1);
+}
+
+.archive-entry:hover::after {
+  bottom: -7px;
+  right: -7px;
+}
+
+.arrow {
+  font-size: 1.4rem;
+  line-height: 0;
+  transition: transform 0.3s ease;
+  display: inline-block;
+}
+
+.archive-entry:hover .arrow {
+  transform: translateX(5px);
+}
+
+/* Illustrations section */
+.archive-illustrations {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-top: 4rem;
+  opacity: 0.65;
+}
+
+.illustration-item {
+  width: 60px;
+  height: 60px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  filter: sepia(0.6);
+}
+
+.y2k {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' fill='none' stroke='%233a2921' stroke-width='1.5'%3E%3Crect x='15' y='10' width='30' height='25' rx='2'/%3E%3Cpath d='M15 30L45 30'/%3E%3Cpath d='M25 40L25 33'/%3E%3Cpath d='M35 40L35 33'/%3E%3Cpath d='M25 45L35 45'/%3E%3C/svg%3E");
+}
+
+.challenger {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' fill='none' stroke='%233a2921' stroke-width='1.5'%3E%3Cpath d='M30 10L30 25'/%3E%3Cpath d='M20 25L40 25'/%3E%3Cpath d='M25 25L25 40'/%3E%3Cpath d='M35 25L35 40'/%3E%3Cpath d='M15 40L45 40'/%3E%3Cpath d='M20 40L20 50'/%3E%3Cpath d='M40 40L40 50'/%3E%3Ccircle cx='20' cy='40' r='3' fill='%233a2921' fill-opacity='0.2'/%3E%3Ccircle cx='40' cy='40' r='3' fill='%233a2921' fill-opacity='0.2'/%3E%3C/svg%3E");
+}
+
+.morris {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' fill='none' stroke='%233a2921' stroke-width='1.5'%3E%3Ccircle cx='30' cy='20' r='10'/%3E%3Ccircle cx='15' cy='40' r='8'/%3E%3Ccircle cx='45' cy='40' r='8'/%3E%3Cpath d='M23 27L18 33'/%3E%3Cpath d='M37 27L42 33'/%3E%3Cpath d='M15 40L45 40' stroke-dasharray='3 3'/%3E%3C/svg%3E");
+}
+
+.therac {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60' fill='none' stroke='%233a2921' stroke-width='1.5'%3E%3Crect x='10' y='15' width='40' height='20' rx='2'/%3E%3Cpath d='M25 25L35 25'/%3E%3Cpath d='M30 20L30 30'/%3E%3Cpath d='M30 35L30 45'/%3E%3Cpath d='M20 45L40 45'/%3E%3Cpath d='M25 15L25 10'/%3E%3Cpath d='M35 15L35 10'/%3E%3C/svg%3E");
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .archive-title {
+    font-size: 2.5rem;
+  }
+
+  .archive-ornament {
+    width: 80%;
+  }
+
+  .archive-illustrations {
+    gap: 2rem;
+  }
+  
+  .archive-content {
+    padding: 3rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .archive-container {
+    padding: 2rem 1rem;
+  }
+
+  .archive-title {
+    font-size: 2rem;
+    letter-spacing: 1px;
+  }
+
+  .title-prefix {
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+  }
+
+  .archive-subtitle {
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+  }
+
+  .archive-illustrations {
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .illustration-item {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .archive-content {
+    padding: 2rem 1rem;
+  }
+  
+  .archive-entry {
+    padding: 0.6rem 1.5rem;
+    font-size: 1rem;
+  }
+}

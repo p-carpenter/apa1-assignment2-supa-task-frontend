@@ -9,6 +9,7 @@ import ContextMenu from "@/app/components/common/ContextMenu";
 import AddNewIncident from "./components/features/forms/AddNewIncident";
 import UpdateIncident from "./components/features/forms/UpdateIncidentWindow";
 import IncidentGallery from "./components/features/gallery/IncidentGallery";
+import Homepage from "./components/features/homepage/Homepage";
 
 export default function Home() {
   const {
@@ -44,7 +45,7 @@ export default function Home() {
       });
       if (!response.ok) throw new Error("Failed to create incident");
       const updatedData = await response.json();
-      setIncidents(updatedData); // Our enhanced setIncidents will format dates
+      setIncidents(updatedData);
       setShowAddNew(false);
     } catch (error) {
       console.error(error);
@@ -76,7 +77,7 @@ export default function Home() {
       if (!response.ok) throw new Error("Failed to update incident");
 
       const updatedData = await response.json();
-      setIncidents(updatedData); // Our enhanced setIncidents will format dates
+      setIncidents(updatedData);
       setShowUpdate(false);
     } catch (error) {
       console.error(error);
@@ -102,7 +103,7 @@ export default function Home() {
 
       // Refresh
       const updatedData = await response.json();
-      setIncidents(updatedData); // Our enhanced setIncidents will format dates
+      setIncidents(updatedData);
 
       // Clear selection and close menu
       setSelectedIncidents([]);
