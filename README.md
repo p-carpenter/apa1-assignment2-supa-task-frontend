@@ -1,6 +1,7 @@
 # Tech Incidents Archive
 
-![]("https://i.imgur.com/wAN5OOv.gif")
+![""](/public/readme-assets/homepage.gif)
+
 A digital museum website showcasing significant technological failures throughout computing history. This website provides an interactive, historically-themed interface for exploring and cataloging technology incidents.
 
 ## 📑 Table of Contents
@@ -143,7 +144,7 @@ In the catalog page:
 3. Use the search bar to find incidents by name, description, year of incident, or category
 4. Use the sort dropdown to order incidents by year, name, or severity
 
-!["You can search for incidents by name, description, category or year."]("https://i.imgur.com/hbl8Yxd.gif")
+!["You can search for incidents by name, description, category or year."](/public/readme-assets/catalog.gif)
 
 ### Adding New Incidents
 
@@ -187,7 +188,7 @@ The application features different visual themes based on the decade of the inci
 
 The theme is automatically selected based on the incident's date, through the Theme Provider (app/contexts/ThemeContext.jsx).
 
-!["1980s and 1990s themes switching with the decade"]("https://i.imgur.com/RQDkyil.gif")
+!["1980s and 1990s themes switching with the decade"](/public/readme-assets/gallery-themes.gif)
 
 ## 🔮 Future Enhancements
 
