@@ -22,7 +22,7 @@ const DonationCard = ({
         </p>
         <p>
           98% of our visitors don&rsquo;t donate. But if everyone reading this
-          gave $2.75, our funding drive would be done within an hour.
+          gave £2.75, our funding drive would be done within an hour.
         </p>
         <p>
           <em>— The Tech Incidents Volunteer Team</em>
@@ -42,7 +42,7 @@ const DonationCard = ({
           <div className="progress-fill"></div>
         </div>
         <div className="progress-text">
-          <span className="progress-percent">37%</span> of our $8,000 goal
+          <span className="progress-percent">140%</span> of our £8,000 goal
         </div>
       </div>
     </div>
