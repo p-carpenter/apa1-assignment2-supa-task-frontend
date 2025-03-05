@@ -50,6 +50,11 @@ const config = {
   transformIgnorePatterns: [
     '/node_modules/(?!(@mswjs|msw|undici)/)',
   ],
+
+  reporters: [
+    'default',
+    ['jest-ctrf-json-reporter', {}],
+  ],
 };
 
 export default createJestConfig(config);
