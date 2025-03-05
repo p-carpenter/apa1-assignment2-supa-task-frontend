@@ -1,25 +1,27 @@
 {
   "name": "apa1-assignment2-supa-task-frontend",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@react95/core": "^9.2.1",
-    "98.css": "^0.1.20",
     "lucide-react": "^0.475.0",
     "next": "15.1.7",
     "prettier": "^3.5.2",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-router": "^7.2.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@testing-library/dom": "^10.4.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "postcss": "^8",
