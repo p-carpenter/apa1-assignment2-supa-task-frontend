@@ -1,3 +1,4 @@
+/* Navigation buttons container */
 .gallery-nav-buttons {
   position: fixed;
   top: 50%;
@@ -10,43 +11,65 @@
   padding: 0 20px;
 }
 
+/* Navigation button styling to match homepage aesthetic */
 .gallery-nav-button {
-  /* Windows 95 button styling */
-  background-color: #c0c0c0; /* Classic Win95 gray */
-  width: 42px;
-  height: 42px;
+  background-color: var(--color-bg-subtle, #ece5dc);
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   font-weight: bold;
-  font-family: "MS Sans Serif", "Tahoma", sans-serif;
-  color: #000;
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--color-accent, #7c6b4e);
   cursor: pointer;
   pointer-events: auto;
-
-  /* Classic Win95 3D border effect */
-  border-width: 2px;
-  border-style: solid;
-  border-color: #dfdfdf #555 #555 #dfdfdf;
-  box-shadow: 1px 1px 0 #000;
-
-  /* No rounded corners in Win95 */
-  border-radius: 0;
+  border: 1px solid var(--color-border, #c9b8a8);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(73, 107, 99, 0.15), 0 1px 3px rgba(107, 92, 76, 0.2);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Win95 pressed button effect */
+/* Button hover effect with subtle highlight */
+.gallery-nav-button:hover {
+  background-color: var(--color-bg, #f7f3ee);
+  box-shadow: 0 6px 20px rgba(73, 107, 99, 0.2), 0 2px 5px rgba(107, 92, 76, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Add subtle glow effect on hover to match homepage button styling */
+.gallery-nav-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  transform: scale(0.5);
+}
+
+.gallery-nav-button:hover::after {
+  opacity: 0.8;
+  transform: scale(1);
+}
+
+/* Pressed button effect */
 .gallery-nav-button:active {
-  border-color: #555 #dfdfdf #dfdfdf #555;
-  box-shadow: none;
-  padding-top: 1px;
-  padding-left: 1px;
+  box-shadow: 0 2px 5px rgba(73, 107, 99, 0.1);
+  transform: translateY(1px);
 }
 
-/* Win95 focus style */
+/* Focus style */
 .gallery-nav-button:focus {
-  outline: 1px dotted #000;
-  outline-offset: -5px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-light, rgba(124, 107, 78, 0.3));
 }
 
 /* Year pagination styling */
@@ -147,11 +170,12 @@
   pointer-events: none;
 }
 
-/* Responsive adjustments - keeping Win95 feel */
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .gallery-nav-button {
-    width: 38px;
-    height: 38px;
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
   }
 
   .gallery-year-pagination {
@@ -171,13 +195,14 @@
 
 @media (max-width: 480px) {
   .gallery-nav-button {
-    width: 34px;
-    height: 34px;
-    font-size: 16px;
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+    border-radius: 6px;
   }
 
   .gallery-nav-buttons {
-    padding: 0 10px;
+    padding: 0 15px;
   }
 
   .gallery-year-pagination {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import "./gallery-variables.css";
 import "./GalleryNavButtons.styles.css";
 import "./slide-transitions.css";
 
@@ -145,7 +146,7 @@ const GalleryNavButtons = ({
 
       <div className="gallery-nav-buttons">
         <button
-          className="gallery-nav-button gallery-nav-button--prev"
+          className="gallery-nav-button"
           onClick={() => {
             if (!isAnimating && prevYear) {
               setIsAnimating(true);
@@ -160,7 +161,7 @@ const GalleryNavButtons = ({
         </button>
 
         <button
-          className="gallery-nav-button gallery-nav-button--next"
+          className="gallery-nav-button"
           onClick={() => {
             if (!isAnimating && nextYear) {
               setIsAnimating(true);

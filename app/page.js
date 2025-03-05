@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useIncidents } from "./contexts/IncidentContext";
 import useIncidentFilter from "./hooks/useIncidentFilter";
 import useViewManager from "./hooks/useViewManager";
-import IncidentCatalog from "@/app/catalog/page";
+import IncidentCatalog from "@/app/catalog-old/page";
 import ContextMenu from "@/app/components/common/ContextMenu";
 import AddNewIncident from "./components/features/forms/AddNewIncident";
 import UpdateIncident from "./components/features/forms/UpdateIncidentWindow";
