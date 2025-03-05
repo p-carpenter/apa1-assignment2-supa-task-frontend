@@ -1,25 +1,19 @@
 "use client";
 
-import { useIncidents } from "../contexts/incidents";
+import { useIncidents } from "../contexts/IncidentContext";
 import { useState, useEffect, useMemo } from "react";
 import "./catalog.styles.css";
 
-// Import reusable components using barrel files
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
   CatalogHeader,
-  Timeline
 } from "../components/ui";
 
-import {
-  CatalogFilters,
-  IncidentGrid
-} from "../components/layouts";
+import { CatalogFilters, IncidentGrid } from "../components/layouts";
 
-const ArchiveCatalog = () => {
-  // Get incident context data
+const Catalog = () => {
   const { incidents, setDisplayedIncident, setCurrentIncidentIndex } =
     useIncidents();
   const [activeYear, setActiveYear] = useState("all");
@@ -30,7 +24,6 @@ const ArchiveCatalog = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realTimeSearch, setRealTimeSearch] = useState("");
 
-  // Helper function to extract year from incident_date
   const getIncidentYear = (incident) => {
     if (!incident || !incident.incident_date) return null;
     try {
@@ -41,7 +34,6 @@ const ArchiveCatalog = () => {
     }
   };
 
-  // Extract available years and categories from incidents
   useEffect(() => {
     if (!incidents || !incidents.length) return;
     setIsLoading(false);
@@ -55,7 +47,6 @@ const ArchiveCatalog = () => {
     setYearsAvailable(uniqueYears);
   }, [incidents]);
 
-  // Extract unique categories
   const categories = useMemo(() => {
     if (!incidents || !incidents.length) return [];
 
@@ -72,7 +63,6 @@ const ArchiveCatalog = () => {
     return cats.sort();
   }, [incidents]);
 
-  // Apply real-time search with debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(realTimeSearch);
@@ -81,7 +71,6 @@ const ArchiveCatalog = () => {
     return () => clearTimeout(timer);
   }, [realTimeSearch]);
 
-  // Filter incidents based on active year, category, and search query
   const filteredIncidents = useMemo(() => {
     if (!incidents || !incidents.length) return [];
 
@@ -90,16 +79,13 @@ const ArchiveCatalog = () => {
 
       const year = getIncidentYear(incident);
 
-      // Check year match
       const matchesYear =
         activeYear === "all" || (year && year.toString() === activeYear);
 
-      // Check category match
       const matchesCategory =
         activeCategory === "all" ||
         (incident.category && incident.category === activeCategory);
 
-      // Check search match
       const matchesSearch =
         searchQuery === "" ||
         (incident.name &&
@@ -118,7 +104,6 @@ const ArchiveCatalog = () => {
     });
   }, [incidents, activeYear, activeCategory, searchQuery]);
 
-  // Sort the filtered incidents
   const sortedIncidents = useMemo(() => {
     if (!filteredIncidents.length) return [];
 
@@ -145,44 +130,14 @@ const ArchiveCatalog = () => {
     });
   }, [filteredIncidents, sortOrder]);
 
-  // Generate timeline markers for significant incidents
-  const timelineMarkers = useMemo(() => {
-    if (!yearsAvailable.length) return [];
-
-    // Get min and max years
-    const minYear = Math.min(...yearsAvailable.map((y) => parseInt(y, 10)));
-    const maxYear = Math.max(...yearsAvailable.map((y) => parseInt(y, 10)));
-    const range = maxYear - minYear;
-
-    // Get major incidents
-    const majorIncidents = incidents.filter((inc) => inc.severity >= 4);
-
-    // Create a marker for each major incident
-    return majorIncidents
-      .map((inc) => {
-        const year = getIncidentYear(inc);
-        if (!year) return null;
-
-        const position = ((year - minYear) / range) * 100;
-        return {
-          year,
-          position: `${position}%`,
-          major: inc.severity >= 4,
-        };
-      })
-      .filter(Boolean);
-  }, [incidents, yearsAvailable]);
-
-  // Define status items for the console footer
   const statusItems = [
     "TECH INCIDENTS DATABASE",
     "CATALOG VIEW",
-    { text: `${filteredIncidents.length} RECORDS RETRIEVED`, blink: true }
+    { text: `${filteredIncidents.length} RECORDS RETRIEVED`, blink: true },
   ];
 
-  // Handle incident selection
   const handleIncidentSelect = (incident) => {
-    const index = incidents.findIndex(inc => inc.id === incident.id);
+    const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index >= 0 ? index : 0);
     setDisplayedIncident(incident);
   };
@@ -192,26 +147,19 @@ const ArchiveCatalog = () => {
       <div className="circuit-background"></div>
 
       <div className="archive-container catalog-container">
-        <ConsoleWindow 
-          title="tech-incidents-catalog"
-          statusItems={statusItems}
-        >
-          <ConsoleSection command="query tech_incidents.db --search=&quot;*&quot; --list">
-            <CatalogHeader 
-              title="INCIDENT CATALOG" 
+        <ConsoleWindow title="tech-incidents-catalog" statusItems={statusItems}>
+          <ConsoleSection command='query tech_incidents.db --search="*" --list'>
+            <CatalogHeader
+              title="INCIDENT CATALOG"
               subtitle={`All documented technical mishaps since ${yearsAvailable[0] || "1985"}`}
             />
-            
+
             <CommandOutput showLoadingBar={true}>
               Found {filteredIncidents.length} incidents in database.
             </CommandOutput>
           </ConsoleSection>
 
-          {/* Timeline visualization */}
-          <Timeline markers={timelineMarkers} />
-
-          {/* Filters Section */}
-          <CatalogFilters 
+          <CatalogFilters
             searchQuery={realTimeSearch}
             onSearchChange={setRealTimeSearch}
             activeYear={activeYear}
@@ -224,13 +172,12 @@ const ArchiveCatalog = () => {
             onSortChange={setSortOrder}
           />
 
-          {/* Results Section */}
           <ConsoleSection command="display_results --format=grid">
             <CommandOutput>
               Displaying {sortedIncidents.length} incidents
             </CommandOutput>
-            
-            <IncidentGrid 
+
+            <IncidentGrid
               incidents={sortedIncidents}
               isLoading={isLoading}
               emptyMessage="No matching incidents found."
@@ -244,4 +191,4 @@ const ArchiveCatalog = () => {
   );
 };
 
-export default ArchiveCatalog;
+export default Catalog;

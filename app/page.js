@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useIncidents } from "./contexts/incidents";
-import "./components/features/homepage/homepage.styles.css";
+import { useIncidents } from "./contexts/IncidentContext";
+import "./homepage.styles.css";
 
 // Import reusable components using barrel files
 import {
@@ -14,7 +14,7 @@ import {
   MuseumInfo,
   CTAButton,
   Illustrations,
-  InfoModal
+  InfoModal,
 } from "./components";
 
 export default function Home() {

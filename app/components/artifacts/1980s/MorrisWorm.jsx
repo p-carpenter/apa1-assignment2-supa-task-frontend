@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import "@/app/components/ui/terminal/Terminal.css";
 import "./MorrisWorm.css";
 
 const MorrisWorm = () => {
@@ -34,7 +33,6 @@ const MorrisWorm = () => {
     loadFiles();
   }, []);
 
-  // The artifact content only - no wrapper logic here
   return (
     <div className="terminal">
       <div className="terminal-wrapper">

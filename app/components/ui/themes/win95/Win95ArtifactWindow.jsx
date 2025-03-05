@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import TitleBar from "./Win95TitleBar";
-import StandardArtifact from "../../common/StandardArtifact";
+import StandardArtifact from "../../artifacts/StandardArtifact";
 import WindowsNTBSOD from "../../../artifacts/2000s/WindowsNTBSOD.jsx";
 import ATTNetworkCollapse from "../../../artifacts/1990s/ATTNetworkCollapse.jsx";
 import Y2KBug from "../../../artifacts/1990s/Y2KBug.jsx";
@@ -9,10 +9,7 @@ import YTViewCounter from "../../../artifacts/2010s/YTViewCounter.jsx";
 import Win95RecycleBin from "../../../artifacts/1990s/Win95RecycleBin.jsx";
 import MarsClimateCrash from "../../../artifacts/1990s/MarsClimateCrash.jsx";
 
-const Win95ArtifactWindow = ({ incident, onClose, decade, theme }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Get artifact-specific dimensions and ratio
+const Win95ArtifactWindow = ({ incident, onClose, decade }) => {
   const getArtifactDimensions = () => {
     return {
       baseWidth: "1024px",
@@ -37,7 +34,6 @@ const Win95ArtifactWindow = ({ incident, onClose, decade, theme }) => {
       case "Therac-25 Radiation Accidents":
         return <Therac25Accidents />;
       default:
-        // Default visualization if none specific exists
         return (
           <div className="bg-white p-8 text-black text-center">
             <h2 className="text-xl font-bold mb-4">{incident.name}</h2>
@@ -57,7 +53,6 @@ const Win95ArtifactWindow = ({ incident, onClose, decade, theme }) => {
       <TitleBar title={incident.name} onClose={onClose} />
       <StandardArtifact decade={decade} title={incident.name}>
         {renderVisualization()}
-        {/* etc. */}
       </StandardArtifact>
     </div>
   );

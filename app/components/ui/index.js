@@ -4,7 +4,6 @@ export * from "./console";
 export * from "./display";
 export * from "./filters";
 export * from "./modals";
-export * from "./menus";
 export * from "./artifacts";
 export * from "./forms";
 export * from "./themes";

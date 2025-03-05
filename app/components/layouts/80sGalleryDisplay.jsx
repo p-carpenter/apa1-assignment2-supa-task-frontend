@@ -1,11 +1,11 @@
 import React from "react";
-import DOSPanel from "../../ui/dos/DOSPanel";
+import DOSPanel from "../ui/themes/dos/DOSPanel";
 import { useTheme } from "../../contexts/ThemeContext";
 import "./80sGalleryDisplay.styles.css";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import MorrisWorm from "../artifacts/1980s/MorrisWorm";
 import Therac25Accidents from "../artifacts/1980s/Therac25Accidents";
-import StandardArtifact from "../../common/StandardArtifact";
+import StandardArtifact from "../ui/artifacts/StandardArtifact";
 
 const DOSGalleryDisplay = ({
   incident,
@@ -20,14 +20,12 @@ const DOSGalleryDisplay = ({
 
   // Helper function to render the appropriate artifact
   const renderArtifact = () => {
-    // Component selection based on incident name
     switch (incident.name) {
       case "Morris Worm":
         return <MorrisWorm />;
       case "Therac-25 Radiation Accidents":
         return <Therac25Accidents />;
       default:
-        // Fallback for simple content types
         if (incident.artifactType === "image") {
           return (
             <img
