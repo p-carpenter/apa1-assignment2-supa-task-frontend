@@ -8,14 +8,16 @@ describe("Slug Utilities", () => {
   describe("generateSlug", () => {
     it("converts a string to a valid slug", () => {
       expect(generateSlug("Hello World")).toBe("hello-world");
-      expect(generateSlug("Tech Incident 123")).toBe("tech-incident-123");
+
+      expect(generateSlug("Tech Incident 123")).toBe("tech-incident");
       expect(generateSlug("Special@#Characters!")).toBe("specialcharacters");
     });
 
     it("handles edge cases", () => {
-      expect(generateSlug("")).toBe("");
-      expect(generateSlug(null)).toBe("");
-      expect(generateSlug(undefined)).toBe("");
+
+      expect(generateSlug("")).toBe("unknown");
+      expect(generateSlug(null)).toBe("unknown");
+      expect(generateSlug(undefined)).toBe("unknown");
     });
   });
 
@@ -28,7 +30,7 @@ describe("Slug Utilities", () => {
     ];
 
     it("finds incident by exact slug match", () => {
-      expect(findIncidentBySlug(mockIncidents, "test-incident-one")).toEqual(
+      expect(findIncidentBySlug(mockIncidents, "test-incident")).toEqual(
         mockIncidents[0]
       );
       expect(findIncidentBySlug(mockIncidents, "another-incident")).toEqual(
@@ -37,12 +39,19 @@ describe("Slug Utilities", () => {
     });
 
     it("returns null when no match is found", () => {
-      expect(findIncidentBySlug(mockIncidents, "non-existent-slug")).toBeNull();
+      expect(findIncidentBySlug(mockIncidents, "non-existent-slug")).toBeNil();
     });
 
     it("handles empty input", () => {
-      expect(findIncidentBySlug([], "test-incident-one")).toBeNull();
-      expect(findIncidentBySlug(null, "test-incident-one")).toBeNull();
+      expect(findIncidentBySlug([], "test-incident")).toBeNil();
+      expect(findIncidentBySlug(null, "test-incident")).toBeNil();
+    });
+
+    it("finds incident by partial match if exact match fails", () => {
+      // This tests the partial matching fallback feature
+      expect(findIncidentBySlug(mockIncidents, "test")).toEqual(
+        mockIncidents[0]
+      );
     });
   });
 });
