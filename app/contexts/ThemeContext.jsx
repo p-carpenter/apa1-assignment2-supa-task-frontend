@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext } from "react";
 import { useIncidents } from "./IncidentContext";
-import DOSGalleryDisplay from "../components/features/gallery/80sGalleryDisplay";
-import Win95GalleryDisplay from "../components/features/gallery/90sGalleryDisplay";
+import DOSGalleryDisplay from "../components/layouts/80sGalleryDisplay";
+import Win95GalleryDisplay from "../components/layouts/90sGalleryDisplay";
 
 const GalleryDisplays = {
   1980: DOSGalleryDisplay,

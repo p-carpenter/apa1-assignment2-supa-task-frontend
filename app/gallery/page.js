@@ -5,7 +5,10 @@ import { useTheme } from "@/app/contexts/ThemeContext";
 import GalleryNavButtons from "@/app/components/ui/gallery-navigation/GalleryNavButtons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { findIncidentBySlug, generateSlug } from "@/app/utils/slugUtils";
+import {
+  findIncidentBySlug,
+  generateSlug,
+} from "@/app/utils/navigation/slugUtils";
 
 export default function GalleryPage() {
   const { GalleryDisplay, theme } = useTheme();
@@ -25,17 +28,14 @@ export default function GalleryPage() {
   const searchParams = useSearchParams();
   const slug = searchParams.get("incident");
 
-  // Local state
   const [currentIncident, setCurrentIncident] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Safety check for incidents
   const hasIncidents = useMemo(
     () => Array.isArray(incidents) && incidents.length > 0,
     [incidents]
   );
 
-  // Determine which incidents to show based on filters
   const availableIncidents = useMemo(() => {
     if (!hasIncidents) return [];
     return (activeFilter || searchQuery) && filteredIncidents.length
@@ -43,7 +43,6 @@ export default function GalleryPage() {
       : incidents;
   }, [incidents, filteredIncidents, activeFilter, searchQuery, hasIncidents]);
 
-  // Extract years from available incidents for the timeline
   const incidentYears = useMemo(() => {
     return [
       ...new Set(
@@ -61,7 +60,6 @@ export default function GalleryPage() {
     ];
   }, [availableIncidents]);
 
-  // Get current incident year and decade
   const currentIncidentYear = useMemo(() => {
     try {
       return currentIncident?.incident_date
@@ -72,7 +70,6 @@ export default function GalleryPage() {
     }
   }, [currentIncident]);
 
-  // Update the decade whenever the current incident changes
   useEffect(() => {
     if (currentIncident?.incident_date) {
       try {
@@ -85,32 +82,26 @@ export default function GalleryPage() {
     }
   }, [currentIncident, setCurrentDecade]);
 
-  // Get current incident index for navigation
   const currentIndex = useMemo(() => {
     if (!currentIncident || !hasIncidents) return -1;
     return incidents.findIndex((inc) => inc.id === currentIncident.id);
   }, [currentIncident, incidents, hasIncidents]);
 
-  // Load the incident based on query param or displayed incident
   useEffect(() => {
     if (!hasIncidents) return;
 
-    // If no slug, use displayedIncident or first incident
     if (!slug) {
       const targetIncident = displayedIncident || incidents[0];
       if (targetIncident) {
-        // Update URL with the slug (without causing navigation)
         const newSlug = generateSlug(targetIncident.name);
         const url = `/gallery?incident=${newSlug}`;
         window.history.replaceState({ path: url }, "", url);
 
-        // Set as current incident
         setCurrentIncident(targetIncident);
         setIsLoading(false);
         return;
       }
     } else {
-      // Find by slug
       const incident = findIncidentBySlug(incidents, slug);
 
       if (incident) {
@@ -123,7 +114,6 @@ export default function GalleryPage() {
       }
     }
 
-    // If we reach here, try using first incident as fallback
     if (hasIncidents) {
       const firstIncident = incidents[0];
       const firstSlug = generateSlug(firstIncident.name);
@@ -134,7 +124,6 @@ export default function GalleryPage() {
       setDisplayedIncident(firstIncident);
       setIsLoading(false);
     } else {
-      // No incidents available
       setIsLoading(false);
     }
   }, [
@@ -146,7 +135,6 @@ export default function GalleryPage() {
     setDisplayedIncident,
   ]);
 
-  // Handle next/previous navigation
   const handleNavigation = (direction) => {
     if (currentIndex === -1 || !hasIncidents) return;
 
@@ -167,9 +155,7 @@ export default function GalleryPage() {
     setCurrentIncident(nextIncident);
   };
 
-  // Handle year click in timeline
   const handleYearClick = (year) => {
-    // Find first incident from that year
     const yearIncident = availableIncidents.find((incident) => {
       try {
         return new Date(incident.incident_date).getFullYear() === year;
@@ -188,7 +174,6 @@ export default function GalleryPage() {
     }
   };
 
-  // Show error if no incidents found
   if (!currentIncident) {
     return (
       <div className="error-container">

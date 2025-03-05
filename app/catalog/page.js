@@ -1,24 +1,22 @@
 "use client";
 
-import { useIncidents } from "../contexts/IncidentContext";
+import { useIncidents } from "../contexts/incidents";
 import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
-import { generateSlug } from "../utils/slugUtils";
 import "./catalog.styles.css";
 
-// Category icons mapping
-const categoryIcons = {
-  Hardware: "🔧", // wrench
-  Software: "💻", // laptop
-  Network: "🌐", // globe
-  Security: "🔒", // lock
-  Infrastructure: "🏗️", // building construction
-  Database: "💾", // floppy disk
-  "UI/UX": "👁️", // eye
-  System: "⚙️", // gear
-  Game: "🎮", // game controller
-  Default: "📁", // folder
-};
+// Import reusable components using barrel files
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+  CatalogHeader,
+  Timeline
+} from "../components/ui";
+
+import {
+  CatalogFilters,
+  IncidentGrid
+} from "../components/layouts";
 
 const ArchiveCatalog = () => {
   // Get incident context data
@@ -175,18 +173,18 @@ const ArchiveCatalog = () => {
       .filter(Boolean);
   }, [incidents, yearsAvailable]);
 
-  // Get category icon
-  const getCategoryIcon = (category) => {
-    if (!category) return categoryIcons.Default;
-    return categoryIcons[category] || categoryIcons.Default;
-  };
+  // Define status items for the console footer
+  const statusItems = [
+    "TECH INCIDENTS DATABASE",
+    "CATALOG VIEW",
+    { text: `${filteredIncidents.length} RECORDS RETRIEVED`, blink: true }
+  ];
 
-  // Truncate text for teasers
-  const truncateText = (text, maxLength = 80) => {
-    if (!text) return "";
-    return text.length > maxLength
-      ? text.substring(0, maxLength) + "..."
-      : text;
+  // Handle incident selection
+  const handleIncidentSelect = (incident) => {
+    const index = incidents.findIndex(inc => inc.id === incident.id);
+    setCurrentIncidentIndex(index >= 0 ? index : 0);
+    setDisplayedIncident(incident);
   };
 
   return (
@@ -194,242 +192,53 @@ const ArchiveCatalog = () => {
       <div className="circuit-background"></div>
 
       <div className="archive-container catalog-container">
-        <div className="console-window">
-          <div className="terminal-header">
-            <span className="terminal-dot"></span>
-            <span className="terminal-dot"></span>
-            <span className="terminal-dot"></span>
-            <div className="terminal-title">tech-incidents-catalog</div>
-            <div className="auth-controls">
-              <button className="auth-button login">Log In</button>
-              <button className="auth-button signup">Sign Up</button>
-            </div>
-          </div>
+        <ConsoleWindow 
+          title="tech-incidents-catalog"
+          statusItems={statusItems}
+        >
+          <ConsoleSection command="query tech_incidents.db --search=&quot;*&quot; --list">
+            <CatalogHeader 
+              title="INCIDENT CATALOG" 
+              subtitle={`All documented technical mishaps since ${yearsAvailable[0] || "1985"}`}
+            />
+            
+            <CommandOutput showLoadingBar={true}>
+              Found {filteredIncidents.length} incidents in database.
+            </CommandOutput>
+          </ConsoleSection>
 
-          <div className="console-content">
-            <div className="console-section">
-              <div className="command-line">
-                <span className="prompt">user@archive:~$</span>
-                <span className="command">
-                  query tech_incidents.db --search=&quot;*&quot; --list
-                </span>
-              </div>
+          {/* Timeline visualization */}
+          <Timeline markers={timelineMarkers} />
 
-              <h1 className="archive-title">
-                <span className="title-glitch" data-text="INCIDENT CATALOG">
-                  INCIDENT CATALOG
-                </span>
-                <span className="cursor"></span>
-              </h1>
-              <h2 className="archive-subtitle">
-                All documented technical mishaps since{" "}
-                {yearsAvailable[0] || "1985"}
-              </h2>
+          {/* Filters Section */}
+          <CatalogFilters 
+            searchQuery={realTimeSearch}
+            onSearchChange={setRealTimeSearch}
+            activeYear={activeYear}
+            yearsAvailable={yearsAvailable}
+            onYearChange={setActiveYear}
+            activeCategory={activeCategory}
+            categories={categories}
+            onCategoryChange={setActiveCategory}
+            sortOrder={sortOrder}
+            onSortChange={setSortOrder}
+          />
 
-              <div className="command-output">
-                <div className="loading-bar">
-                  <div className="loading-progress"></div>
-                </div>
-                <div className="output-text">
-                  Found {filteredIncidents.length} incidents in database.
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline visualization */}
-            {timelineMarkers.length > 0 && (
-              <div className="timeline">
-                {timelineMarkers.map((marker, index) => (
-                  <div
-                    key={index}
-                    className={`timeline-marker ${marker.major ? "major" : ""}`}
-                    style={{ left: marker.position }}
-                    data-year={marker.year}
-                  />
-                ))}
-              </div>
-            )}
-
-            <div className="console-section catalog-filters">
-              <div className="command-line">
-                <span className="prompt">user@archive:~$</span>
-                <span className="command">set_filters --advanced</span>
-              </div>
-
-              {/* Enhanced search */}
-              <div className="search-container">
-                <input
-                  type="text"
-                  placeholder="Search by name, description, category, or year..."
-                  value={realTimeSearch}
-                  onChange={(e) => setRealTimeSearch(e.target.value)}
-                  className="search-input"
-                />
-              </div>
-
-              {/* Filter controls */}
-              <div className="filter-section">
-                <div className="filter-header">
-                  <div className="filter-title">Filter by Year</div>
-                </div>
-                <div className="filter-tabs">
-                  <div
-                    key="all-years"
-                    className={`filter-tab ${activeYear === "all" ? "active" : ""}`}
-                    onClick={() => setActiveYear("all")}
-                  >
-                    ALL YEARS
-                  </div>
-                  {yearsAvailable.map((year) => (
-                    <div
-                      key={`year-${year}`}
-                      className={`filter-tab ${activeYear === year ? "active" : ""}`}
-                      onClick={() => setActiveYear(year)}
-                    >
-                      {year}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Category filters */}
-              <div className="filter-section">
-                <div className="filter-header">
-                  <div className="filter-title">Filter by Category</div>
-                </div>
-                <div className="category-filters">
-                  <div
-                    className={`category-filter ${activeCategory === "all" ? "active" : ""}`}
-                    onClick={() => setActiveCategory("all")}
-                  >
-                    {categoryIcons.Default} All
-                  </div>
-                  {categories.map((category) => (
-                    <div
-                      key={`cat-${category}`}
-                      className={`category-filter ${activeCategory === category ? "active" : ""}`}
-                      onClick={() => setActiveCategory(category)}
-                    >
-                      {getCategoryIcon(category)} {category}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sort controls */}
-              <div className="filter-section">
-                <div className="filter-header">
-                  <div className="filter-title">Sort by</div>
-                </div>
-                <div className="sort-controls">
-                  <select
-                    className="sort-select"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
-                  >
-                    <option value="year-desc">Year (Newest first)</option>
-                    <option value="year-asc">Year (Oldest first)</option>
-                    <option value="name-asc">Name (A-Z)</option>
-                    <option value="name-desc">Name (Z-A)</option>
-                    <option value="severity-desc">Severity (High-Low)</option>
-                    <option value="severity-asc">Severity (Low-High)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div className="console-section">
-              <div className="command-line">
-                <span className="prompt">user@archive:~$</span>
-                <span className="command">display_results --format=grid</span>
-              </div>
-
-              <div className="command-output">
-                <div className="output-text">
-                  Displaying {sortedIncidents.length} incidents
-                </div>
-              </div>
-
-              {isLoading ? (
-                <div className="incident-grid">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="loading-card"></div>
-                  ))}
-                </div>
-              ) : sortedIncidents.length > 0 ? (
-                <div className="incident-grid">
-                  {sortedIncidents.map((incident) => {
-                    const year = getIncidentYear(incident);
-                    const isHighSeverity = (incident.severity || 0) >= 4;
-
-                    return (
-                      <Link
-                        key={
-                          incident.id ||
-                          `incident-${incident.name || "unknown"}`
-                        }
-                        href={`/gallery?incident=${generateSlug(incident.name || "Unknown Incident")}`}
-                        onClick={() => {
-                          const index = incidents.findIndex(
-                            (inc) => inc.id === incident.id
-                          );
-                          setCurrentIncidentIndex(index >= 0 ? index : 0);
-                          setDisplayedIncident(incident);
-                        }}
-                        className={`incident-item`}
-                      >
-                        <div className="incident-year">
-                          {year || "Unknown Year"}
-                        </div>
-                        <div className="incident-name">
-                          {incident.name || "Unknown Incident"}
-                        </div>
-                        <div className="incident-category">
-                          {getCategoryIcon(incident.category)}{" "}
-                          {incident.category || "Uncategorized"}
-                        </div>
-                        {incident.description && (
-                          <div className="incident-teaser">
-                            {truncateText(incident.description)}
-                          </div>
-                        )}
-                        <div className="view-details">View Details</div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="empty-results">
-                  <div className="output-text blink-once">
-                    Error: No matching incidents found.
-                  </div>
-                  <div className="output-text">
-                    Try adjusting search parameters or filters.
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* <div className="console-section action-section">
-              <div className="command-line">
-                <span className="prompt">user@archive:~$</span>
-                <span className="command">cd ../home</span>
-              </div>
-              <Link href="/" className="console-button secondary">
-                <span className="entry-icon reversed">&#x2190;</span>
-                <span className="button-text">RETURN TO ARCHIVE</span>
-              </Link>
-            </div> */}
-          </div>
-
-          <div className="console-footer">
-            <div className="status-item">TECH INCIDENTS DATABASE</div>
-            <div className="status-item">CATALOG VIEW</div>
-            <div className="status-item blink-slow">
-              {filteredIncidents.length} RECORDS RETRIEVED
-            </div>
-          </div>
-        </div>
+          {/* Results Section */}
+          <ConsoleSection command="display_results --format=grid">
+            <CommandOutput>
+              Displaying {sortedIncidents.length} incidents
+            </CommandOutput>
+            
+            <IncidentGrid 
+              incidents={sortedIncidents}
+              isLoading={isLoading}
+              emptyMessage="No matching incidents found."
+              onIncidentSelect={handleIncidentSelect}
+              getIncidentYear={getIncidentYear}
+            />
+          </ConsoleSection>
+        </ConsoleWindow>
       </div>
     </>
   );
