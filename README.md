@@ -1,78 +1,206 @@
-# APA1 Supa Task Frontend
+# Tech Incidents Archive
 
-## Project Overview
-This project for an open ending CRUD app, what the app does is your choice but it should implement CRUD functionality
+![""](/public/readme-assets/homepage.gif)
 
-## Setup Instructions
-1. Install dependencies: Run `npm install` in your terminal to install all necessary dependencies.
-2. Set up Supabase:
-   - Create a free Supabase account if you don't have one
-   - Create a new project in your Supabase dashboard
-   - Copy your Supabase URL and anon key into the `.env` file (use `.env.example` as a template)
-3. Start the development server: Run `node server.js` in your terminal.
-4. Open your web browser and navigate to `http://localhost:3000` to access the application.
+A digital museum website showcasing significant technological failures throughout computing history. This website provides an interactive, historically-themed interface for exploring and cataloging technology incidents.
 
-## Database Management
-The project uses Supabase as the database provider:
+## 📑 Table of Contents
 
-The [companion backend app](https://github.com/jdowie-ada/apa1-supa-task-backend) will be used to manage the database 
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+- [Usage](#usage)
+  - [Viewing Incidents](#viewing-incidents)
+  - [Filtering and Searching](#filtering-and-searching)
+  - [Adding New Incidents](#adding-new-incidents)
+  - [Updating or Deleting Incidents](#updating-or-deleting-incidents)
+- [API Routes](#api-routes)
+- [Era-Specific Theming](#era-specific-theming)
+- [Future Enhancements](#future-enhancements)
+- [Contributing](#contributing)
 
-## Testing
-This is an open-ended project, and you may choose your preferred testing approach:
-- Manual testing through the application interface
-- Leveraging Supabase's built-in Row Level Security (RLS) policy testing
-- Writing custom unit or integration tests with a framework of your choice (Jest, Mocha, etc.)
+## 🌟 Overview
 
-## Assignment Objectives
-- Extend and enhance the existing web application
-- Apply database and frontend development principles using Supabase
-- Follow good programming standards
-- Develop and execute a testing strategy appropriate for your implementation
-- Use GitHub effectively for collaboration and documentation
-- Prepare for a viva to explain project design and code implementation
+The Tech Incidents Archive is a digital museum dedicated to documenting significant technological failures and their impact on modern computing safety standards. It presents incidents through era-appropriate interfaces, showcasing events like the Y2K Bug, the Morris Worm, and various hardware/software failures throughout tech history.
 
-## TODO
+The application features a retro computing aesthetic with Windows 95-style interface elements for incidents from the 1990s and terminal-style displays for 1980s incidents.
 
-### Core Functionalities
-1. Implement full CRUD operations for all items using Supabase's JavaScript client
-2. Create a unified interface to manage all items
-3. Create appropriate database relationships and constraints using Supabase's SQL editor
+## ✨ Features
 
-### Extend Functionalities
-1. User login auth etc.
-2. Enhance the frontend to display and manage the various items
-3. Implement sorting and filtering options
-4. (on backend) write more edge functions to extend API
+- **Interactive Museum Interface**: Designed as a digital museum with a retro computing aesthetic
+- **Era-Specific Visualization**: Different UI themes based on the decade of the incident (1980s terminal, 1990s Windows 95)
+- **Comprehensive Catalog**: Browse all incidents with sorting and filtering capabilities
+- **Advanced Search**: Find incidents by name, description, or category
+- **Year-Based Navigation**: Browse incidents organized by year
+- **Detailed Gallery View**: Explore incidents with era-appropriate visual presentations
+- **Contribute after Registration**: Sign up to add, view, update, and delete incident records
+- **Responsive Design**: Works on various screen sizes
 
-You're free to come up with your own ideas too either on the front or backend
+## 🛠️ Tech Stack
 
-### Good Programming Standards
-1. Structure your code for readability and modularity
-2. Use consistent naming conventions
-3. Implement proper error handling 
-4. Document your code thoroughly
-etc.
+- **Frontend Framework**: [Next.js](https://nextjs.org/) (v15.1.7)
+- **UI Library**: [React](https://reactjs.org/) (v19.0.0)
+- **Styling**:
+  - CSS Modules
+- **Backend**:
+  - Next.js API Routes (for proxy endpoints)
+  - [Supabase Edge Functions](https://supabase.com/docs/guides/functions) (for database operations)
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
+- **Storage** (for community-added optional artifact images): [Supabase](https://supabase.com/)
+- **Icons**: [Lucide React](https://lucide.dev/docs/lucide-react)
 
-### Testing
-Ideas for testing:
-1. Document manual testing procedures and results
-2. Leverage Supabase's RLS policies and test them
-3. Write unit/integration tests for critical functionality
+## 📂 Project Structure
 
-### GitHub Practices
-1. Use Git and GitHub for version control
-2. Create a comprehensive README documenting your implementation (replace this README)
-3. Make small, meaningful commits with clear messages
-4. Create a project board to track your progress (optional)
+```
+app/
+├── api/                    # Next.js API routes for proxy endpoints
+│   ├── delete-incident/    # Endpoint to delete incidents
+│   ├── new-incident/       # Endpoint to create new incidents
+│   ├── tech-incidents/     # Endpoint to fetch all incidents
+│   └── update-incident/    # Endpoint to update incidents
+├── catalog/                # Catalog page to browse all incidents
+├── components/             # Reusable UI components
+│   ├── artifacts/          # Components for displaying incident artifacts
+│   ├── layouts/            # Page layout components
+│   └── ui/                 # UI components (buttons, cards, etc.)
+│       ├── console/        # Terminal-style components for 80s theme
+│       ├── themes/         # Decade-specific theme components
+│       └── ...             # Other UI component categories
+├── contexts/               # React context providers
+│   ├── IncidentContext.jsx # Context for incident data management
+│   └── ThemeContext.jsx    # Context for theme management
+├── gallery/                # Gallery page for detailed incident viewing
+├── hooks/                  # Custom React hooks
+├── utils/                  # Utility functions
+│   ├── navigation/         # Navigation utilities
+│   └── ...                 # Other utility categories
+├── globals.css             # Global styles
+├── homepage.styles.css     # Homepage-specific styles
+├── layout.js               # Root layout component
+└── page.js                 # Homepage component
+```
 
-## Additional Features (Optional)
-1. Implement responsive design for different devices
-2. Add accessibility features following WCAG guidelines
-3. Implement more advanced Supabase features:
-   - Real-time updates using Supabase subscriptions
-   - Storage for product images
-   - Edge Functions for complex operations
-4. Add analytics dashboard using Supabase's built-in analytics
+## 🚀 Getting Started
 
+### Prerequisites
 
-Remember to document your development process, including any challenges you encounter and how you solve them. This will be valuable during your viva and for maintaining the project in the future.
+- [Node.js](https://nodejs.org/) (v18.0.0 or later)
+- [npm](https://www.npmjs.com/) (v7 or later)
+- A [Supabase](https://supabase.com/) account and project
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone hhttps://github.com/p-carpenter/apa1-assignment2-supa-task-frontend
+   cd apa1-assignment2-supa-task-frontend
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables (see section below)
+
+4. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+
+### Environment Variables
+
+Create a `.env` file in the project root with the following variables:
+
+```
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+```
+
+## 📋 Usage
+
+### Viewing Incidents
+
+1. **Home Page**: The landing page provides an introduction to the digital museum with a link to explore the archive.
+2. **Catalog**: View all incidents in a grid format with sorting and filtering options.
+3. **Gallery**: Click on any incident in the catalog to view detailed information in an era-appropriate interface.
+
+### Filtering and Searching
+
+In the catalog page:
+
+1. Use the year dropdown to filter incidents by year
+2. Use the category dropdown to filter by incident category (Hardware, Software, Security, etc.)
+3. Use the search bar to find incidents by name, description, year of incident, or category
+4. Use the sort dropdown to order incidents by year, name, or severity
+
+!["You can search for incidents by name, description, category or year."](/public/readme-assets/catalog.gif)
+
+### Adding New Incidents
+
+The application supports adding new incidents through a form interface:
+
+1. Fill in the required details:
+   - Name
+   - Incident Date
+   - Category
+   - Severity (1-5)
+   - Description
+   - Cause
+   - Consequences
+   - Time to Resolve
+2. Optionally add artifact content (code, images)
+3. Submit the form to create a new incident record
+
+### Updating or Deleting Incidents
+
+1. In the detailed incident view, use the options to edit or delete the incident
+2. The edit form will be pre-populated with the incident's existing data
+3. Make changes and submit, or confirm deletion if deleting
+
+## 🔌 API Routes
+
+The application uses the following API routes:
+
+- `GET /api/tech-incidents`: Fetch all incidents
+- `POST /api/new-incident`: Create a new incident
+- `PUT /api/update-incident`: Update an existing incident
+- `DELETE /api/delete-incident`: Delete an incident
+
+All these routes interact with Supabase Edge Functions for database operations.
+
+## 🎨 Era-Specific Theming
+
+The application features different visual themes based on the decade of the incident:
+
+- **1980s**: Norton Commander-style dual-window interface
+- **1990s**: Windows 95-style interface with classic window controls, menu bars, and pixel art
+
+The theme is automatically selected based on the incident's date, through the Theme Provider (app/contexts/ThemeContext.jsx).
+
+!["1980s and 1990s themes switching with the decade"](/public/readme-assets/gallery-themes.gif)
+
+## 🔮 Future Enhancements
+
+- Additional era themes (2000s, 2010s)
+- User accounts
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/awesome-enhancement`)
+3. Make changes and commit (`git commit -m 'Add awesome feature'`)
+4. Push to the branch (`git push origin feature/awesome-enhancement`)
+5. Open a Pull Request

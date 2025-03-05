@@ -1,0 +1,224 @@
+/* Navigation buttons container */
+.gallery-nav-buttons {
+  position: fixed;
+  top: 50%;
+  width: 100%;
+  transform: translateY(-50%);
+  z-index: 1000;
+  pointer-events: none; /* Makes container transparent to clicks */
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+/* Navigation button styling to match homepage aesthetic */
+.gallery-nav-button {
+  background-color: var(--color-bg-subtle, #ece5dc);
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: "IBM Plex Mono", monospace;
+  color: var(--color-accent, #7c6b4e);
+  cursor: pointer;
+  pointer-events: auto;
+  border: 1px solid var(--color-border, #c9b8a8);
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(73, 107, 99, 0.15), 0 1px 3px rgba(107, 92, 76, 0.2);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button hover effect with subtle highlight */
+.gallery-nav-button:hover {
+  background-color: var(--color-bg, #f7f3ee);
+  box-shadow: 0 6px 20px rgba(73, 107, 99, 0.2), 0 2px 5px rgba(107, 92, 76, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Add subtle glow effect on hover to match homepage button styling */
+.gallery-nav-button::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+  transform: scale(0.5);
+}
+
+.gallery-nav-button:hover::after {
+  opacity: 0.8;
+  transform: scale(1);
+}
+
+/* Pressed button effect */
+.gallery-nav-button:active {
+  box-shadow: 0 2px 5px rgba(73, 107, 99, 0.1);
+  transform: translateY(1px);
+}
+
+/* Focus style */
+.gallery-nav-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent-light, rgba(124, 107, 78, 0.3));
+}
+
+/* Year pagination styling */
+.gallery-year-pagination {
+  position: fixed; /* Change from absolute to fixed */
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px;
+  background-color: #c0c0c0; /* Classic Win95 gray */
+  border: 2px solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  box-shadow: 1px 1px 0 #000;
+  pointer-events: auto; /* Ensure buttons are clickable */
+  will-change: transform, opacity; /* Optimize animations */
+  min-width: 200px; /* Ensure pagination has some width even when empty */
+  min-height: 30px; /* Ensure pagination has some height */
+}
+
+/* Catalog button for closing gallery */
+.catalog-button {
+  background-color: #c0c0c0;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  padding: 2px 8px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 70px;
+  text-align: center;
+  position: relative;
+  user-select: none;
+  margin-left: 10px; /* Add some spacing between year buttons and catalog button */
+}
+
+.catalog-button:active {
+  border-color: #555 #dfdfdf #dfdfdf #555;
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+
+/* Placeholder for when no years are available */
+.year-placeholder {
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  font-size: 14px;
+  color: #777;
+  text-align: center;
+  padding: 2px 5px;
+}
+
+.year-button {
+  background-color: #c0c0c0;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #dfdfdf #555 #555 #dfdfdf;
+  padding: 2px 8px;
+  font-family: "MS Sans Serif", "Tahoma", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 50px;
+  text-align: center;
+  position: relative;
+  user-select: none; /* Prevent text selection while clicking */
+}
+
+.year-button:active {
+  border-color: #555 #dfdfdf #dfdfdf #555;
+  box-shadow: none;
+  /* Remove padding adjustments to maintain consistent dimensions */
+  transform: translate(
+    1px,
+    1px
+  ); /* Use transform instead of padding to create press effect */
+}
+
+.year-button--active {
+  background-color: #000080; /* Win95 selection blue */
+  color: white;
+  font-weight: bold;
+  /* transform: scale(1.05); */ /* Removing this line to prevent size increase */
+  z-index: 1;
+}
+
+/* Windows 95 floating effect for the pagination bar */
+.gallery-year-pagination::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 1px solid #aaaaaabb;
+  pointer-events: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gallery-nav-button {
+    width: 45px;
+    height: 45px;
+    font-size: 16px;
+  }
+
+  .gallery-year-pagination {
+    gap: 3px;
+  }
+
+  .year-button {
+    padding: 1px 6px;
+    min-width: 40px;
+  }
+
+  .catalog-button {
+    padding: 1px 6px;
+    min-width: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gallery-nav-button {
+    width: 40px;
+    height: 40px;
+    font-size: 15px;
+    border-radius: 6px;
+  }
+
+  .gallery-nav-buttons {
+    padding: 0 15px;
+  }
+
+  .gallery-year-pagination {
+    gap: 2px;
+  }
+
+  .year-button {
+    padding: 1px 5px;
+    min-width: 35px;
+    font-size: 12px;
+  }
+
+  .catalog-button {
+    padding: 1px 5px;
+    min-width: 50px;
+    font-size: 12px;
+  }
+}
+

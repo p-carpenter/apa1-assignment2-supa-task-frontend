@@ -1,0 +1,404 @@
+<!-- Circuit Board SVG with Large CPU Icon for Title Background -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet">
+  <!-- Define variables for customizable colors -->
+  <style>
+    :root {
+      --circuit-color: #a89578;
+      --cpu-bg-color: #a89578;
+    }
+    .circuit-line {
+      stroke: var(--circuit-color);
+      stroke-width: 2;
+      fill: none;
+    }
+    .chip-square {
+      fill: var(--cpu-bg-color);
+    }
+    .component {
+      fill: var(--circuit-color);
+    }
+    .pin {
+      stroke: var(--circuit-color);
+      stroke-width: 3;
+      fill: none;
+    }
+  </style>
+
+  <!-- CPU chip in center (larger for title background) -->
+  <rect x="450" y="300" width="300" height="300" class="chip-square" />
+  
+  <!-- CPU pins -->
+  <!-- Top pins -->
+  <g class="pin">
+    <line x1="470" y1="300" x2="470" y2="250" />
+    <line x1="490" y1="300" x2="490" y2="250" />
+    <line x1="510" y1="300" x2="510" y2="250" />
+    <line x1="530" y1="300" x2="530" y2="250" />
+    <line x1="550" y1="300" x2="550" y2="250" />
+    <line x1="570" y1="300" x2="570" y2="250" />
+    <line x1="590" y1="300" x2="590" y2="250" />
+    <line x1="610" y1="300" x2="610" y2="250" />
+    <line x1="630" y1="300" x2="630" y2="250" />
+    <line x1="650" y1="300" x2="650" y2="250" />
+    <line x1="670" y1="300" x2="670" y2="250" />
+    <line x1="690" y1="300" x2="690" y2="250" />
+    <line x1="710" y1="300" x2="710" y2="250" />
+    <line x1="730" y1="300" x2="730" y2="250" />
+  </g>
+  <!-- Bottom pins -->
+  <g class="pin">
+    <line x1="470" y1="600" x2="470" y2="650" />
+    <line x1="490" y1="600" x2="490" y2="650" />
+    <line x1="510" y1="600" x2="510" y2="650" />
+    <line x1="530" y1="600" x2="530" y2="650" />
+    <line x1="550" y1="600" x2="550" y2="650" />
+    <line x1="570" y1="600" x2="570" y2="650" />
+    <line x1="590" y1="600" x2="590" y2="650" />
+    <line x1="610" y1="600" x2="610" y2="650" />
+    <line x1="630" y1="600" x2="630" y2="650" />
+    <line x1="650" y1="600" x2="650" y2="650" />
+    <line x1="670" y1="600" x2="670" y2="650" />
+    <line x1="690" y1="600" x2="690" y2="650" />
+    <line x1="710" y1="600" x2="710" y2="650" />
+    <line x1="730" y1="600" x2="730" y2="650" />
+  </g>
+  <!-- Left pins -->
+  <g class="pin">
+    <line x1="450" y1="320" x2="400" y2="320" />
+    <line x1="450" y1="340" x2="400" y2="340" />
+    <line x1="450" y1="360" x2="400" y2="360" />
+    <line x1="450" y1="380" x2="400" y2="380" />
+    <line x1="450" y1="400" x2="400" y2="400" />
+    <line x1="450" y1="420" x2="400" y2="420" />
+    <line x1="450" y1="440" x2="400" y2="440" />
+    <line x1="450" y1="460" x2="400" y2="460" />
+    <line x1="450" y1="480" x2="400" y2="480" />
+    <line x1="450" y1="500" x2="400" y2="500" />
+    <line x1="450" y1="520" x2="400" y2="520" />
+    <line x1="450" y1="540" x2="400" y2="540" />
+    <line x1="450" y1="560" x2="400" y2="560" />
+    <line x1="450" y1="580" x2="400" y2="580" />
+  </g>
+  <!-- Right pins -->
+  <g class="pin">
+    <line x1="750" y1="320" x2="800" y2="320" />
+    <line x1="750" y1="340" x2="800" y2="340" />
+    <line x1="750" y1="360" x2="800" y2="360" />
+    <line x1="750" y1="380" x2="800" y2="380" />
+    <line x1="750" y1="400" x2="800" y2="400" />
+    <line x1="750" y1="420" x2="800" y2="420" />
+    <line x1="750" y1="440" x2="800" y2="440" />
+    <line x1="750" y1="460" x2="800" y2="460" />
+    <line x1="750" y1="480" x2="800" y2="480" />
+    <line x1="750" y1="500" x2="800" y2="500" />
+    <line x1="750" y1="520" x2="800" y2="520" />
+    <line x1="750" y1="540" x2="800" y2="540" />
+    <line x1="750" y1="560" x2="800" y2="560" />
+    <line x1="750" y1="580" x2="800" y2="580" />
+  </g>
+  
+  <!-- Circuit traces -->
+  <!-- Top section -->
+  <g class="circuit-line">
+    <!-- Horizontal lines -->
+    <path d="M0,50 H400 M500,50 H700 M800,50 H1200" />
+    <path d="M100,100 H300 M400,100 H600 M700,100 H900 M1000,100 H1200" />
+    <path d="M0,150 H200 M300,150 H500 M600,150 H800 M900,150 H1100" />
+    <path d="M50,200 H250 M350,200 H450 M550,200 H750 M850,200 H950 M1050,200 H1150" />
+    
+    <!-- Vertical lines and connections -->
+    <path d="M50,0 V100 M150,0 V150 M250,0 V200 M350,50 V250 M450,0 V200" />
+    <path d="M550,50 V250 M650,0 V150 M750,50 V200 M850,0 V200 M950,50 V250" />
+    <path d="M1050,0 V200 M1150,50 V250" />
+    
+    <!-- Circuit components -->
+    <circle cx="50" cy="100" r="5" class="component" />
+    <circle cx="250" cy="150" r="5" class="component" />
+    <circle cx="450" cy="50" r="5" class="component" />
+    <circle cx="650" cy="100" r="5" class="component" />
+    <circle cx="850" cy="150" r="5" class="component" />
+    <circle cx="1050" cy="50" r="5" class="component" />
+    
+    <!-- Connecting paths to CPU -->
+    <path d="M470,250 V200 H350 V150" />
+    <path d="M510,250 V150 H450 V100" />
+    <path d="M550,250 V200 H500 V50" />
+    <path d="M590,250 V150 H600 V100" />
+    <path d="M630,250 V200 H650 V150" />
+    <path d="M670,250 V150 H700 V100" />
+    <path d="M710,250 V200 H750 V150" />
+    <path d="M730,250 V150 H800 V100" />
+  </g>
+  
+  <!-- Bottom section -->
+  <g class="circuit-line">
+    <!-- Horizontal lines -->
+    <path d="M0,650 H300 M400,650 H600 M700,650 H900 M1000,650 H1200" />
+    <path d="M50,700 H250 M350,700 H550 M650,700 H850 M950,700 H1150" />
+    <path d="M0,750 H200 M300,750 H500 M600,750 H800 M900,750 H1100" />
+    
+    <!-- Vertical lines and connections -->
+    <path d="M50,650 V800 M150,650 V750 M250,650 V800 M350,650 V750" />
+    <path d="M450,650 V800 M550,650 V750 M650,650 V800 M750,650 V750" />
+    <path d="M850,650 V800 M950,650 V750 M1050,650 V800 M1150,650 V750" />
+    
+    <!-- Circuit components -->
+    <circle cx="150" cy="700" r="5" class="component" />
+    <circle cx="350" cy="650" r="5" class="component" />
+    <circle cx="550" cy="750" r="5" class="component" />
+    <circle cx="750" cy="700" r="5" class="component" />
+    <circle cx="950" cy="650" r="5" class="component" />
+    <circle cx="1150" cy="700" r="5" class="component" />
+    
+    <!-- Connecting paths to CPU -->
+    <path d="M470,650 V700 H450 V750" />
+    <path d="M510,650 V700 H500 V750" />
+    <path d="M550,650 V700 H550 V750" />
+    <path d="M590,650 V700 H600 V750" />
+    <path d="M630,650 V700 H650 V750" />
+    <path d="M670,650 V700 H700 V750" />
+    <path d="M710,650 V700 H750 V750" />
+    <path d="M730,650 V700 H800 V750" />
+  </g>
+  
+  <!-- Left section -->
+  <g class="circuit-line">
+    <!-- Vertical lines -->
+    <path d="M50,250 V550 M100,300 V500 M150,250 V550 M200,300 V500" />
+    <path d="M250,250 V550 M300,300 V500 M350,250 V550" />
+    
+    <!-- Horizontal lines -->
+    <path d="M0,300 H100 M0,350 H150 M0,400 H200 M0,450 H250" />
+    <path d="M0,500 H300 M0,550 H350" />
+    
+    <!-- Circuit components -->
+    <circle cx="50" cy="300" r="5" class="component" />
+    <circle cx="100" cy="400" r="5" class="component" />
+    <circle cx="150" cy="500" r="5" class="component" />
+    <circle cx="200" cy="350" r="5" class="component" />
+    <circle cx="250" cy="450" r="5" class="component" />
+    <circle cx="300" cy="350" r="5" class="component" />
+    
+    <!-- Connecting paths to CPU -->
+    <path d="M400,320 H350 V350" />
+    <path d="M400,360 H300 V400" />
+    <path d="M400,400 H250 V450" />
+    <path d="M400,440 H200 V400" />
+    <path d="M400,480 H150 V500" />
+    <path d="M400,520 H100 V500" />
+    <path d="M400,560 H50 V550" />
+  </g>
+  
+  <!-- Right section -->
+  <g class="circuit-line">
+    <!-- Vertical lines -->
+    <path d="M850,250 V550 M900,300 V500 M950,250 V550 M1000,300 V500" />
+    <path d="M1050,250 V550 M1100,300 V500 M1150,250 V550" />
+    
+    <!-- Horizontal lines -->
+    <path d="M800,300 H950 M800,350 H1000 M800,400 H1050 M800,450 H1100" />
+    <path d="M800,500 H1150 M800,550 H1200" />
+    
+    <!-- Circuit components -->
+    <circle cx="850" cy="350" r="5" class="component" />
+    <circle cx="900" cy="450" r="5" class="component" />
+    <circle cx="950" cy="300" r="5" class="component" />
+    <circle cx="1000" cy="400" r="5" class="component" />
+    <circle cx="1050" cy="350" r="5" class="component" />
+    <circle cx="1100" cy="500" r="5" class="component" />
+    
+    <!-- Connecting paths to CPU -->
+    <path d="M800,320 H850 V350" />
+    <path d="M800,360 H900 V400" />
+    <path d="M800,400 H950 V350" />
+    <path d="M800,440 H1000 V450" />
+    <path d="M800,480 H1050 V450" />
+    <path d="M800,520 H1100 V500" />
+    <path d="M800,560 H1150 V550" />
+  </g>
+  
+  <!-- Additional circuit details -->
+  <!-- Small squares representing IC components -->
+  <rect x="100" y="200" width="15" height="15" class="component" />
+  <rect x="300" y="100" width="15" height="15" class="component" />
+  <rect x="500" y="150" width="15" height="15" class="component" />
+  <rect x="700" y="200" width="15" height="15" class="component" />
+  <rect x="900" y="100" width="15" height="15" class="component" />
+  <rect x="1100" y="150" width="15" height="15" class="component" />
+  
+  <rect x="200" y="650" width="15" height="15" class="component" />
+  <rect x="400" y="700" width="15" height="15" class="component" />
+  <rect x="600" y="650" width="15" height="15" class="component" />
+  <rect x="800" y="700" width="15" height="15" class="component" />
+  <rect x="1000" y="650" width="15" height="15" class="component" />
+  <rect x="1200" y="700" width="15" height="15" class="component" />
+  
+  <rect x="50" y="400" width="15" height="15" class="component" />
+  <rect x="150" y="450" width="15" height="15" class="component" />
+  <rect x="250" y="350" width="15" height="15" class="component" />
+  <rect x="350" y="400" width="15" height="15" class="component" />
+  
+  <rect x="850" cy="400" width="15" height="15" class="component" />
+  <rect x="950" cy="450" width="15" height="15" class="component" />
+  <rect x="1050" cy="350" width="15" height="15" class="component" />
+  <rect x="1150" cy="400" width="15" height="15" class="component" />
+  
+  <!-- Resistor-like components (4 small parallel lines) -->
+  <g class="component">
+    <line x1="150" y1="120" x2="160" y2="120" />
+    <line x1="150" y1="125" x2="160" y2="125" />
+    <line x1="150" y1="130" x2="160" y2="130" />
+    <line x1="150" y1="135" x2="160" y2="135" />
+  </g>
+  
+  <g class="component">
+    <line x1="350" y1="170" x2="360" y2="170" />
+    <line x1="350" y1="175" x2="360" y2="175" />
+    <line x1="350" y1="180" x2="360" y2="180" />
+    <line x1="350" y1="185" x2="360" y2="185" />
+  </g>
+  
+  <g class="component">
+    <line x1="750" y1="120" x2="760" y2="120" />
+    <line x1="750" y1="125" x2="760" y2="125" />
+    <line x1="750" y1="130" x2="760" y2="130" />
+    <line x1="750" y1="135" x2="760" y2="135" />
+  </g>
+  
+  <g class="component">
+    <line x1="1050" y1="170" x2="1060" y2="170" />
+    <line x1="1050" y1="175" x2="1060" y2="175" />
+    <line x1="1050" y1="180" x2="1060" y2="180" />
+    <line x1="1050" y1="185" x2="1060" y2="185" />
+  </g>
+  
+  <g class="component">
+    <line x1="150" y1="670" x2="160" y2="670" />
+    <line x1="150" y1="675" x2="160" y2="675" />
+    <line x1="150" y1="680" x2="160" y2="680" />
+    <line x1="150" y1="685" x2="160" y2="685" />
+  </g>
+  
+  <g class="component">
+    <line x1="450" y1="720" x2="460" y2="720" />
+    <line x1="450" y1="725" x2="460" y2="725" />
+    <line x1="450" y1="730" x2="460" y2="730" />
+    <line x1="450" y1="735" x2="460" y2="735" />
+  </g>
+  
+  <g class="component">
+    <line x1="750" y1="670" x2="760" y2="670" />
+    <line x1="750" y1="675" x2="760" y2="675" />
+    <line x1="750" y1="680" x2="760" y2="680" />
+    <line x1="750" y1="685" x2="760" y2="685" />
+  </g>
+  
+  <g class="component">
+    <line x1="1050" y1="720" x2="1060" y2="720" />
+    <line x1="1050" y1="725" x2="1060" y2="725" />
+    <line x1="1050" y1="730" x2="1060" y2="730" />
+    <line x1="1050" y1="735" x2="1060" y2="735" />
+  </g>
+  
+  <g class="component">
+    <line x1="70" y1="370" x2="80" y2="370" />
+    <line x1="70" y1="375" x2="80" y2="375" />
+    <line x1="70" y1="380" x2="80" y2="380" />
+    <line x1="70" y1="385" x2="80" y2="385" />
+  </g>
+  
+  <g class="component">
+    <line x1="270" y1="370" x2="280" y2="370" />
+    <line x1="270" y1="375" x2="280" y2="375" />
+    <line x1="270" y1="380" x2="280" y2="380" />
+    <line x1="270" y1="385" x2="280" y2="385" />
+  </g>
+  
+  <g class="component">
+    <line x1="870" y1="370" x2="880" y2="370" />
+    <line x1="870" y1="375" x2="880" y2="375" />
+    <line x1="870" y1="380" x2="880" y2="380" />
+    <line x1="870" y1="385" x2="880" y2="385" />
+  </g>
+  
+  <g class="component">
+    <line x1="1070" y1="370" x2="1080" y2="370" />
+    <line x1="1070" y1="375" x2="1080" y2="375" />
+    <line x1="1070" y1="380" x2="1080" y2="380" />
+    <line x1="1070" y1="385" x2="1080" y2="385" />
+  </g>
+  
+  <!-- Connection nodes (empty circles) -->
+  <circle cx="150" cy="50" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="450" cy="150" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="750" cy="50" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="1050" cy="150" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  
+  <circle cx="150" cy="650" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="450" cy="750" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="750" cy="650" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="1050" cy="750" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  
+  <circle cx="50" cy="450" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="250" cy="450" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  
+  <circle cx="850" cy="450" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  <circle cx="1050" cy="450" r="8" stroke="var(--circuit-color)" stroke-width="2" fill="none" />
+  
+  <!-- Small component clusters (4 dots in a square pattern) -->
+  <g class="component">
+    <circle cx="80" cy="30" r="2" />
+    <circle cx="80" cy="37" r="2" />
+    <circle cx="87" cy="30" r="2" />
+    <circle cx="87" cy="37" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="380" cy="130" r="2" />
+    <circle cx="380" cy="137" r="2" />
+    <circle cx="387" cy="130" r="2" />
+    <circle cx="387" cy="137" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="680" cy="30" r="2" />
+    <circle cx="680" cy="37" r="2" />
+    <circle cx="687" cy="30" r="2" />
+    <circle cx="687" cy="37" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="980" cy="130" r="2" />
+    <circle cx="980" cy="137" r="2" />
+    <circle cx="987" cy="130" r="2" />
+    <circle cx="987" cy="137" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="80" cy="630" r="2" />
+    <circle cx="80" cy="637" r="2" />
+    <circle cx="87" cy="630" r="2" />
+    <circle cx="87" cy="637" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="380" cy="730" r="2" />
+    <circle cx="380" cy="737" r="2" />
+    <circle cx="387" cy="730" r="2" />
+    <circle cx="387" cy="737" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="680" cy="630" r="2" />
+    <circle cx="680" cy="637" r="2" />
+    <circle cx="687" cy="630" r="2" />
+    <circle cx="687" cy="637" r="2" />
+  </g>
+  
+  <g class="component">
+    <circle cx="980" cy="730" r="2" />
+    <circle cx="980" cy="737" r="2" />
+    <circle cx="987" cy="730" r="2" />
+    <circle cx="987" cy="737" r="2" />
+  </g>
+</svg>
