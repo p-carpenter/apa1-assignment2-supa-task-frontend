@@ -1,20 +1,20 @@
-import React from 'react';
-import Link from 'next/link';
-import { generateSlug } from '../../utils/navigation/slugUtils';
-import { getCategoryIcon } from '../../utils/ui/categoryIcons';
-import { truncateText } from '../../utils/formatting/textUtils';
+import React from "react";
+import Link from "next/link";
+import { generateSlug } from "../../utils/navigation/slugUtils";
+import { getCategoryIcon } from "../../utils/ui/categoryIcons";
+import { getSeverityIcon } from "../../utils/ui/severityIcons";
 
-const IncidentGrid = ({ 
-  incidents = [], 
-  isLoading = false, 
+const IncidentGrid = ({
+  incidents = [],
+  isLoading = false,
   emptyMessage = "No matching incidents found.",
   onIncidentSelect,
-  getIncidentYear
+  getIncidentYear,
 }) => {
   if (isLoading) {
     return (
       <div className="incident-grid">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <div key={i} className="loading-card"></div>
         ))}
       </div>
@@ -24,9 +24,7 @@ const IncidentGrid = ({
   if (incidents.length === 0) {
     return (
       <div className="empty-results">
-        <div className="output-text blink-once">
-          Error: {emptyMessage}
-        </div>
+        <div className="output-text blink-once">Error: {emptyMessage}</div>
         <div className="output-text">
           Try adjusting search parameters or filters.
         </div>
@@ -46,21 +44,16 @@ const IncidentGrid = ({
             onClick={() => onIncidentSelect && onIncidentSelect(incident)}
             className={`incident-item`}
           >
-            <div className="incident-year">
-              {year || "Unknown Year"}
-            </div>
+            <div className="incident-year">{year || "Unknown Year"}</div>
             <div className="incident-name">
               {incident.name || "Unknown Incident"}
             </div>
             <div className="incident-category">
-              {getCategoryIcon(incident.category)}{" "}
-              {incident.category || "Uncategorized"}
-            </div>
-            {incident.description && (
-              <div className="incident-teaser">
-                {truncateText(incident.description)}
+              <div className="category-name">
+                {getCategoryIcon(incident.category)} {incident.category || "Uncategorized"}
               </div>
-            )}
+              {getSeverityIcon(incident.severity)}
+            </div>
             <div className="view-details">View Details</div>
           </Link>
         );

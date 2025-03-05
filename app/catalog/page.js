@@ -12,14 +12,15 @@ import {
 } from "../components/ui";
 
 import { CatalogFilters, IncidentGrid } from "../components/layouts";
+import { Button } from "../components/ui/buttons";
 
 const Catalog = () => {
   const { incidents, setDisplayedIncident, setCurrentIncidentIndex } =
     useIncidents();
-  const [activeYear, setActiveYear] = useState("all");
+  const [selectedYears, setSelectedYears] = useState(["all"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [yearsAvailable, setYearsAvailable] = useState([]);
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState(["all"]);
   const [sortOrder, setSortOrder] = useState("year-desc");
   const [isLoading, setIsLoading] = useState(true);
   const [realTimeSearch, setRealTimeSearch] = useState("");
@@ -80,11 +81,12 @@ const Catalog = () => {
       const year = getIncidentYear(incident);
 
       const matchesYear =
-        activeYear === "all" || (year && year.toString() === activeYear);
+        selectedYears.includes("all") ||
+        (year && selectedYears.includes(year.toString()));
 
       const matchesCategory =
-        activeCategory === "all" ||
-        (incident.category && incident.category === activeCategory);
+        selectedCategories.includes("all") ||
+        (incident.category && selectedCategories.includes(incident.category));
 
       const matchesSearch =
         searchQuery === "" ||
@@ -102,7 +104,7 @@ const Catalog = () => {
 
       return matchesYear && matchesCategory && matchesSearch;
     });
-  }, [incidents, activeYear, activeCategory, searchQuery]);
+  }, [incidents, selectedYears, selectedCategories, searchQuery]);
 
   const sortedIncidents = useMemo(() => {
     if (!filteredIncidents.length) return [];
@@ -146,6 +148,10 @@ const Catalog = () => {
     <>
       <div className="circuit-background"></div>
 
+      <div className="floating-home-button">
+        <Button />
+      </div>
+
       <div className="archive-container catalog-container">
         <ConsoleWindow title="tech-incidents-catalog" statusItems={statusItems}>
           <ConsoleSection command='query tech_incidents.db --search="*" --list'>
@@ -162,12 +168,12 @@ const Catalog = () => {
           <CatalogFilters
             searchQuery={realTimeSearch}
             onSearchChange={setRealTimeSearch}
-            activeYear={activeYear}
+            selectedYears={selectedYears}
             yearsAvailable={yearsAvailable}
-            onYearChange={setActiveYear}
-            activeCategory={activeCategory}
+            onYearChange={setSelectedYears}
+            selectedCategories={selectedCategories}
             categories={categories}
-            onCategoryChange={setActiveCategory}
+            onCategoryChange={setSelectedCategories}
             sortOrder={sortOrder}
             onSortChange={setSortOrder}
           />

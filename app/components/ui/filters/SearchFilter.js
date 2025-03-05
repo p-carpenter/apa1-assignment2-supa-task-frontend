@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SearchFilter = ({ searchQuery, onSearchChange, placeholder = "Search by name, description, category, or year..." }) => {
+const SearchFilter = ({ searchQuery, onSearchChange, placeholder = "Search incidents..." }) => {
   return (
     <div className="search-container">
       <input

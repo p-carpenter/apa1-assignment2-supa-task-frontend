@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Button from "../buttons/Button";
 import "./gallery-variables.css";
 import "./GalleryNavButtons.styles.css";
 import "./slide-transitions.css";
@@ -11,7 +12,6 @@ const GalleryNavButtons = ({
   incidentYears,
   currentIncidentYear,
   onYearClick,
-  onClose,
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const previousYearRef = useRef(currentIncidentYear);
@@ -139,9 +139,7 @@ const GalleryNavButtons = ({
           </div>
         </div>
 
-        <button className="catalog-button" onClick={onClose}>
-          Catalog
-        </button>
+        <Button href="/catalog" label="Catalog" icon="" />
       </div>
 
       <div className="gallery-nav-buttons">
