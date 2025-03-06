@@ -190,12 +190,18 @@ body {
 }
 
 .prompt {
-  color: var(--color-accent);
+  color: #635a50;
   margin-right: 0.5rem;
+  font-weight: 600;
 }
 
 .command {
-  color: var(--color-text);
+  font-weight: bold;
+  color: #9c6b4e;
+}
+
+.command-line .parameter {
+  color: #8a6246;
 }
 
 /* Command Output */
@@ -212,7 +218,7 @@ body {
 }
 
 .output-text.highlight {
-  color: var(--color-accent);
+  color: #7c6b4e;
   font-size: 1rem;
   letter-spacing: 1px;
   margin-top: 0.8rem;
@@ -296,7 +302,7 @@ body {
   background-color: var(--color-bg-subtle);
   border-top: 1px solid var(--color-border-light);
   font-size: 0.75rem;
-  color: var(--color-text-secondary);
+  color: #635a50;
   font-weight: 500;
 }
 
@@ -781,6 +787,11 @@ body {
   font-weight: bold;
 }
 
+/* Search field placeholder text */
+.search-input::placeholder {
+  color: #7d7165;
+}
+
 /* Responsive styles */
 @media (max-width: 900px) {
   .console-main-layout {
@@ -845,20 +856,5 @@ body {
 
   .auth-form-container {
     padding: 1.5rem;
-  }
-}
-
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .loading-progress,
-  .auth-loading,
-  .blink-text,
-  .blink-once,
-  .blink-slow {
-    animation: none;
-  }
-  
-  .loading-progress {
-    width: 100%;
   }
 }

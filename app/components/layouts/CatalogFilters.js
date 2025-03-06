@@ -28,7 +28,6 @@ const CatalogFilters = ({
   return (
     <ConsoleSection
       className="catalog-filters"
-      command="set_filters --advanced"
     >
       <div className="filters-container">
         <div className="search-container">

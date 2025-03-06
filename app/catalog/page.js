@@ -154,15 +154,15 @@ const Catalog = () => {
 
       <div className="archive-container catalog-container">
         <ConsoleWindow title="tech-incidents-catalog" statusItems={statusItems}>
-          <ConsoleSection command='query tech_incidents.db --search="*" --list'>
+          <ConsoleSection>
+            <div className="command-line">
+              <span className="prompt">guest@archive:~$</span>
+              <span className="command">query </span> tech_incidents.db <span className="parameter">--search="*"</span> <span className="parameter">--list</span>
+            </div>
             <CatalogHeader
               title="INCIDENT CATALOG"
               subtitle={`All documented technical mishaps since ${yearsAvailable[0] || "1985"}`}
             />
-
-            <CommandOutput showLoadingBar={true}>
-              Found {filteredIncidents.length} incidents in database.
-            </CommandOutput>
           </ConsoleSection>
 
           <CatalogFilters
@@ -178,7 +178,11 @@ const Catalog = () => {
             onSortChange={setSortOrder}
           />
 
-          <ConsoleSection command="display_results --format=grid">
+          <ConsoleSection>
+            <div className="command-line">
+              <span className="prompt">guest@archive:~$</span>
+              <span className="command">delete</span>
+            </div>
             <CommandOutput>
               Displaying {sortedIncidents.length} incidents
             </CommandOutput>

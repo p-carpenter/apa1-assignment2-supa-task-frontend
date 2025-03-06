@@ -45,7 +45,8 @@
   line-height: 1;
   display: flex;
   align-items: center;
-  color: var(--color-accent);
+  color: #9c6b4e;
+  font-weight: bold;
 }
 
 .incident-name {
@@ -151,7 +152,7 @@
 
 .filter-title {
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  color: #635a50;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -246,7 +247,7 @@
 
 .sort-label {
   font-size: 0.8rem;
-  color: var(--color-text-secondary);
+  color: #635a50;
 }
 
 .sort-select {
@@ -262,7 +263,7 @@
 /* Dropdown styles */
 .dropdown-label {
   font-size: 0.7rem;
-  color: var(--color-text-secondary);
+  color: #635a50;
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 0.3rem;
@@ -368,6 +369,26 @@
   background-color: var(--color-bg-subtle);
   border-radius: 4px;
   animation: pulse 1.5s infinite;
+}
+
+/* Info icon styling */
+.info-icon {
+  color: #7c6b4e;
+}
+
+/* Command line styling */
+.console-section .command-line .command {
+  color: #9c6b4e;
+  font-weight: bold;
+}
+
+.console-section .command-line .parameter {
+  color: #8a6246;
+}
+
+/* Status text styling */
+.command-output {
+  color: #7c6b4e;
 }
 
 /* Responsive adjustments for catalog */
