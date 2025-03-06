@@ -36,23 +36,23 @@ export default function LoginPage() {
     <>
       <div className="circuit-background"></div>
       
-      <div className="floating-home-button">
-        <Button />
-      </div>
-      
       <div className="auth-page-container">
         <ConsoleWindow title="tech-incidents-login" statusItems={statusItems} className="auth-console">
-          <ConsoleSection command="security --auth">
-            <CatalogHeader title="USER LOGIN" showGlitch={true} />
-            
-            <CommandOutput showLoadingBar={true}>
+        <ConsoleSection command="security --auth" commandParts={
+                {
+                  baseCommand: "security",
+                  flags: ["--auth"]
+                }
+              }>
+
+            <CommandOutput title="USER LOGIN" showGlitch={true} showLoadingBar={true}>
               <div className="output-text">
                 Authentication required for secure access.
               </div>
               <div className="output-text highlight">
                 PLEASE ENTER YOUR CREDENTIALS
               </div>
-            </CommandOutput>
+              </CommandOutput>
 
             <LoginForm />
 

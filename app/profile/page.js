@@ -49,20 +49,21 @@ export default function ProfilePage() {
     <>
       <div className="circuit-background"></div>
       
-      <div className="floating-home-button">
-        <Button />
-      </div>
-      
       <div className="auth-page-container">
-        <ConsoleWindow title="tech-archive-profile" statusItems={statusItems} className="auth-console">
-          <ConsoleSection command="security --profile">
-            <CatalogHeader title="USER PROFILE" showGlitch={true} />
-            
-            <CommandOutput showLoadingBar={true}>
+        <ConsoleWindow title="tech-incidents-profile" statusItems={statusItems} className="auth-console">
+        <ConsoleSection command="security --profile" commandParts={
+                {
+                  baseCommand: "security",
+                  flags: ["--profile"]
+                }
+              }>
+
+            <CommandOutput title="USER PROFILE" showGlitch={true} showLoadingBar={true}>
               <div className="output-text">
-                Welcome back to the Tech Incidents Archive.
-              </div>
-            </CommandOutput>
+                  Welcome back to the Tech Incidents Archive.
+                </div>
+              </CommandOutput>
+
             <ProfileInfo />
           </ConsoleSection>
 

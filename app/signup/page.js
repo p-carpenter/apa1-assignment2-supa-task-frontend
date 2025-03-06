@@ -36,20 +36,21 @@ export default function SignupPage() {
     <>
       <div className="circuit-background"></div>
       
-      <div className="floating-home-button">
-        <Button />
-      </div>
-      
       <div className="auth-page-container">
         <ConsoleWindow title="tech-incidents-registration" statusItems={statusItems} className="auth-console">
-          <ConsoleSection command="security --register">
-            <CatalogHeader title="JOIN THE ARCHIVE" showGlitch={true} />
-            
-            <CommandOutput showLoadingBar={true}>
+        <ConsoleSection command="security --register" commandParts={
+                {
+                  baseCommand: "security",
+                  flags: ["--register"]
+                }
+              }>
+
+            <CommandOutput title="JOIN THE ARCHIVE" showGlitch={true} showLoadingBar={true}>
               <div className="output-text">
                 Create a new account to become a member of the Archive and contribute.
               </div>
-            </CommandOutput>
+              </CommandOutput>
+              
             <SignupForm />
           </ConsoleSection>
 
