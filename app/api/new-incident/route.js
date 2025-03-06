@@ -27,11 +27,10 @@ export async function POST(req) {
       addition: incidentData,
     };
 
-    if (incidentData.artifactType === "code") {
-    } else if (incidentData.artifactType === "image" && requestData.fileData) {
-      payload.fileData = requestData.fileData;
-      payload.fileName = requestData.fileName;
-      payload.fileType = requestData.fileType;
+    if (update.artifactType === "image" && body.fileData) {
+      payload.fileData = body.fileData;
+      payload.fileName = body.fileName;
+      payload.fileType = body.fileType;
     }
 
     console.log(

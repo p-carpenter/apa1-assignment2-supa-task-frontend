@@ -21,10 +21,10 @@ const DOSGalleryDisplay = ({
   // Helper function to render the appropriate artifact
   const renderArtifact = () => {
     switch (incident.name) {
-      case "Morris Worm":
-        return <MorrisWorm />;
-      case "Therac-25 Radiation Accidents":
-        return <Therac25Accidents />;
+      // case "Morris Worm":
+      //   return <MorrisWorm />;
+      // case "Therac-25 Radiation Accidents":
+      //   return <Therac25Accidents />;
       default:
         if (incident.artifactType === "image") {
           return (
@@ -36,7 +36,7 @@ const DOSGalleryDisplay = ({
           );
         } else if (incident.artifactType === "code") {
           return (
-            <pre className="artifact-code">{incident.artifactContent}</pre>
+            <iframe className="artifact-code" style={{height: '600px'}} srcDoc={incident.artifactContent}></iframe>
           );
         } else {
           return <div>No visualization available</div>;

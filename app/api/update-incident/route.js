@@ -3,7 +3,7 @@ export async function PUT(req) {
 
   try {
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // Allow all origins for testing
+      "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
@@ -25,6 +25,15 @@ export async function PUT(req) {
       });
     }
 
+    // Create the payload with the necessary data
+    const payload = { id, update };
+    
+    if (update.artifactType === "image" && body.fileData) {
+      payload.fileData = body.fileData;
+      payload.fileName = body.fileName;
+      payload.fileType = body.fileType;
+    }
+
     // Forward the request to Supabase Edge Function
     const response = await fetch(`${SUPABASE_URL}/functions/v1/tech-incidents`, {
       method: "PUT",
@@ -32,7 +41,7 @@ export async function PUT(req) {
         Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id, update }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {

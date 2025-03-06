@@ -13,35 +13,28 @@ const Win95ArtifactWindow = ({ incident, onClose, decade }) => {
   const getArtifactDimensions = () => {
     return {
       baseWidth: "1024px",
-      baseHeight: "auto",
+      baseHeight: "600px",
     };
   };
 
-  const renderVisualization = () => {
-    switch (incident.name) {
-      case "Y2K Bug":
-        return <Y2KBug />;
-      case "Mars Climate Orbiter Crash":
-        return <MarsClimateCrash />;
-      case "Gangnam Style View Counter Break":
-        return <YTViewCounter />;
-      case "Windows 95 RecycleBin Path Length Bug":
-        return <Win95RecycleBin />;
-      case "Windows NT 4.0 Blue Screen":
-        return <WindowsNTBSOD />;
-      case "AT&T Network Collapse":
-        return <ATTNetworkCollapse />;
-      case "Therac-25 Radiation Accidents":
-        return <Therac25Accidents />;
-      default:
+    const renderArtifact = () => {
+      if (incident.artifactType === "image") {
         return (
-          <div className="bg-white p-8 text-black text-center">
-            <h2 className="text-xl font-bold mb-4">{incident.name}</h2>
-            <p className="mb-4">{incident.description}</p>
-          </div>
+          <img
+            src={incident.artifactContent}
+            alt={incident.name}
+            className="artifact-image"
+            style={{height: '600px'}}
+          />
         );
+      } else if (incident.artifactType === "code") {
+        return (
+          <iframe className="artifact-code" style={{height: '600px'}} srcDoc={incident.artifactContent}></iframe>
+        );
+      } else {
+        return <div>No visualization available</div>;
+      }
     }
-  };
 
   const { baseWidth, baseHeight } = getArtifactDimensions();
 
@@ -52,7 +45,7 @@ const Win95ArtifactWindow = ({ incident, onClose, decade }) => {
     >
       <TitleBar title={incident.name} onClose={onClose} />
       <StandardArtifact decade={decade} title={incident.name}>
-        {renderVisualization()}
+        {renderArtifact()}
       </StandardArtifact>
     </div>
   );

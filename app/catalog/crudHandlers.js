@@ -1,9 +1,9 @@
-export const handleAddNewIncident = async (formData) => {
+export const handleAddNewIncident = async (payload) => {
   try {
     const response = await fetch('/api/new-incident', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ addition: formData }),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error('Failed to create incident');
     const updatedData = await response.json();
@@ -14,19 +14,16 @@ export const handleAddNewIncident = async (formData) => {
   }
 };
 
-export const handleUpdateIncident = async (incidentToUpdate, formData) => {
+export const handleUpdateIncident = async (payload) => {
   try {
-    if (!incidentToUpdate) {
+    if (!payload.id) {
       throw new Error("No incident to update");
     }
 
     const response = await fetch('/api/update-incident', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        id: incidentToUpdate.id,
-        update: formData 
-      }),
+      body: JSON.stringify(payload),
     });
     if (!response.ok) throw new Error('Failed to update incident');
 

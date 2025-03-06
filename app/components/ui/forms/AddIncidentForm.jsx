@@ -18,6 +18,9 @@ const AddIncidentForm = ({ onClose }) => {
     artifactType: 'none',
     artifactContent: ''
   });
+    const [fileData, setFileData] = useState(null);
+    const [fileName, setFileName] = useState(null);
+    const [fileType, setFileType] = useState(null);
 
   const categories = [
     'Software', 
@@ -37,6 +40,20 @@ const AddIncidentForm = ({ onClose }) => {
     }));
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      setFileType(file.type);
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFileData(event.target.result); // Base64 string
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -53,7 +70,17 @@ const AddIncidentForm = ({ onClose }) => {
         throw new Error('Please enter a valid date in YYYY-MM-DD format.');
       }
 
-      const result = await handleAddNewIncident(formData);
+      const payload = {
+        addition: formData,
+      }
+
+      if (formData.artifactType === 'image' && fileData) {
+        payload.fileData = fileData;
+        payload.fileName = fileName;
+        payload.fileType = fileType;
+      }
+
+      const result = await handleAddNewIncident(payload);
       
       if (typeof result === 'string') {
         // Error returned as string
@@ -260,10 +287,7 @@ const AddIncidentForm = ({ onClose }) => {
             type="file"
             className="form-input"
             accept="image/*"
-            onChange={(e) => {
-              // Handle file upload here if needed
-              console.log("File selected:", e.target.files[0]);
-            }}
+            onChange={handleFileChange}
           />
         </div>
       )}
