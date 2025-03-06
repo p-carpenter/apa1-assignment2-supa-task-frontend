@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useIncidents } from "./contexts/IncidentContext";
+import { useAuth } from './contexts/AuthContext';
 import "./homepage.styles.css";
 
 // Import reusable components using barrel files
@@ -19,6 +20,7 @@ import {
 
 export default function Home() {
   const { incidents } = useIncidents();
+  const { isAuthenticated } = useAuth();
 
   // States for modals and button text
   const [infoModalOpen, setInfoModalOpen] = useState(false);
@@ -47,22 +49,32 @@ export default function Home() {
         <ConsoleWindow title="tech-incidents-archive" statusItems={statusItems}>
           <div className="console-main-layout">
             <div className="console-left">
-              <ConsoleSection command="load tech_incidents.db">
-                <CatalogHeader title="TECH INCIDENTS" showGlitch={true} />
+            <ConsoleSection 
+              command="load tech_incidents.db"
+              commandParts={{
+                baseCommand: "load",
+                args: ["tech_incidents.db"],
+              }}
+            >
 
-                <CommandOutput showLoadingBar={true}>
+                <CommandOutput title="TECH INCIDENTS" showGlitch={true} showLoadingBar={true}>
                   Database loaded successfully.
                 </CommandOutput>
               </ConsoleSection>
 
-              <ConsoleSection command="access_level --check">
+              <ConsoleSection command="access_level --check" commandParts={
+                {
+                  baseCommand: "access_level",
+                  flags: ["--check"]
+                }
+              }>
                 <CommandOutput>
                   <div className="output-text blink-once">
                     Verifying credentials...
                   </div>
-                  <div className="output-text">Access level: PUBLIC</div>
+                  <div className="output-text">Access level: {isAuthenticated ? 'MEMBER' : 'PUBLIC'}</div>
                   <div className="output-text highlight">
-                    YOU MAY EXAMINE THE ARTIFACTS
+                    YOU MAY {isAuthenticated ? 'EXAMINE AND CONTRIBUTE TO' : 'EXAMINE'} THE ARTIFACTS
                   </div>
                 </CommandOutput>
               </ConsoleSection>
@@ -79,7 +91,12 @@ export default function Home() {
             </div>
           </div>
 
-          <ConsoleSection className="action-section" command="open gallery.exe">
+          <ConsoleSection className="action-section" command="open gallery.exe" commandParts={
+                {
+                  baseCommand: "open",
+                  args: ["gallery.exe"]
+                }
+              }>
             <CTAButton href="/gallery" text="EXPLORE ARCHIVE" />
 
             <button
