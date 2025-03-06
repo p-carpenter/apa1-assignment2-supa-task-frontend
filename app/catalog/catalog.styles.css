@@ -1,15 +1,13 @@
 /* Import global component styles */
 @import "../styles/components.global.css";
 
-/* Only keep catalog-specific styles here */
-
 /* Incident grid styles */
 .incident-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 0.6rem;
   margin-top: 0.75rem;
-  min-height: 300px;
+  min-height: 200px;
   overflow-y: auto;
   padding-bottom: 1rem;
 }
@@ -419,4 +417,122 @@
   .sort-select {
     width: 100%;
   }
+}
+
+/* Admin controls */
+.command-output-with-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-controls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-button {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.admin-button:hover {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
+}
+
+.admin-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Selection mode styling */
+.selection-mode .incident-item {
+  position: relative;
+}
+
+.selection-circle {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+  z-index: 10;
+}
+
+.incident-item.selected {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
+}
+
+.incident-item.selected .selection-circle {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Edit form overlay */
+.edit-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.edit-form-container {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 0 20px rgba(107, 92, 76, 0.3);
+  padding: 20px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 8px;
+}
+
+.edit-form-container h2 {
+  color: var(--color-accent);
+  margin-top: 0;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 10px;
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.edit-form-controls {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.edit-form-controls button {
+  padding: 6px 12px;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: "IBM Plex Mono", monospace;
+  border-radius: 4px;
+}
+
+.edit-form-controls button:hover {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
 }
