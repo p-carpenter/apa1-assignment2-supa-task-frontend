@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { IncidentProvider } from "./IncidentContext";
 import { ThemeProvider } from "./ThemeContext";
+import { AuthProvider } from "./AuthContext";
 
 const Providers = ({ children }) => {
   const [incidentData, setIncidentData] = useState([]);
@@ -31,9 +32,11 @@ const Providers = ({ children }) => {
   }
 
   return (
-    <IncidentProvider incidents={incidentData}>
-      <ThemeProvider>{children}</ThemeProvider>
-    </IncidentProvider>
+    <AuthProvider>
+      <IncidentProvider incidents={incidentData}>
+        <ThemeProvider>{children}</ThemeProvider>
+      </IncidentProvider>
+    </AuthProvider>
   );
 };
 

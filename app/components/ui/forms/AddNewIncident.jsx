@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 // import { Button, Dropdown } from "@react95/core";
 import TitleBar from "@/app/components/ui/themes/win95/Win95TitleBar.jsx";
