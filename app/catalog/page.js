@@ -8,14 +8,14 @@ import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-  CatalogHeader,
-  CommandLine,
 } from "../components/ui";
 
 import { CatalogFilters, IncidentGrid } from "../components/layouts";
 import { Button } from "../components/ui/buttons";
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { handleDeleteIncidents } from './crudHandlers';
+import AddIncidentForm from "../components/ui/forms/AddIncidentForm";
+import EditIncidentForm from "../components/ui/forms/EditIncidentForm";
 
 const Catalog = () => {
   const { incidents, setIncidents, setDisplayedIncident, setCurrentIncidentIndex } =
@@ -29,10 +29,13 @@ const Catalog = () => {
   const [realTimeSearch, setRealTimeSearch] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // New state for selection mode and selected incidents
+  // Selection mode and selected incidents
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
+  
+  // State for modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [currentEditIndex, setCurrentEditIndex] = useState(0);
 
   const getIncidentYear = (incident) => {
@@ -187,6 +190,11 @@ const Catalog = () => {
       return;
     }
     
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete ${selectedIncidents.length} incident(s)?`)) {
+      return;
+    }
+    
     // Set loading state
     setIsDeleting(true);
     
@@ -227,16 +235,22 @@ const Catalog = () => {
     }
     
     // Start editing the first selected incident
-    setIsEditing(true);
+    setShowEditModal(true);
     setCurrentEditIndex(0);
-    
-    // Implement your edit form display logic here
-    console.log("Editing incident:", selectedIncidents[0]);
   };
   
   const handleAddNew = () => {
-    // Implement your add new logic here
-    console.log("Adding new incident");
+    setShowAddModal(true);
+  };
+
+  const moveToNextEdit = () => {
+    if (currentEditIndex < selectedIncidents.length - 1) {
+      setCurrentEditIndex(currentEditIndex + 1);
+    } else {
+      setShowEditModal(false);
+      setSelectionMode(false);
+      setSelectedIncidents([]);
+    }
   };
 
   const { isAuthenticated } = useAuth();
@@ -332,34 +346,52 @@ const Catalog = () => {
               selectedIncidents={selectedIncidents}
             />
           </ConsoleSection>
-          
-          {isEditing && selectedIncidents.length > 0 && (
-            <div className="edit-form-overlay">
-              <div className="edit-form-container">
-                <h2>Edit Incident {currentEditIndex + 1}/{selectedIncidents.length}</h2>
-                {/* Your edit form would go here */}
-                <div className="edit-form-controls">
-                  <button onClick={() => {
-                    // Handle save logic here
-                    
-                    // Move to next incident or close if done
-                    if (currentEditIndex < selectedIncidents.length - 1) {
-                      setCurrentEditIndex(currentEditIndex + 1);
-                    } else {
-                      setIsEditing(false);
-                      setSelectionMode(false);
-                      setSelectedIncidents([]);
-                    }
-                  }}>
-                    Save & Continue
-                  </button>
-                  <button onClick={() => setIsEditing(false)}>Cancel</button>
-                </div>
-              </div>
-            </div>
-          )}
         </ConsoleWindow>
       </div>
+
+      {/* Add New Incident Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="close-modal"
+              onClick={() => setShowAddModal(false)}
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+            <h2 className="modal-title">Add New Technical Incident</h2>
+            <div className="modal-content">
+              <AddIncidentForm onClose={() => setShowAddModal(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Incident Modal */}
+      {showEditModal && selectedIncidents.length > 0 && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="close-modal"
+              onClick={() => setShowEditModal(false)}
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+            <h2 className="modal-title">
+              Edit Incident ({currentEditIndex + 1}/{selectedIncidents.length})
+            </h2>
+            <div className="modal-content">
+              <EditIncidentForm 
+                incident={selectedIncidents[currentEditIndex]}
+                onClose={() => setShowEditModal(false)}
+                onNext={moveToNextEdit}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

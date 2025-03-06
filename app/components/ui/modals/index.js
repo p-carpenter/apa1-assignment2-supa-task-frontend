@@ -1,2 +1,7 @@
-// Modal component exports
-export { default as InfoModal } from './InfoModal';
+import Modal from './Modal';
+import InfoModal from './InfoModal';
+
+export {
+  Modal,
+  InfoModal
+};

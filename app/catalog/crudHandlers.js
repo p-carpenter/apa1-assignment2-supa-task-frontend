@@ -1,50 +1,44 @@
 export const handleAddNewIncident = async (formData) => {
-    try {
-      const response = await fetch('/api/new-incident', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ addition: formData }),
-      });
-      if (!response.ok) throw new Error('Failed to create incident');
-      const updatedData = await response.json();
-      setIncidentData(updatedData);
-      setShowAddNew(false);
-    } catch (error) {
-      console.error(error);
-      return error.message;
+  try {
+    const response = await fetch('/api/new-incident', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ addition: formData }),
+    });
+    if (!response.ok) throw new Error('Failed to create incident');
+    const updatedData = await response.json();
+    return updatedData;
+  } catch (error) {
+    console.error(error);
+    return error.message;
+  }
+};
+
+export const handleUpdateIncident = async (incidentToUpdate, formData) => {
+  try {
+    if (!incidentToUpdate) {
+      throw new Error("No incident to update");
     }
-  };
 
+    const response = await fetch('/api/update-incident', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        id: incidentToUpdate.id,
+        update: formData 
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to update incident');
 
-  export const handleUpdateIncident = async (formData) => {
-    try {
-      const incidentToUpdate =
-        displayedIncident || (selectedIncidents.length === 1 ? selectedIncidents[0] : null);
+    const updatedData = await response.json();
+    return updatedData;
+  } catch (error) {
+    console.error(error);
+    return error.message;
+  }
+};
 
-      if (!incidentToUpdate) {
-        throw new Error("No single incident to update");
-      }
-
-      const response = await fetch('/api/update-incident', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          id: incidentToUpdate.id,
-          update: formData 
-        }),
-      });
-      if (!response.ok) throw new Error('Failed to update incident');
-
-      const updatedData = await response.json();
-      setIncidentData(updatedData);
-      setShowUpdate(false);
-    } catch (error) {
-      console.error(error);
-      return error.message;
-    }
-  };
-
- export const handleDeleteIncidents = async (selectedIncidents) => {
+export const handleDeleteIncidents = async (selectedIncidents) => {
   try {
     const idArray = selectedIncidents.map((inc) => inc.id);
 
@@ -59,7 +53,7 @@ export const handleAddNewIncident = async (formData) => {
     }
 
     const updatedData = await response.json();
-    return updatedData
+    return updatedData;
   } catch (error) {
     console.error(error);
     return error.message;
