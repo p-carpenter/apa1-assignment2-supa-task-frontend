@@ -36,7 +36,7 @@ const DOSGalleryDisplay = ({
           );
         } else if (incident.artifactType === "code") {
           return (
-            <iframe className="artifact-code" style={{height: '600px'}} srcDoc={incident.artifactContent}></iframe>
+            <iframe className="artifact-code" style={{height: '500px'}} srcDoc={incident.artifactContent}></iframe>
           );
         } else {
           return <div>No visualization available</div>;
