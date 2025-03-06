@@ -1,3 +1,5 @@
+// Modified IncidentGrid.js with selection functionality
+
 import React from "react";
 import Link from "next/link";
 import { generateSlug } from "../../utils/navigation/slugUtils";
@@ -10,6 +12,8 @@ const IncidentGrid = ({
   emptyMessage = "No matching incidents found.",
   onIncidentSelect,
   getIncidentYear,
+  selectionMode = false,
+  selectedIncidents = [],
 }) => {
   if (isLoading) {
     return (
@@ -33,17 +37,21 @@ const IncidentGrid = ({
   }
 
   return (
-    <div className="incident-grid">
+    <div className={`incident-grid ${selectionMode ? 'selection-mode' : ''}`}>
       {incidents.map((incident) => {
         const year = getIncidentYear(incident);
+        const isSelected = selectedIncidents.some(inc => inc.id === incident.id);
 
         return (
           <Link
             key={incident.id || `incident-${incident.name || "unknown"}`}
             href={`/gallery?incident=${generateSlug(incident.name || "Unknown Incident")}`}
-            onClick={() => onIncidentSelect && onIncidentSelect(incident)}
-            className={`incident-item`}
+            onClick={(e) => onIncidentSelect && onIncidentSelect(incident, e)}
+            className={`incident-item ${isSelected ? 'selected' : ''}`}
           >
+            {selectionMode && (
+              <div className="selection-circle"></div>
+            )}
             <div className="incident-year">{year || "Unknown Year"}</div>
             <div className="incident-name">
               {incident.name || "Unknown Incident"}
@@ -54,7 +62,9 @@ const IncidentGrid = ({
               </div>
               {getSeverityIcon(incident.severity)}
             </div>
-            <div className="view-details">View Details</div>
+            <div className="view-details">
+              {selectionMode ? 'Select' : 'View Details'}
+            </div>
           </Link>
         );
       })}

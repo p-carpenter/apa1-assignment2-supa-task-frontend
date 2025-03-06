@@ -30,7 +30,15 @@ export const IncidentProvider = ({
 
   // Group incidents by decade
   const incidentsByDecade = useMemo(() => {
+    // Check if incidents is an array before using reduce
+    if (!Array.isArray(incidents)) {
+      console.warn("incidents is not an array:", incidents);
+      return {};
+    }
+    
     return incidents.reduce((acc, incident) => {
+      if (!incident) return acc;
+      
       try {
         const year = new Date(incident.incident_date).getFullYear();
         const decade = Math.floor(year / 10) * 10;
@@ -45,7 +53,8 @@ export const IncidentProvider = ({
 
   // Filter incidents based on category and search query
   const filteredIncidents = useMemo(() => {
-    if (!incidents.length) return [];
+    // Check if incidents is an array before filtering
+    if (!Array.isArray(incidents) || !incidents.length) return [];
 
     let result = [...incidents];
 
@@ -86,14 +95,16 @@ export const IncidentProvider = ({
 
   // Handler functions
   const handleIncidentDoubleClick = (incident) => {
-    // Just set the current incident info - navigation will be handled separately
+    if (!Array.isArray(incidents)) return;
+    
     const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index);
     setDisplayedIncident(incident);
-    // Note: No longer directly displaying the gallery here
   };
 
   const handleIncidentNavigation = (newIndex) => {
+    if (!Array.isArray(incidents)) return;
+    
     if (newIndex >= 0 && newIndex < incidents.length) {
       const nextIncident = incidents[newIndex];
       setCurrentIncidentIndex(newIndex);
