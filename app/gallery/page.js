@@ -9,6 +9,7 @@ import {
   findIncidentBySlug,
   generateSlug,
 } from "@/app/utils/navigation/slugUtils";
+import GalleryExhibit from "@/app/components/layouts/GalleryExhibit";
 
 export default function GalleryPage() {
   const { GalleryDisplay, theme } = useTheme();
@@ -189,9 +190,17 @@ export default function GalleryPage() {
   }
 
   return (
-    <div className={`gallery-container ${theme.background} incident-content`}>
+    <div className={`gallery-container incident-content`}>
+      <GalleryNavButtons
+        onPreviousClick={() => handleNavigation("prev")}
+        onNextClick={() => handleNavigation("next")}
+        incidentYears={incidentYears}
+        currentIncidentYear={currentIncidentYear}
+        onYearClick={handleYearClick}
+      />
+
       <div className="incident-detail-container" style={{ flexGrow: 1 }}>
-        <GalleryDisplay
+        <GalleryExhibit
           incident={currentIncident}
           incidents={availableIncidents}
           onClose={() => router.push("/catalog?reset=true")}
@@ -210,20 +219,6 @@ export default function GalleryPage() {
           theme={theme}
         />
       </div>
-
-      <GalleryNavButtons
-        onPreviousClick={() => handleNavigation("prev")}
-        onNextClick={() => handleNavigation("next")}
-        currentDecade={currentDecade}
-        incidentYears={incidentYears}
-        currentIncidentYear={currentIncidentYear}
-        onYearClick={handleYearClick}
-        onClose={() => {
-          router.push("/catalog?reset=true");
-        }}
-        activeFilter={activeFilter}
-        hasFilters={Boolean(activeFilter || searchQuery)}
-      />
     </div>
   );
 }

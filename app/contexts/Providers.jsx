@@ -3,17 +3,17 @@
 import { useState, useEffect } from "react";
 import { IncidentProvider } from "./IncidentContext";
 import { ThemeProvider } from "./ThemeContext";
+import { AuthProvider } from "./AuthContext";
 
 const Providers = ({ children }) => {
   const [incidentData, setIncidentData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load Incidents from DB
   useEffect(() => {
     const fetchIncidents = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/tech-incidents");
+        const response = await fetch("/api/fetch-incidents");
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data = await response.json();
         setIncidentData(data);
@@ -31,9 +31,11 @@ const Providers = ({ children }) => {
   }
 
   return (
-    <IncidentProvider incidents={incidentData}>
-      <ThemeProvider>{children}</ThemeProvider>
-    </IncidentProvider>
+    <AuthProvider>
+      <IncidentProvider incidents={incidentData}>
+        <ThemeProvider>{children}</ThemeProvider>
+      </IncidentProvider>
+    </AuthProvider>
   );
 };
 

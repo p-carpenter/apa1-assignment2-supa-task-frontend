@@ -1,0 +1,358 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: #e3ccbb;
+  box-shadow: inset 0px 0px 100px rgba(0, 0, 0, 0.3);
+}
+
+/* Pixel Art Columns */
+.pixel_art_left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  height: 100%;
+  padding: 20px 10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  width: 80px;
+}
+
+.pixel_art_right {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  height: 100%;
+  padding: 20px 10px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  width: 80px;
+}
+
+.pixel_art_item {
+  height: 50px;
+  width: auto;
+  max-width: 100%;
+  image-rendering: pixelated;
+  transition: transform 0.2s ease;
+}
+
+/* Content Area */
+.window {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  position: relative;
+}
+
+.background_image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.main_content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  justify-content: flex-end;
+  align-items: center;
+  position: relative;
+  z-index: 3; /* Above scanlines */
+}
+
+.incident_wrapper {
+  display: grid;
+  grid-template-columns: auto auto;
+  position: absolute;
+  width: 100vw;
+  bottom: 0;
+  justify-content: center;
+  z-index: 5; /* Above scanlines */
+}
+
+/* Artifact Section */
+.artifact_section {
+  width: 100%;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  transition: margin-bottom 0.3s ease;
+}
+
+/* New classes for artifact section adjustment for small artifacts */
+.artifact_tiny {
+  margin-bottom: 200px; /* Move the entire section up for small artifacts */
+}
+
+.artifact_small {
+  margin-bottom: 120px; /* Move the entire section up more for tiny artifacts */
+}
+
+/* Details Section */
+.details_section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: 60vh;
+  min-width: 40vh;
+  align-self: center;
+  justify-self: start;
+  padding-left: 20px;
+  overflow: hidden;
+}
+
+.artifact_container {
+  z-index: 99999;
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease;
+  text-align: left;
+  display: flex;
+  justify-content: center;
+  position: relative;
+}
+
+.artifact_transparent {
+  filter: drop-shadow(0px 10px 12px rgba(0, 0, 0, 0.4));
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  max-height: 75vh;
+  object-fit: contain;
+}
+
+.pedestal {
+  position: relative;
+  width: 100%;
+  height: 16rem;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: -122px;
+  filter: drop-shadow(0px 10px 12px rgba(0, 0, 0, 0.4));
+}
+
+.pedestal_image {
+  width: 1024px;
+  height: 1024px;
+  object-fit: contain;
+  z-index: 99;
+  margin-top: 70px;
+}
+
+/* Details Section */
+.details_section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  height: auto;
+  min-width: 40vh;
+  align-self: flex-start;
+  overflow: hidden;
+}
+
+/* Base details window shared by all decades */
+.details_window {
+  border-radius: 5px;
+  padding: 16px 18px 8px 22px;
+  background: hsla(0, 0%, 100%, 0.33);
+  border: 1px solid rgba(68, 19, 4, 0.5);
+  width: max(380px, 27vw);
+  max-width: 380px;
+  align-self: flex-start;
+  margin-bottom: 21svh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Add gap classes to control spacing */
+.gap_medium {
+  column-gap: 20px;
+}
+
+.gap_large {
+  column-gap: 40px;
+}
+
+/* Info Table and other content */
+.info_table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info_row {
+  display: flex;
+}
+
+.info_label {
+  font-weight: bold;
+  width: 100px;
+  color: #000080;
+}
+
+.info_divider {
+  height: 1px;
+  background-color: #ccc;
+  margin: 12px 0;
+}
+
+.info_section {
+  margin-top: 15px;
+}
+
+.section_label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #000080;
+  font-size: 14px;
+}
+
+.section_text {
+  background-color: #fff;
+  border: 1px inset #c0c0c0;
+  padding: 10px;
+  max-height: none;
+  overflow-y: auto;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .incident_wrapper {
+    width: 95vw;
+  }
+}
+
+@media (max-width: 992px) {
+  .incident_wrapper {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 30px;
+  }
+
+  .artifact_section,
+  .details_section {
+    width: 90%;
+    max-width: 600px;
+    justify-self: center;
+  }
+
+  .details_section {
+    height: auto;
+    min-height: 400px;
+    margin-bottom: 40px;
+  }
+}
+
+@media (max-width: 576px) {
+  .window {
+    padding: 15px;
+  }
+
+  .artifact_section,
+  .details_section {
+    width: 100%;
+  }
+
+  .details_content {
+    padding: 10px;
+  }
+}
+
+.card_header {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.category_badge,
+.severity_badge,
+.date_badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.category_badge {
+  background-color: #d1e7ff;
+  color: #0050a0;
+  border: 1px solid #a0c8ff;
+}
+
+.severity_badge {
+  background-color: #ffd1d1;
+  color: #a00000;
+  border: 1px solid #ffa0a0;
+}
+
+.date_badge {
+  background-color: #e7e7e7;
+  color: #505050;
+  border: 1px solid #c0c0c0;
+}
+
+.card_container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.card_section {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card_icon {
+  font-size: 18px;
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.card_content {
+  flex-grow: 1;
+}
+
+.card_title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #000080;
+  font-weight: bold;
+}
+
+.card_text {
+  margin: 0;
+  line-height: 1.4;
+  font-size: 14px;
+}

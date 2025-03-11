@@ -4,6 +4,7 @@ import SearchFilter from "../ui/filters/SearchFilter";
 import MultiSelectDropdown from "../ui/MultiSelectDropdown";
 import SortControls from "../ui/filters/SortControls";
 import { getCategoryIcon } from "../../utils/ui/categoryIcons";
+import "@/app/catalog/catalog.styles.css";
 
 const CatalogFilters = ({
   searchQuery,
@@ -27,7 +28,6 @@ const CatalogFilters = ({
   return (
     <ConsoleSection
       className="catalog-filters"
-      command="set_filters --advanced"
     >
       <div className="filters-container">
         <div className="search-container">

@@ -28,9 +28,16 @@ export const IncidentProvider = ({
     return Math.floor(year / 10) * 10;
   };
 
-  // Group incidents by decade
   const incidentsByDecade = useMemo(() => {
+
+    if (!Array.isArray(incidents)) {
+      console.warn("incidents is not an array:", incidents);
+      return {};
+    }
+    
     return incidents.reduce((acc, incident) => {
+      if (!incident) return acc;
+      
       try {
         const year = new Date(incident.incident_date).getFullYear();
         const decade = Math.floor(year / 10) * 10;
@@ -43,9 +50,10 @@ export const IncidentProvider = ({
     }, {});
   }, [incidents]);
 
-  // Filter incidents based on category and search query
+
   const filteredIncidents = useMemo(() => {
-    if (!incidents.length) return [];
+
+    if (!Array.isArray(incidents) || !incidents.length) return [];
 
     let result = [...incidents];
 
@@ -71,35 +79,37 @@ export const IncidentProvider = ({
     return result;
   }, [incidents, activeFilter, searchQuery]);
 
-  // Clear filters
+
   const clearFilters = useCallback(() => {
     setActiveFilter(null);
     setSearchQuery("");
   }, []);
 
-  // Handle filter category click
+
   const handleFilterClick = useCallback((category) => {
     setActiveFilter((prevFilter) =>
       prevFilter === category ? null : category
     );
   }, []);
 
-  // Handler functions
+
   const handleIncidentDoubleClick = (incident) => {
-    // Just set the current incident info - navigation will be handled separately
+    if (!Array.isArray(incidents)) return;
+    
     const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index);
     setDisplayedIncident(incident);
-    // Note: No longer directly displaying the gallery here
   };
 
   const handleIncidentNavigation = (newIndex) => {
+    if (!Array.isArray(incidents)) return;
+    
     if (newIndex >= 0 && newIndex < incidents.length) {
       const nextIncident = incidents[newIndex];
       setCurrentIncidentIndex(newIndex);
       setDisplayedIncident(nextIncident);
 
-      // Extract and set the decade from the incident date
+
       try {
         const year = new Date(nextIncident.incident_date).getFullYear();
         const decade = calculateDecadeFromYear(year);
@@ -114,7 +124,7 @@ export const IncidentProvider = ({
     }
   };
 
-  // View management functions
+
   const handleFolderDoubleClick = (decade) => {
     setCurrentYear(decade);
     setSelectedIncidents([]);

@@ -13,7 +13,7 @@ import Link from "next/link";
  */
 const Button = ({
   className = "",
-  href = "/",
+  href = "",
   label = "BACK TO HOMEPAGE",
   icon = "←",
   onClick = null,
