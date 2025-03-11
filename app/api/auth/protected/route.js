@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 export async function GET() {
   try {
     // Get tokens from cookies
-    const cookieStore = await cookies(); // Use await with cookies() in Next.js 15
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get('sb-access-token')?.value;
     const refreshToken = cookieStore.get('sb-refresh-token')?.value;
     
@@ -48,8 +48,7 @@ export async function POST(request) {
   try {
     const body = await request.json();
     
-    // Get tokens from cookies
-    const cookieStore = await cookies(); // Use await with cookies() in Next.js 15
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get('sb-access-token')?.value;
     const refreshToken = cookieStore.get('sb-refresh-token')?.value;
     
@@ -60,7 +59,6 @@ export async function POST(request) {
       );
     }
     
-    // Call Supabase edge function
     const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/validate-auth`, {
       method: 'POST',
       headers: {

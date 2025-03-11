@@ -5,7 +5,6 @@ export async function POST(request) {
   try {
     const { email, password } = await request.json();
     
-    // Call Supabase edge function
     const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/authentication/signin`, {
       method: 'POST',
       headers: {
@@ -28,7 +27,7 @@ export async function POST(request) {
     
     // Set cookies from the edge function response
     if (data.session) {
-      const cookieStore = await cookies(); // Use await with cookies() in Next.js 15
+      const cookieStore = await cookies();
       
       cookieStore.set('sb-access-token', data.session.access_token, { 
         httpOnly: true,

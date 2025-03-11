@@ -72,13 +72,10 @@ describe("Authentication Flows", () => {
   });
 
   it("allows users to login with valid credentials", () => {
-    // This test assumes you have a test user set up in your database
-    // or that you've mocked the authentication API
-
     // Visit login page
     cy.visit("http://localhost:3000/login");
 
-    // Enter valid credentials - replace with test account credentials
+    // Enter valid credentials
     cy.get('input[type="email"]').type("test@example.com");
     cy.get('input[type="password"]').type("password123");
 
@@ -88,7 +85,6 @@ describe("Authentication Flows", () => {
     // Should be redirected to homepage or dashboard
     cy.url().should("not.include", "/login");
 
-    // User should be authenticated - look for user-specific UI elements
     cy.get('[data-testid="user-menu"]').should("be.visible");
     cy.get('[data-testid="logout-button"]').should("exist");
   });

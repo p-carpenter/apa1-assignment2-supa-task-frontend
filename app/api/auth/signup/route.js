@@ -4,7 +4,6 @@ export async function POST(request) {
   try {
     const { email, password, displayName } = await request.json();
     
-    // Call Supabase edge function
     const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/authentication/signup`, {
       method: 'POST',
       headers: {

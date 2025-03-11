@@ -52,3 +52,5 @@ app/components/layouts/decade-components/NinetiesWindow.jsx
 app/components/layouts/decade-components/NinetiesWindow.styles.css
 ctrf/ctrf-report.json
 test-report.html
+.vscode/settings.json
+.vscode/settings.json

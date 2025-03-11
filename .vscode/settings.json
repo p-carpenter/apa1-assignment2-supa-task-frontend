@@ -2,6 +2,6 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
   "editor.formatOnType": false,
-  "editor.formatOnPaste": false,
+  "editor.formatOnPaste": true
   // "gitConfigUser.selectedProfile": "p-carpenter"
 }

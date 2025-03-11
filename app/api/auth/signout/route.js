@@ -3,12 +3,10 @@ import { cookies } from 'next/headers';
 
 export async function POST(request) {
   try {
-    // Get tokens from cookies
-    const cookieStore = await cookies(); // Use await with cookies() in Next.js 15
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get('sb-access-token')?.value;
     const refreshToken = cookieStore.get('sb-refresh-token')?.value;
     
-    // Call Supabase edge function
     const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/authentication/signout`, {
       method: 'POST',
       headers: {

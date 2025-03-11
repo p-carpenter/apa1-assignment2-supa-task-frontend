@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    // Get tokens from cookies - use await since cookies() is now async in Next.js 15
+    // Get tokens from cookies
     const cookieStore = await cookies();
     const accessToken = cookieStore.get('sb-access-token')?.value;
     const refreshToken = cookieStore.get('sb-refresh-token')?.value;
@@ -15,7 +15,6 @@ export async function GET() {
       );
     }
     
-    // Call Supabase edge function
     const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/authentication/user`, {
       method: 'GET',
       headers: {
