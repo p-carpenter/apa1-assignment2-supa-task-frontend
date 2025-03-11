@@ -45,3 +45,9 @@ dos.html
 # Sentry Config File
 .env.sentry-build-plugin
 .vscode/settings.json
+__tests__/MANUAL_TESTING_DOCUMENTATION.md
+__tests__/MANUAL_TESTING_REPORT.md
+.vscode/settings.json
+app/components/layouts/decade-components/NinetiesWindow.jsx
+app/components/layouts/decade-components/NinetiesWindow.styles.css
+ctrf/ctrf-report.json

@@ -16,6 +16,11 @@
     "test:e2e": "start-server-and-test dev 3000 cypress:run"
   },
   "dependencies": {
+    "@iframe-resizer/child": "^5.3.3",
+    "@iframe-resizer/react": "^5.3.3",
+    "@sakun/system.css": "^0.1.11",
+    "@testing-library/user-event": "^14.6.1",
+    "98.css": "^0.1.20",
     "lucide-react": "^0.475.0",
     "next": "15.1.7",
     "prettier": "^3.5.2",
@@ -37,6 +42,9 @@
     "jest-ctrf-json-reporter": "^0.0.9",
     "jest-environment-jsdom": "^29.7.0",
     "jest-extended": "^4.0.2",
+    "jest-fetch-mock": "^3.0.3",
+    "jest-html-reporter": "^4.0.1",
+    "jest-localstorage-mock": "^2.4.26",
     "msw": "^1.2.5",
     "node-fetch": "^2.7.0",
     "postcss": "^8",
