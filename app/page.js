@@ -5,12 +5,10 @@ import { useIncidents } from "./contexts/IncidentContext";
 import { useAuth } from './contexts/AuthContext';
 import "./homepage.styles.css";
 
-// Import reusable components using barrel files
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-  CatalogHeader,
   DonationCard,
   MuseumInfo,
   CTAButton,
@@ -22,12 +20,11 @@ export default function Home() {
   const { incidents } = useIncidents();
   const { isAuthenticated } = useAuth();
 
-  // States for modals and button text
+
   const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [dismissButtonText, setDismissButtonText] = useState("Maybe Later");
   const [dismissButtonClass, setDismissButtonClass] = useState("dismiss");
 
-  // Handle the donation button transformation
   const handleDismissClick = () => {
     if (dismissButtonText === "Maybe Later") {
       setDismissButtonText("Donate £100");
@@ -35,7 +32,6 @@ export default function Home() {
     }
   };
 
-  // Define status items for the console footer
   const statusItems = [
     "TECH INCIDENTS DATABASE",
     "EXHIBIT #4892",

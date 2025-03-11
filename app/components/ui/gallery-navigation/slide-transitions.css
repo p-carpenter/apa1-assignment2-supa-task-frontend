@@ -42,7 +42,7 @@
   flex: 0 0 50px;
   text-align: center;
   position: relative;
-  user-select: none; /* Prevent text selection while clicking */
+  user-select: none;
   margin: 0 5px;
   color: var(--color-text, #453c33);
   transition: all 0.3s ease;
@@ -104,7 +104,7 @@
   text-align: center;
   position: relative;
   user-select: none;
-  margin-left: 12px; /* Add spacing between timeline and catalog button */
+  margin-left: 12px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(73, 107, 99, 0.2);
   border-radius: 6px;
@@ -124,7 +124,6 @@
   transform: translateY(1px);
 }
 
-/* Add glow effect to match homepage buttons */
 .catalog-button::after {
   content: '';
   position: absolute;

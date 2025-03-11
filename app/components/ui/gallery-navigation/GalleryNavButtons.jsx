@@ -17,32 +17,32 @@ const GalleryNavButtons = ({
   const previousYearRef = useRef(currentIncidentYear);
   const timelineInnerRef = useRef(null);
 
-  // Calculate the transform value to center the current year
+  
   const calculateTransform = () => {
     if (!incidentYears || incidentYears.length === 0 || !currentIncidentYear) {
       return 0;
     }
 
     const currentIndex = incidentYears.indexOf(currentIncidentYear);
-    // Calculate the position to center the current year
-    // Each year button is 50px wide with 10px total margin
-    const yearWidth = 60; // 50px + 10px margin
+    
+    
+    const yearWidth = 60; 
 
-    // Center the current year in the viewport
-    // The timeline container shows 5 years, so we need to center the current year
-    // in the middle position (position 2 out of 5)
+    
+    
+    
     const centerOffset = 2 * yearWidth;
 
     const maxTransform = -(incidentYears.length - 5) * yearWidth;
 
     let translateX = -(currentIndex * yearWidth) + centerOffset;
 
-    // Ensure we don't transform past the first few years
+    
     if (translateX > 0) {
       translateX = 0;
     }
 
-    // Ensure we don't transform past the last few years
+    
     if (translateX < maxTransform) {
       translateX = maxTransform;
     }
@@ -50,7 +50,7 @@ const GalleryNavButtons = ({
     return translateX;
   };
 
-  // Handle animation when current year changes
+  
   useEffect(() => {
     if (
       previousYearRef.current !== currentIncidentYear &&
@@ -58,10 +58,10 @@ const GalleryNavButtons = ({
     ) {
       setIsAnimating(true);
 
-      // Clear the animation after it completes
+      
       const timer = setTimeout(() => {
         setIsAnimating(false);
-      }, 350); // Match CSS transition duration
+      }, 350); 
 
       previousYearRef.current = currentIncidentYear;
 
@@ -69,19 +69,19 @@ const GalleryNavButtons = ({
     }
   }, [currentIncidentYear, incidentYears]);
 
-  // Handle button click with smooth transition
+  
   const handleYearClick = (year) => {
-    if (isAnimating) return; // Prevent clicking during animation
+    if (isAnimating) return; 
     if (!incidentYears || incidentYears.length === 0) return;
 
-    // Don't animate if clicking the current year
+    
     if (year === currentIncidentYear) return;
 
     setIsAnimating(true);
     onYearClick(year);
   };
 
-  // Determine the next and previous years for navigation
+  
   const getNextPrevYears = () => {
     if (
       !incidentYears ||
@@ -106,7 +106,7 @@ const GalleryNavButtons = ({
 
   const { nextYear, prevYear } = getNextPrevYears();
 
-  // Calculate the transform value
+  
   const transformValue = calculateTransform();
 
   return (

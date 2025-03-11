@@ -1,7 +1,6 @@
 import React from 'react';
 
 const Illustrations = ({ illustrations = [] }) => {
-  // If no illustrations provided, use default ones
   const defaultIllustrations = [
     { className: "y2k", tooltip: "Y2K Bug (2000)" },
     { className: "challenger", tooltip: "Challenger Disaster (1986)" },

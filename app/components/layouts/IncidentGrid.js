@@ -1,5 +1,3 @@
-// Modified IncidentGrid.js with selection functionality
-
 import React from "react";
 import Link from "next/link";
 import { generateSlug } from "../../utils/navigation/slugUtils";
@@ -48,6 +46,7 @@ const IncidentGrid = ({
             href={`/gallery?incident=${generateSlug(incident.name || "Unknown Incident")}`}
             onClick={(e) => onIncidentSelect && onIncidentSelect(incident, e)}
             className={`incident-item ${isSelected ? 'selected' : ''}`}
+            data-testid="incident-item"
           >
             {selectionMode && (
               <div className="selection-circle"></div>

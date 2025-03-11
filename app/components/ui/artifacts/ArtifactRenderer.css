@@ -1,0 +1,285 @@
+/* File: app/components/ui/artifacts/ArtifactRenderer.css */
+/* Add these styles to work better with IframeResizer */
+
+.artifact-renderer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden; /* Changed from 'hidden' to allow content to flow naturally */
+  background-color: #fff;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%; /* Changed from 100% to auto */
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.artifact-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: visible; /* Changed from 'hidden' */
+  position: relative;
+}
+
+/* Image-specific styling */
+.artifact-type-image {
+  background-color: #f5f5f5;
+  border: 1px solid #e0e0e0;
+}
+
+.artifact-image-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.artifact-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Code-specific styling */
+.artifact-type-code {
+  background-color: #ffffff;
+  border: 1px solid #d0d0d0;
+}
+
+.artifact-code-container {
+  width: auto;
+  height: 100%;
+  overflow: visible;
+  border: 1px solid #ddd;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Transparent overlay to capture clicks on code */
+.artifact-code-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 2;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.artifact-code {
+  width: 100%;
+  height: 100%;
+  /* min-height: 100px; */
+  border: none;
+  overflow: visible;
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+/* Dimensions display */
+.artifact-dimensions-display {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  z-index: 5;
+  pointer-events: none;
+  font-family: monospace;
+}
+
+/* Clickable styling */
+.artifact-clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+/* Add a subtle glow effect on hover to indicate clickability */
+.artifact-clickable:hover {
+  box-shadow:
+    0 0 5px rgba(255, 255, 255, 0.5),
+    0 0 10px rgba(0, 120, 255, 0.5);
+}
+
+/* Add "Click to expand" text on hover */
+.artifact-clickable:hover::after {
+  content: "Click to expand";
+  position: absolute;
+  bottom: 30px; /* Position above dimensions display */
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  opacity: 0.8;
+  pointer-events: none; /* Ensure it doesn't interfere with clicks */
+  z-index: 10;
+}
+
+/* Empty state styling */
+.artifact-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 600px;
+  height: 400px;
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  background-color: #f9f9f9;
+  border: 1px dashed #ccc;
+  margin: 0 auto;
+}
+
+.artifact-container-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 600px;
+  height: 400px;
+}
+
+/* Automatic padding for small artifacts - detected dynamically */
+.artifact-with-padding {
+  padding: 30px;
+}
+
+/* Manual padding size options */
+.artifact-padding-xs {
+  padding: 10px;
+}
+
+.artifact-padding-small {
+  padding: 20px;
+}
+
+.artifact-padding-medium {
+  padding: 35px;
+}
+
+.artifact-padding-large {
+  padding: 50px;
+}
+
+.artifact-padding-xl {
+  padding: 70px;
+}
+
+/* Expanded state */
+.artifact-expanded {
+  z-index: 100;
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw !important;
+  max-width: 1200px !important;
+  height: 80vh !important;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+}
+
+/* When expanded, change the "Click to expand" text */
+.artifact-expanded.artifact-clickable:hover::after {
+  content: "Click to collapse";
+}
+
+/* Debug panel for iframe messaging */
+.iframe-debug-panel {
+  position: absolute;
+  bottom: 40px;
+  right: 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: #00ff00;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 4px;
+  max-width: 300px;
+  max-height: 200px;
+  overflow: auto;
+  z-index: 1000;
+}
+
+.iframe-debug-panel h4 {
+  margin-top: 0;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.iframe-debug-panel pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* Error message styling */
+.iframe-error-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 0, 0, 0.1);
+  border: 1px solid #ff0000;
+  color: #ff0000;
+  padding: 20px;
+  border-radius: 4px;
+  text-align: center;
+  max-width: 80%;
+  z-index: 10;
+}
+
+/* Responsive styling for smaller screens */
+@media (max-width: 768px) {
+  .artifact-renderer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .artifact-expanded {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+  }
+
+  .artifact-with-padding {
+    padding: 15px;
+  }
+
+  .artifact-padding-xs {
+    padding: 5px;
+  }
+
+  .artifact-padding-small {
+    padding: 10px;
+  }
+
+  .artifact-padding-medium {
+    padding: 20px;
+  }
+
+  .artifact-padding-large {
+    padding: 30px;
+  }
+
+  .artifact-padding-xl {
+    padding: 40px;
+  }
+}

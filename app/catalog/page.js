@@ -4,22 +4,22 @@ import { useIncidents } from "../contexts/IncidentContext";
 import { useState, useEffect, useMemo } from "react";
 import "./catalog.styles.css";
 
-import {
-  ConsoleWindow,
-  ConsoleSection,
-  CommandOutput,
-} from "../components/ui";
+import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
 
 import { CatalogFilters, IncidentGrid } from "../components/layouts";
 import { Button } from "../components/ui/buttons";
-import { useAuth } from '../contexts/AuthContext.jsx';
-import { handleDeleteIncidents } from './crudHandlers';
+import { useAuth } from "../contexts/AuthContext.jsx";
+import { handleDeleteIncidents } from "./crudHandlers";
 import AddIncidentForm from "../components/ui/forms/AddIncidentForm";
 import EditIncidentForm from "../components/ui/forms/EditIncidentForm";
 
 const Catalog = () => {
-  const { incidents, setIncidents, setDisplayedIncident, setCurrentIncidentIndex } =
-    useIncidents();
+  const {
+    incidents,
+    setIncidents,
+    setDisplayedIncident,
+    setCurrentIncidentIndex,
+  } = useIncidents();
   const [selectedYears, setSelectedYears] = useState(["all"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [yearsAvailable, setYearsAvailable] = useState([]);
@@ -28,11 +28,11 @@ const Catalog = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [realTimeSearch, setRealTimeSearch] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  
+
   // Selection mode and selected incidents
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
-  
+
   // State for modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -158,7 +158,7 @@ const Catalog = () => {
       toggleIncidentSelection(incident);
       return;
     }
-    
+
     // Normal navigation behavior
     const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index >= 0 ? index : 0);
@@ -166,10 +166,10 @@ const Catalog = () => {
   };
 
   const toggleIncidentSelection = (incident) => {
-    setSelectedIncidents(prev => {
-      const isSelected = prev.some(inc => inc.id === incident.id);
+    setSelectedIncidents((prev) => {
+      const isSelected = prev.some((inc) => inc.id === incident.id);
       if (isSelected) {
-        return prev.filter(inc => inc.id !== incident.id);
+        return prev.filter((inc) => inc.id !== incident.id);
       } else {
         return [...prev, incident];
       }
@@ -183,31 +183,35 @@ const Catalog = () => {
       setSelectedIncidents([]);
     }
   };
-  
+
   const handleDelete = async () => {
     if (selectedIncidents.length === 0) {
       alert("Please select incidents to delete");
       return;
     }
-    
+
     // Confirm deletion
-    if (!window.confirm(`Are you sure you want to delete ${selectedIncidents.length} incident(s)?`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedIncidents.length} incident(s)?`
+      )
+    ) {
       return;
     }
-    
+
     // Set loading state
     setIsDeleting(true);
-    
+
     try {
       // Call the delete handler from crudHandlers.js
       const result = await handleDeleteIncidents(selectedIncidents);
-      
+
       // Check if the result is an error message string
-      if (typeof result === 'string') {
+      if (typeof result === "string") {
         alert(result);
         return;
       }
-      
+
       // Ensure we have a valid array of incidents
       if (Array.isArray(result)) {
         // Update the incidents state with the updated data
@@ -216,7 +220,7 @@ const Catalog = () => {
         console.error("Invalid response from delete handler:", result);
         alert("An error occurred while deleting incidents");
       }
-      
+
       // After deletion, exit selection mode and clear selections
       setSelectionMode(false);
       setSelectedIncidents([]);
@@ -227,18 +231,18 @@ const Catalog = () => {
       setIsDeleting(false);
     }
   };
-  
+
   const handleEdit = () => {
     if (selectedIncidents.length === 0) {
       alert("Please select incidents to edit");
       return;
     }
-    
+
     // Start editing the first selected incident
     setShowEditModal(true);
     setCurrentEditIndex(0);
   };
-  
+
   const handleAddNew = () => {
     setShowAddModal(true);
   };
@@ -261,20 +265,22 @@ const Catalog = () => {
 
       <div className="archive-container catalog-container">
         <ConsoleWindow title="tech-incidents-catalog" statusItems={statusItems}>
-            <ConsoleSection command='query tech_incidents.db --search="*" --list' commandParts={
-                {
-                  baseCommand: "query",
-                  args: ["tech_incidents.db"],
-                  flags: ['search="*"', "--list"]
-                }
-              }>
-
-            <CommandOutput title="INCIDENT CATALOG"
-            subtitle={`All documented technical mishaps since ${yearsAvailable[0] || "1985"}`}
-            showGlitch={true}
-            showLoadingBar={true}>
-            Found incidents.
-                </CommandOutput>
+          <ConsoleSection
+            command='query tech_incidents.db --search="*" --list'
+            commandParts={{
+              baseCommand: "query",
+              args: ["tech_incidents.db"],
+              flags: ['search="*"', "--list"],
+            }}
+          >
+            <CommandOutput
+              title="INCIDENT CATALOG"
+              subtitle={`All documented technical mishaps since ${yearsAvailable[0] || "1985"}`}
+              showGlitch={true}
+              showLoadingBar={true}
+            >
+              Found incidents.
+            </CommandOutput>
           </ConsoleSection>
 
           <CatalogFilters
@@ -296,39 +302,44 @@ const Catalog = () => {
                 Displaying {sortedIncidents.length} incidents
                 {selectionMode && ` (${selectedIncidents.length} selected)`}
               </CommandOutput>
-              
+
               {isAuthenticated && (
                 <div className="admin-controls">
                   {!selectionMode ? (
                     <>
-                      <Button 
+                      <Button
                         className="admin-button"
-                        label="Add New" 
+                        id="add-incident"
+                        label="Add New"
                         onClick={handleAddNew}
                       />
-                      <Button 
+                      <Button
                         className="admin-button"
-                        label="Select" 
+                        id="select-incident"
+                        label="Select"
                         onClick={toggleSelectionMode}
                       />
                     </>
                   ) : (
                     <>
-                      <Button 
+                      <Button
                         className="admin-button"
-                        label="Cancel" 
+                        id="cancel-selection"
+                        label="Cancel"
                         onClick={toggleSelectionMode}
                       />
-                      <Button 
-                        className={`admin-button ${selectedIncidents.length === 0 ? 'disabled' : ''}`}
+                      <Button
+                        className={`admin-button ${selectedIncidents.length === 0 ? "disabled" : ""}`}
                         label={`Delete (${selectedIncidents.length})`}
                         onClick={handleDelete}
                         disabled={isDeleting}
+                        id="delete-incident"
                       />
-                      <Button 
-                        className={`admin-button ${selectedIncidents.length === 0 ? 'disabled' : ''}`}
+                      <Button
+                        className={`admin-button ${selectedIncidents.length === 0 ? "disabled" : ""}`}
                         label={`Edit (${selectedIncidents.length})`}
                         onClick={handleEdit}
+                        id="edit-incident"
                       />
                     </>
                   )}
@@ -383,7 +394,7 @@ const Catalog = () => {
               Edit Incident ({currentEditIndex + 1}/{selectedIncidents.length})
             </h2>
             <div className="modal-content">
-              <EditIncidentForm 
+              <EditIncidentForm
                 incident={selectedIncidents[currentEditIndex]}
                 onClose={() => setShowEditModal(false)}
                 onNext={moveToNextEdit}

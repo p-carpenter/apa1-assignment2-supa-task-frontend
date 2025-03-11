@@ -1,2 +1,1 @@
-// Artifact component exports
-export { default as StandardArtifact } from './StandardArtifact';
+export { default as ArtifactRenderer } from './ArtifactRenderer';

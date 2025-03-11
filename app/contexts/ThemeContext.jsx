@@ -2,35 +2,59 @@
 
 import React, { createContext, useContext } from "react";
 import { useIncidents } from "./IncidentContext";
-import DOSGalleryDisplay from "../components/layouts/80sGalleryDisplay";
-import Win95GalleryDisplay from "../components/layouts/90sGalleryDisplay";
+import { getPaddingSizeForArtifact } from "@/app/utils/artifactUtils";
 
-const GalleryDisplays = {
-  1980: DOSGalleryDisplay,
-  1990: Win95GalleryDisplay,
+import MacintoshDetailsWindow from "@/app/components/ui/decades/MacintoshDetailsWindow";
+import AeroDetailsWindow from "@/app/components/ui/decades/AeroDetailsWindow";
+import MaterialDetailsWindow from "@/app/components/ui/decades/MaterialDetailsWindow";
+import GlassmorphicDetailsWindow from "@/app/components/ui/decades/GlassmorphicDetailsWindow";
+import Win98DetailsWindow from "@/app/components/ui/decades/Win98DetailsWindow";
+
+const IncidentDetailsWindows = {
+  1980: MacintoshDetailsWindow,
+  1990: Win98DetailsWindow,
+  2000: AeroDetailsWindow,
+  2010: MaterialDetailsWindow,
+  2020: GlassmorphicDetailsWindow,
 };
 
-const DecadeThemes = {
+const StandardArtifactWidth = 863;
+
+const DecadeConfigurations = {
   1980: {
-    name: "DOS",
-    background: "bg-[#0402ac]",
-    text: "text-[#00ffff]",
-    fontFamily: ["IBM VGA 9x16", "monospace"],
-    accent: "text-[#00ffff]",
+    maxHeight: 600,
+    frameType: "dos",
+    contentPadding: "medium",
   },
   1990: {
-    name: "Windows 95",
-    background: "bg-[#008080]",
-    text: "text-black",
-    fontFamily: "font-WFA95",
-    accent: "bg-win95gray",
+    maxHeight: 640,
+    frameType: "win95",
+    contentPadding: "small",
+  },
+  2000: {
+    maxHeight: 680,
+    frameType: "geocities",
+    contentPadding: "medium",
+  },
+  2010: {
+    maxHeight: 690,
+    frameType: "android",
+    contentPadding: "small",
+  },
+  2020: {
+    maxHeight: 700,
+    frameType: "zoom",
+    contentPadding: "small",
   },
 };
 
+// Theme context structure
 const ThemeContext = createContext({
   decade: 1990,
-  theme: DecadeThemes[1990],
-  GalleryDisplay: GalleryDisplays[1990],
+  getPaddingSizeForArtifact: getPaddingSizeForArtifact,
+  artifactWidth: StandardArtifactWidth,
+  decadeConfig: DecadeConfigurations[1990],
+  IncidentDetailsWindows: IncidentDetailsWindows[1990],
 });
 
 export const useTheme = () => useContext(ThemeContext);
@@ -39,15 +63,18 @@ export const ThemeProvider = ({ children }) => {
   const { currentDecade } = useIncidents();
 
   // Determine the correct decade to use
-  // First check currentDecade from context, then fallback to 1990
-  const decadeKey = Object.keys(DecadeThemes).includes(String(currentDecade))
+  const decadeKey = Object.keys(IncidentDetailsWindows).includes(
+    String(currentDecade)
+  )
     ? currentDecade
     : 1990;
 
   const value = {
     decade: decadeKey,
-    theme: DecadeThemes[decadeKey],
-    GalleryDisplay: GalleryDisplays[decadeKey],
+    IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
+    getPaddingSizeForArtifact: getPaddingSizeForArtifact,
+    artifactWidth: StandardArtifactWidth,
+    decadeConfig: DecadeConfigurations[decadeKey] || DecadeConfigurations[1990],
   };
 
   return (

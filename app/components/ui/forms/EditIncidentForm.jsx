@@ -22,7 +22,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     const [fileName, setFileName] = useState(null);
     const [fileType, setFileType] = useState(null);
 
-  // Initialize form data from incident
+  
   useEffect(() => {
     if (incident) {
       const incidentDate = incident.incident_date 
@@ -70,7 +70,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
       
       const reader = new FileReader();
       reader.onload = (event) => {
-        setFileData(event.target.result); // Base64 string
+        setFileData(event.target.result); 
       };
       reader.readAsDataURL(file);
     }
@@ -82,12 +82,12 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     setErrorMessage('');
 
     try {
-      // Validate required fields
+      
       if (!formData.name || !formData.incident_date || !formData.description) {
         throw new Error('Please fill in all required fields: Name, Date, and Description.');
       }
 
-      // Date validation
+      
       if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.incident_date)) {
         throw new Error('Please enter a valid date in YYYY-MM-DD format.');
       }
@@ -106,11 +106,11 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     const result = await handleUpdateIncident(payload);
       
       if (typeof result === 'string') {
-        // Error returned as string
+        
         throw new Error(result);
       }
       
-      // If we got here, the operation was successful
+      
       setIncidents(result);
       
       if (onNext) {

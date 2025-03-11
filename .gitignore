@@ -51,3 +51,4 @@ __tests__/MANUAL_TESTING_REPORT.md
 app/components/layouts/decade-components/NinetiesWindow.jsx
 app/components/layouts/decade-components/NinetiesWindow.styles.css
 ctrf/ctrf-report.json
+test-report.html

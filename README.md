@@ -1,6 +1,6 @@
 # Tech Incidents Archive
 
-![""](/public/readme-assets/homepage.gif)
+![](/public/readme-assets/homepage.gif)
 
 A digital museum website showcasing significant technological failures throughout computing history. This website provides an interactive, historically-themed interface for exploring and cataloging technology incidents.
 
@@ -61,7 +61,7 @@ app/
 ├── api/                    # Next.js API routes for proxy endpoints
 │   ├── delete-incident/    # Endpoint to delete incidents
 │   ├── new-incident/       # Endpoint to create new incidents
-│   ├── tech-incidents/     # Endpoint to fetch all incidents
+│   ├── fetch-incidents/     # Endpoint to fetch all incidents
 │   └── update-incident/    # Endpoint to update incidents
 ├── catalog/                # Catalog page to browse all incidents
 ├── components/             # Reusable UI components
@@ -109,7 +109,6 @@ app/
    ```
 
 3. Set up environment variables (see section below)
-
 4. Run the development server:
 
    ```bash
@@ -144,7 +143,7 @@ In the catalog page:
 3. Use the search bar to find incidents by name, description, year of incident, or category
 4. Use the sort dropdown to order incidents by year, name, or severity
 
-!["You can search for incidents by name, description, category or year."](/public/readme-assets/catalog.gif)
+![](/public/readme-assets/catalog.gif)
 
 ### Adding New Incidents
 
@@ -188,7 +187,7 @@ The application features different visual themes based on the decade of the inci
 
 The theme is automatically selected based on the incident's date, through the Theme Provider (app/contexts/ThemeContext.jsx).
 
-!["1980s and 1990s themes switching with the decade"](/public/readme-assets/gallery-themes.gif)
+![](/public/readme-assets/gallery-themes.gif)
 
 ## 🔮 Future Enhancements
 

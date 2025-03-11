@@ -6,4 +6,3 @@ export * from "./filters";
 export * from "./modals";
 export * from "./artifacts";
 export * from "./forms";
-export * from "./themes";

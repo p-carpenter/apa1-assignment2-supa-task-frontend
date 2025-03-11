@@ -10,18 +10,8 @@ export function formatDate(isoDateString, format = "medium") {
   try {
     const date = new Date(isoDateString);
 
-    // Check if valid date
     if (isNaN(date.getTime())) {
-      return isoDateString; // Return original if invalid
-    }
-
-    // Custom formats
-    if (format === "dos") {
-      // DOS style format: DD.MM.YY
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = String(date.getFullYear()).slice(-2);
-      return `${day}.${month}.${year}`;
+      return isoDateString;
     }
 
     // Predefined format options

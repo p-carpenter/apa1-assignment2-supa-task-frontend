@@ -30,7 +30,7 @@ const MultiSelectDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -50,25 +50,25 @@ const MultiSelectDropdown = ({
 
   const handleItemSelect = (item) => {
     if (item === allItemsKey) {
-      // If 'All' is selected, clear all selections and only select 'All'
+      
       onSelectionChange([allItemsKey]);
     } else {
       let updatedSelection;
       
       if (selectedItems.includes(item)) {
-        // If already selected, remove it
+        
         updatedSelection = selectedItems.filter(i => i !== item);
-        // If nothing is selected, default to "all"
+        
         if (updatedSelection.length === 0) {
           updatedSelection = [allItemsKey];
         }
-        // If "all" was selected, remove it
+        
         else if (updatedSelection.includes(allItemsKey)) {
           updatedSelection = updatedSelection.filter(i => i !== allItemsKey);
         }
       } else {
-        // If not selected, add it
-        // If "all" was selected, remove it and add the new item
+        
+        
         if (selectedItems.includes(allItemsKey)) {
           updatedSelection = [item];
         } else {

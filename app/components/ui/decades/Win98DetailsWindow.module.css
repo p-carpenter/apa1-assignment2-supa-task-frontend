@@ -1,0 +1,108 @@
+.mainWindow {
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  overflow: hidden;
+  height: auto;
+  max-height: 70vh;
+}
+
+.metadataSection {
+  margin-bottom: 16px;
+  padding: 8px;
+  background: #ece9d8;
+  border: 1px solid #a9a9a9;
+}
+
+.metadataValue {
+  font-weight: bold;
+  margin-left: 8px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #a9a9a9;
+  margin: 10px 0;
+}
+
+.contentSection {
+  margin-bottom: 12px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #a9a9a9;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #d0d0d0;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 6px;
+}
+
+/* If icons are not available, use emoji as fallback */
+.icon:not([src]),
+.icon[src=""] {
+  display: none;
+}
+
+.icon:not([src]) + .sectionTitle:before,
+.icon[src=""] + .sectionTitle:before {
+  content: "➤ ";
+  font-size: 12px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.sectionContent {
+  padding: 4px;
+  font-size: 11px;
+  line-height: 1.3;
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+.sectionContent p {
+  margin: 0 0 8px 0;
+}
+
+.sectionContent p:last-child {
+  margin-bottom: 0;
+}
+
+
+.sectionContent::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+
+.sectionContent::-webkit-scrollbar-track {
+  background: #c0c0c0;
+}
+
+.sectionContent::-webkit-scrollbar-thumb {
+  background: #ece9d8;
+  border: 1px solid #a9a9a9;
+  border-right: 1px solid #555;
+  border-bottom: 1px solid #555;
+}
+
+.sectionContent::-webkit-scrollbar-button {
+  background: #ece9d8;
+  border: 1px solid #a9a9a9;
+  border-right: 1px solid #555;
+  border-bottom: 1px solid #555;
+  display: block;
+  height: 16px;
+  width: 16px;
+}

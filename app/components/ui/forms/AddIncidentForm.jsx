@@ -1,42 +1,58 @@
-import React, { useState } from 'react';
-import { useIncidents } from '../../../contexts/IncidentContext';
-import { handleAddNewIncident } from '../../../catalog/crudHandlers';
+import React, { useState } from "react";
+import { useIncidents } from "../../../contexts/IncidentContext";
+import { handleAddNewIncident } from "../../../catalog/crudHandlers";
 
 const AddIncidentForm = ({ onClose }) => {
   const { setIncidents } = useIncidents();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [formErrors, setFormErrors] = useState({});
   const [formData, setFormData] = useState({
-    name: '',
-    incident_date: '',
-    category: 'Software',
-    severity: '3',
-    description: '',
-    cause: '',
-    consequences: '',
-    time_to_resolve: '',
-    artifactType: 'none',
-    artifactContent: ''
+    name: "",
+    incident_date: "",
+    category: "Software",
+    severity: "3",
+    description: "",
+    cause: "",
+    consequences: "",
+    time_to_resolve: "",
+    artifactType: "none",
+    artifactContent: "",
   });
-    const [fileData, setFileData] = useState(null);
-    const [fileName, setFileName] = useState(null);
-    const [fileType, setFileType] = useState(null);
+  const [fileData, setFileData] = useState(null);
+  const [fileName, setFileName] = useState(null);
+  const [fileType, setFileType] = useState(null);
 
   const categories = [
-    'Software', 
-    'Hardware', 
-    'Network', 
-    'Security', 
-    'Human Error',
-    'External Factor',
-    'Design Flaw'
+    "Software",
+    "Hardware",
+    "Network",
+    "Security",
+    "Human Error",
+    "External Factor",
+    "Design Flaw",
   ];
+
+  const validateFields = () => {
+    let errors = {};
+    if (!formData.name) errors.name = "Incident Name is required.";
+    if (!formData.incident_date) errors.incident_date = "Date is required.";
+    if (!formData.description) errors.description = "Description is required.";
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(formData.incident_date)) {
+      errors.incident_date = "Please enter a valid date in YYYY-MM-DD format.";
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -45,7 +61,7 @@ const AddIncidentForm = ({ onClose }) => {
     if (file) {
       setFileName(file.name);
       setFileType(file.type);
-      
+
       const reader = new FileReader();
       reader.onload = (event) => {
         setFileData(event.target.result); // Base64 string
@@ -57,43 +73,37 @@ const AddIncidentForm = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrorMessage('');
+    setErrorMessage("");
+
+    if (!validateFields()) {
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
-      // Validate required fields
-      if (!formData.name || !formData.incident_date || !formData.description) {
-        throw new Error('Please fill in all required fields: Name, Date, and Description.');
-      }
-
-      // Date validation
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.incident_date)) {
-        throw new Error('Please enter a valid date in YYYY-MM-DD format.');
-      }
-
       const payload = {
         addition: formData,
-      }
+      };
 
-      if (formData.artifactType === 'image' && fileData) {
+      if (formData.artifactType === "image" && fileData) {
         payload.fileData = fileData;
         payload.fileName = fileName;
         payload.fileType = fileType;
       }
 
       const result = await handleAddNewIncident(payload);
-      
-      if (typeof result === 'string') {
-        // Error returned as string
+
+      if (typeof result === "string") {
         throw new Error(result);
       }
-      
-      // If we got here, the operation was successful
+
       setIncidents(result);
       onClose();
-      
     } catch (error) {
-      console.error('Error adding incident:', error);
-      setErrorMessage(error.message || 'Failed to add incident. Please try again.');
+      console.error("Error adding incident:", error);
+      setErrorMessage(
+        error.message || "Failed to add incident. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -101,10 +111,13 @@ const AddIncidentForm = ({ onClose }) => {
 
   return (
     <form className="modal-form" onSubmit={handleSubmit}>
-      {errorMessage && (
-        <div className="form-error-message">{errorMessage}</div>
-      )}
-      
+      {errorMessage && <div className="form-error-message">{errorMessage}</div>}
+      {Object.values(formErrors).map((error, index) => (
+        <div key={index} className="form-error-message">
+          {error}
+        </div>
+      ))}
+
       <div className="form-group">
         <label className="form-label" htmlFor="name">
           Incident Name *
@@ -119,8 +132,9 @@ const AddIncidentForm = ({ onClose }) => {
           required
           placeholder="e.g., Morris Worm, Y2K Bug"
         />
+        {formErrors.name && <div className="form-error">{formErrors.name}</div>}
       </div>
-      
+
       <div className="form-row">
         <div className="form-group">
           <label className="form-label" htmlFor="incident_date">
@@ -137,111 +151,11 @@ const AddIncidentForm = ({ onClose }) => {
             placeholder="YYYY-MM-DD"
           />
         </div>
-        
-        <div className="form-group">
-          <label className="form-label" htmlFor="category">
-            Category
-          </label>
-          <select
-            id="category"
-            name="category"
-            className="form-select"
-            value={formData.category}
-            onChange={handleChange}
-          >
-            {categories.map(category => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
+        {formErrors.incident_date && (
+          <div className="form-error">{formErrors.incident_date}</div>
+        )}
       </div>
-      
-      <div className="form-group">
-        <label className="form-label">Severity Level</label>
-        <div className="form-radio-group">
-          {[1, 2, 3, 4, 5].map(level => (
-            <div key={level} className="form-radio-item">
-              <input
-                type="radio"
-                id={`severity-${level}`}
-                name="severity"
-                value={level.toString()}
-                checked={formData.severity === level.toString()}
-                onChange={handleChange}
-              />
-              <label className="form-radio-label" htmlFor={`severity-${level}`}>
-                {level}
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-      
-      <div className="form-group">
-        <label className="form-label" htmlFor="description">
-          Description *
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          className="form-textarea"
-          style={{ height: "80px" }}
-          value={formData.description}
-          onChange={handleChange}
-          required
-          placeholder="Provide a brief description of the incident..."
-        />
-      </div>
-      
-      <div className="form-group">
-        <label className="form-label" htmlFor="consequences">
-          Consequences
-        </label>
-        <input
-          id="consequences"
-          name="consequences"
-          type="text"
-          className="form-input"
-          value={formData.consequences}
-          onChange={handleChange}
-          placeholder="What were the consequences?"
-        />
-      </div>
-      
-      <div className="form-row">
-        <div className="form-group">
-          <label className="form-label" htmlFor="cause">
-            Cause
-          </label>
-          <input
-            id="cause"
-            name="cause"
-            type="text"
-            className="form-input"
-            value={formData.cause}
-            onChange={handleChange}
-            placeholder="What caused this incident?"
-          />
-        </div>
-        
-        <div className="form-group">
-          <label className="form-label" htmlFor="time_to_resolve">
-            Time to Resolve
-          </label>
-          <input
-            id="time_to_resolve"
-            name="time_to_resolve"
-            type="text"
-            className="form-input"
-            value={formData.time_to_resolve}
-            onChange={handleChange}
-            placeholder="e.g., 2 days, 3 weeks"
-          />
-        </div>
-      </div>
-      
+
       <div className="form-group">
         <label className="form-label" htmlFor="artifactType">
           Artifact Type
@@ -257,41 +171,9 @@ const AddIncidentForm = ({ onClose }) => {
           <option value="code">Code (HTML)</option>
           <option value="image">Image</option>
         </select>
+        <div className="form-helper-text">Max dimensions: 1024x768</div>
       </div>
-      
-      {formData.artifactType === 'code' && (
-        <div className="form-group">
-          <label className="form-label" htmlFor="artifactContent">
-            HTML Code
-          </label>
-          <textarea
-            id="artifactContent"
-            name="artifactContent"
-            className="form-textarea"
-            style={{ height: "100px" }}
-            value={formData.artifactContent}
-            onChange={handleChange}
-            placeholder="Enter HTML code for the artifact..."
-          />
-        </div>
-      )}
-      
-      {formData.artifactType === 'image' && (
-        <div className="form-group">
-          <label className="form-label" htmlFor="file">
-            Upload Image
-          </label>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            className="form-input"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-        </div>
-      )}
-      
+
       <div className="form-buttons">
         <button
           type="button"
@@ -306,7 +188,7 @@ const AddIncidentForm = ({ onClose }) => {
           className="form-button-submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Adding...' : 'Add Incident'}
+          {isSubmitting ? "Adding..." : "Add Incident"}
         </button>
       </div>
     </form>
