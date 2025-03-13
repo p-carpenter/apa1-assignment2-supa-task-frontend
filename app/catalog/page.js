@@ -19,13 +19,14 @@ const Catalog = () => {
     setIncidents,
     setDisplayedIncident,
     setCurrentIncidentIndex,
+    isLoading: incidentsLoading,
   } = useIncidents();
+  
   const [selectedYears, setSelectedYears] = useState(["all"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [yearsAvailable, setYearsAvailable] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState(["all"]);
   const [sortOrder, setSortOrder] = useState("year-desc");
-  const [isLoading, setIsLoading] = useState(true);
   const [realTimeSearch, setRealTimeSearch] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -50,7 +51,6 @@ const Catalog = () => {
 
   useEffect(() => {
     if (!incidents || !incidents.length) return;
-    setIsLoading(false);
 
     const years = incidents
       .map((incident) => getIncidentYear(incident))
@@ -259,6 +259,8 @@ const Catalog = () => {
 
   const { isAuthenticated } = useAuth();
 
+  const hasFilteredIncidents = filteredIncidents && filteredIncidents.length > 0;
+
   return (
     <>
       <div className="circuit-background"></div>
@@ -279,7 +281,7 @@ const Catalog = () => {
               showGlitch={true}
               showLoadingBar={true}
             >
-              Found incidents.
+              {incidentsLoading ? "Retrieving incidents..." : "Found incidents."}
             </CommandOutput>
           </ConsoleSection>
 
@@ -299,8 +301,14 @@ const Catalog = () => {
           <ConsoleSection>
             <div className="command-output-with-controls">
               <CommandOutput>
-                Displaying {sortedIncidents.length} incidents
-                {selectionMode && ` (${selectedIncidents.length} selected)`}
+                {incidentsLoading ? (
+                  "Retrieving incidents..."
+                ) : (
+                  <>
+                    Displaying {sortedIncidents.length} incidents
+                    {selectionMode && ` (${selectedIncidents.length} selected)`}
+                  </>
+                )}
               </CommandOutput>
 
               {isAuthenticated && (
@@ -312,12 +320,14 @@ const Catalog = () => {
                         id="add-incident"
                         label="Add New"
                         onClick={handleAddNew}
+                        disabled={incidentsLoading}
                       />
                       <Button
                         className="admin-button"
                         id="select-incident"
                         label="Select"
                         onClick={toggleSelectionMode}
+                        disabled={incidentsLoading || !hasFilteredIncidents}
                       />
                     </>
                   ) : (
@@ -332,13 +342,14 @@ const Catalog = () => {
                         className={`admin-button ${selectedIncidents.length === 0 ? "disabled" : ""}`}
                         label={`Delete (${selectedIncidents.length})`}
                         onClick={handleDelete}
-                        disabled={isDeleting}
+                        disabled={isDeleting || selectedIncidents.length === 0}
                         id="delete-incident"
                       />
                       <Button
                         className={`admin-button ${selectedIncidents.length === 0 ? "disabled" : ""}`}
                         label={`Edit (${selectedIncidents.length})`}
                         onClick={handleEdit}
+                        disabled={selectedIncidents.length === 0}
                         id="edit-incident"
                       />
                     </>
@@ -349,8 +360,8 @@ const Catalog = () => {
 
             <IncidentGrid
               incidents={sortedIncidents}
-              isLoading={isLoading || isDeleting}
-              emptyMessage="No matching incidents found."
+              isLoading={incidentsLoading || isDeleting}
+              emptyMessage={incidentsLoading ? "Loading incidents..." : "No matching incidents found."}
               onIncidentSelect={handleIncidentSelect}
               getIncidentYear={getIncidentYear}
               selectionMode={selectionMode}

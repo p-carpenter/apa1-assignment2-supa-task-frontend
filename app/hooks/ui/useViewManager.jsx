@@ -26,7 +26,7 @@ const useViewManager = (filteredIncidents) => {
   // Filter decades based on filteredIncidents
   const filteredDecades = useMemo(() => {
     if (!filteredIncidents?.length) return decades;
-    
+
     return decades.filter((decade) =>
       incidentsByDecade[decade]?.some((incident) =>
         filteredIncidents.includes(incident)
@@ -38,10 +38,12 @@ const useViewManager = (filteredIncidents) => {
   const visibleIncidents = useMemo(() => {
     if (!currentYear) return [];
     if (!filteredIncidents?.length) return [];
-    
-    return incidentsByDecade[currentYear]?.filter((incident) =>
-      filteredIncidents.includes(incident)
-    ) || [];
+
+    return (
+      incidentsByDecade[currentYear]?.filter((incident) =>
+        filteredIncidents.includes(incident)
+      ) || []
+    );
   }, [currentYear, incidentsByDecade, filteredIncidents]);
 
   // Determine current view based on currentYear
@@ -67,13 +69,6 @@ const useViewManager = (filteredIncidents) => {
     handleFolderDoubleClick,
     handleIncidentClick,
     navigateToRoot,
-    // Path information
-    currentPath: `C:\\Technology Incidents${
-      currentDecade ? `\\${currentDecade}s` : ""
-    }\\`,
-    windowTitle: `Technology Incidents${
-      currentDecade ? ` - ${currentDecade}s` : ""
-    }`,
   };
 };
 

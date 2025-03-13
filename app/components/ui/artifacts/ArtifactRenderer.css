@@ -56,7 +56,6 @@
   width: auto;
   height: 100%;
   overflow: visible;
-  border: 1px solid #ddd;
   position: relative;
   padding: 0;
   margin: 0;
@@ -75,8 +74,12 @@
   background: transparent;
   z-index: 2;
   cursor: pointer;
-  width: 100%;
-  height: 100%;
+  width: auto;
+  height: auto;
+}
+
+.artifact-code-overlay:hover {
+  box-shadow: 0px 0px 10px rgb(255, 255, 255);
 }
 
 .artifact-code {
@@ -88,50 +91,6 @@
   margin: 0;
   padding: 0;
   display: block;
-}
-
-/* Dimensions display */
-.artifact-dimensions-display {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 2px;
-  z-index: 5;
-  pointer-events: none;
-  font-family: monospace;
-}
-
-/* Clickable styling */
-.artifact-clickable {
-  cursor: pointer;
-  position: relative;
-}
-
-/* Add a subtle glow effect on hover to indicate clickability */
-.artifact-clickable:hover {
-  box-shadow:
-    0 0 5px rgba(255, 255, 255, 0.5),
-    0 0 10px rgba(0, 120, 255, 0.5);
-}
-
-/* Add "Click to expand" text on hover */
-.artifact-clickable:hover::after {
-  content: "Click to expand";
-  position: absolute;
-  bottom: 30px; /* Position above dimensions display */
-  right: 10px;
-  background-color: rgba(0, 0, 0, 0.6);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  opacity: 0.8;
-  pointer-events: none; /* Ensure it doesn't interfere with clicks */
-  z-index: 10;
 }
 
 /* Empty state styling */

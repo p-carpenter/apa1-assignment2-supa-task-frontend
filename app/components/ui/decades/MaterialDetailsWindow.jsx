@@ -1,121 +1,146 @@
 import React from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./MaterialDetailsWindow.module.css";
+import ExpandableSection from "../shared/ExpandableSection";
 
+/**
+ * Material Design styled window (2010s)
+ *
+ * Redesigned with a compact layout without cards
+ */
 const MaterialDetailsWindow = ({ incident }) => {
   if (!incident) return null;
 
   const getSeverityColor = (severity) => {
-    if (!severity) return "#757575";
+    if (!severity) return "#5a6a8a"; // Default slate
 
     const lowerSeverity = severity.toLowerCase();
-    if (lowerSeverity.includes("critical")) return "#d32f2f"; // Red
-    if (lowerSeverity.includes("high")) return "#f57c00"; // Orange
-    if (lowerSeverity.includes("medium")) return "#fbc02d"; // Amber
-    if (lowerSeverity.includes("low")) return "#388e3c"; // Green
+    if (lowerSeverity.includes("critical")) return "#d84a4a"; // Red
+    if (lowerSeverity.includes("high")) return "#e67e22"; // Orange
+    if (lowerSeverity.includes("medium")) return "#f3c32c"; // Amber
+    if (lowerSeverity.includes("low")) return "#29a35a"; // Green
 
-    return "#1976d2"; // Default blue
+    return "#3498db"; // Default blue
   };
 
   const severityColor = getSeverityColor(incident.severity);
 
   return (
-    <div className={styles.material_container}>
+    <div className={styles.container} data-testid="2010s-window">
+      {/* Header with incident name and metadata */}
       <div
-        className={styles.app_bar}
+        className={styles.header_area}
         style={{ backgroundColor: severityColor }}
       >
-        <div className={styles.app_bar_content}>
-          <div className={styles.app_title}>
+        <div className={styles.header_top}>
+          <h2 className={styles.title}>
             {incident.name || "Unknown Incident"}
+          </h2>
+        </div>
+
+        <div className={styles.tags_container}>
+          <div className={styles.tag}>{formatDate(incident.incident_date)}</div>
+          <div className={styles.tag} data-testid="category-tag">
+            {incident.category || "Unknown"}
           </div>
-          <div className={styles.app_actions}>
-            <div className={styles.action_button}>
-              <span className={styles.material_icon}>search</span>
-            </div>
-            <div className={styles.action_button}>
-              <span className={styles.material_icon}>more_vert</span>
-            </div>
+          <div className={styles.tag} data-testid="severity-tag">
+            {incident.severity || "Unknown"}
           </div>
         </div>
       </div>
 
-      <div className={styles.metadata_bar} data-testid="metadata_bar">
-        <div className={styles.chips_container}>
-          <div className={styles.chip} data-testid="category-chip">
-            <span className={styles.material_icon_small}>label</span>
-            <span>{incident.category || "Unknown"}</span>
-          </div>
-          <div
-            className={styles.chip} data-testid="severity-chip"
-            style={{
-              backgroundColor: `${severityColor}20`,
-              color: severityColor,
-            }}
+      {/* Content area */}
+      <div className={styles.content_area_compact}>
+        <div className={styles.section_row}>
+          <ExpandableSection
+            title={
+              <div className={styles.section_header}>
+                <span
+                  className={styles.icon_badge}
+                  style={{ backgroundColor: severityColor }}
+                >
+                  !
+                </span>
+                <span className={styles.section_title}>What Happened</span>
+              </div>
+            }
+            expandedByDefault={true}
+            maxLines={3}
+            contentClassName={styles.section_content}
+            minLinesForExpansion={3}
           >
-            <span className={styles.material_icon_small}>warning</span>
-            <span>{incident.severity || "Unknown"}</span>
-          </div>
-          <div className={styles.chip}>
-            <span className={styles.material_icon_small}>event</span>
-            <span>{formatDate(incident.incident_date)}</span>
-          </div>
-        </div>
-      </div>
-
-
-      <div className={styles.content_area}>
-        <div className={styles.material_card} data-testid="material_card">
-          <div className={styles.card_header}>
-            <span className={styles.material_icon_medium}>error_outline</span>
-            <h3 className={styles.card_title}>What Happened</h3>
-          </div>
-          <div className={styles.card_content}>
             <p>{incident.description}</p>
-          </div>
+          </ExpandableSection>
         </div>
 
         {incident.cause && (
-          <div className={styles.material_card}>
-            <div className={styles.card_header}>
-              <span className={styles.material_icon_medium}>help_outline</span>
-              <h3 className={styles.card_title}>Why It Happened</h3>
-            </div>
-            <div className={styles.card_content}>
+          <div className={styles.section_row}>
+            <ExpandableSection
+              title={
+                <div className={styles.section_header}>
+                  <span
+                    className={styles.icon_badge}
+                    style={{ backgroundColor: "#3498db" }}
+                  >
+                    ?
+                  </span>
+                  <span className={styles.section_title}>Why It Happened</span>
+                </div>
+              }
+              maxLines={2}
+              contentClassName={styles.section_content}
+              minLinesForExpansion={3}
+            >
               <p>{incident.cause}</p>
-            </div>
+            </ExpandableSection>
           </div>
         )}
 
         {incident.consequences && (
-          <div className={styles.material_card}>
-            <div className={styles.card_header}>
-              <span className={styles.material_icon_medium}>
-                report_problem
-              </span>
-              <h3 className={styles.card_title}>Consequences</h3>
-            </div>
-            <div className={styles.card_content}>
+          <div className={styles.section_row}>
+            <ExpandableSection
+              title={
+                <div className={styles.section_header}>
+                  <span
+                    className={styles.icon_badge}
+                    style={{ backgroundColor: "#e67e22" }}
+                  >
+                    ⚠
+                  </span>
+                  <span className={styles.section_title}>Consequences</span>
+                </div>
+              }
+              maxLines={2}
+              contentClassName={styles.section_content}
+              minLinesForExpansion={3}
+            >
               <p>{incident.consequences}</p>
-            </div>
+            </ExpandableSection>
           </div>
         )}
 
         {incident.time_to_resolve && (
-          <div className={styles.material_card}>
-            <div className={styles.card_header}>
-              <span className={styles.material_icon_medium}>schedule</span>
-              <h3 className={styles.card_title}>Resolution Time</h3>
-            </div>
-            <div className={styles.card_content}>
+          <div className={styles.section_row}>
+            <ExpandableSection
+              title={
+                <div className={styles.section_header}>
+                  <span
+                    className={styles.icon_badge}
+                    style={{ backgroundColor: "#29a35a" }}
+                  >
+                    ⏱
+                  </span>
+                  <span className={styles.section_title}>Resolution Time</span>
+                </div>
+              }
+              maxLines={1}
+              contentClassName={styles.section_content}
+              minLinesForExpansion={3}
+            >
               <p>{incident.time_to_resolve}</p>
-            </div>
+            </ExpandableSection>
           </div>
         )}
-      </div>
-
-      <div className={styles.fab} style={{ backgroundColor: severityColor }}>
-        <span className={styles.material_icon}>share</span>
       </div>
     </div>
   );

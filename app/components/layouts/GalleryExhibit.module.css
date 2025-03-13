@@ -9,43 +9,6 @@
   box-shadow: inset 0px 0px 100px rgba(0, 0, 0, 0.3);
 }
 
-/* Pixel Art Columns */
-.pixel_art_left {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-  height: 100%;
-  padding: 20px 10px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  width: 80px;
-}
-
-.pixel_art_right {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-  height: 100%;
-  padding: 20px 10px;
-  position: absolute;
-  top: 0;
-  right: 0;
-  z-index: 10;
-  width: 80px;
-}
-
-.pixel_art_item {
-  height: 50px;
-  width: auto;
-  max-width: 100%;
-  image-rendering: pixelated;
-  transition: transform 0.2s ease;
-}
-
 /* Content Area */
 .window {
   flex: 1;
@@ -72,11 +35,11 @@
 
 .main_content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   width: 100%;
   height: 100%;
-  justify-content: flex-end;
-  align-items: center;
+  justify-content: center;
+  align-items: flex-end;
   position: relative;
   z-index: 3; /* Above scanlines */
 }
@@ -93,7 +56,7 @@
 
 /* Artifact Section */
 .artifact_section {
-  width: 100%;
+  width: auto;
   text-align: center;
   position: relative;
   display: flex;
@@ -109,19 +72,6 @@
 
 .artifact_small {
   margin-bottom: 120px; /* Move the entire section up more for tiny artifacts */
-}
-
-/* Details Section */
-.details_section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  height: 60vh;
-  min-width: 40vh;
-  align-self: center;
-  justify-self: start;
-  padding-left: 20px;
-  overflow: hidden;
 }
 
 .artifact_container {
@@ -168,24 +118,21 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  height: auto;
-  min-width: 40vh;
-  align-self: flex-start;
-  overflow: hidden;
+  padding-left: 20px;
+  overflow: visible;
 }
 
 /* Base details window shared by all decades */
 .details_window {
   border-radius: 5px;
-  padding: 16px 18px 8px 22px;
-  background: hsla(0, 0%, 100%, 0.33);
-  border: 1px solid rgba(68, 19, 4, 0.5);
   width: max(380px, 27vw);
   max-width: 380px;
-  align-self: flex-start;
+  align-items: center;
   margin-bottom: 21svh;
-  position: relative;
-  overflow: hidden;
+  overflow: visible;
+  background: transparent;
+  border: none;
+  filter: drop-shadow(0px 10px 12px rgba(0, 0, 0, 0.4));
 }
 
 /* Add gap classes to control spacing */
@@ -195,50 +142,6 @@
 
 .gap_large {
   column-gap: 40px;
-}
-
-/* Info Table and other content */
-.info_table {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.info_row {
-  display: flex;
-}
-
-.info_label {
-  font-weight: bold;
-  width: 100px;
-  color: #000080;
-}
-
-.info_divider {
-  height: 1px;
-  background-color: #ccc;
-  margin: 12px 0;
-}
-
-.info_section {
-  margin-top: 15px;
-}
-
-.section_label {
-  font-weight: bold;
-  margin-bottom: 8px;
-  color: #000080;
-  font-size: 14px;
-}
-
-.section_text {
-  background-color: #fff;
-  border: 1px inset #c0c0c0;
-  padding: 10px;
-  max-height: none;
-  overflow-y: auto;
-  line-height: 1.5;
-  font-size: 14px;
 }
 
 /* Responsive adjustments */
@@ -355,4 +258,104 @@
   margin: 0;
   line-height: 1.4;
   font-size: 14px;
+}
+
+/* Skeleton Styles */
+.skeleton_artifact {
+  width: 400px;
+  height: 300px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton_details {
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid #c0c0c0;
+  border-radius: 5px;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  height: 350px;
+}
+
+.skeleton_header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.skeleton_badge {
+  width: 60px;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+
+.skeleton_title {
+  width: 90%;
+  height: 28px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.skeleton_content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton_line {
+  width: 100%;
+  height: 16px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+}
+
+.skeleton_line_short {
+  width: 70%;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.skeleton_pulse {
+  animation: pulse 1.5s infinite ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton_pulse::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
 }

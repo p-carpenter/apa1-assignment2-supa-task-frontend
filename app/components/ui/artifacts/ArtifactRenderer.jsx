@@ -1,20 +1,17 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import "./ArtifactRenderer.css";
 
 const ArtifactRenderer = ({
   artifact,
-  maxWidth = 863, 
-  maxHeight = 2000, 
-  minHeight = 0, 
+  maxWidth = 863,
+  maxHeight = 2000,
+  minHeight = 0,
   title,
   className = "",
   containerId = "artifact-container",
-  onExpand = null, 
-  paddingSize = "auto", 
-  showDimensions = true, 
+  onExpand = null,
+  paddingSize = "auto",
 }) => {
-  
   const [dimensions, setDimensions] = useState({
     width: maxWidth,
     height: Math.min(
@@ -36,16 +33,13 @@ const ArtifactRenderer = ({
     }
   };
 
-  
   useEffect(() => {
     const adjustIfScrollbarsAppear = () => {
       if (iframeRef.current) {
         try {
-          
           const iframe = iframeRef.current;
           iframe.setAttribute("scrolling", "no");
 
-          
           iframe.onload = () => {
             try {
               const iframeDoc =
@@ -67,13 +61,6 @@ const ArtifactRenderer = ({
                 iframeBody.scrollWidth,
                 iframeBody.offsetWidth,
                 iframeBody.clientWidth
-              );
-
-              console.log(
-                "Content dimensions:",
-                contentWidth,
-                "x",
-                contentHeight
               );
 
               if (contentHeight > 0 && contentWidth > 0) {
@@ -271,14 +258,13 @@ const ArtifactRenderer = ({
     }
   };
 
-  
   const containerClasses = [
     "artifact-renderer",
     className,
     `artifact-type-${artifact?.artifactType || "none"}`,
     getPaddingClass(),
     expanded ? "artifact-expanded" : "",
-    "artifact-clickable", 
+
   ]
     .filter(Boolean)
     .join(" ");
@@ -294,12 +280,6 @@ const ArtifactRenderer = ({
       <div ref={contentRef} className="artifact-content">
         {renderArtifactContent()}
       </div>
-
-      {showDimensions && (
-        <div className="artifact-dimensions-display">
-          {Math.round(dimensions.width)} x {Math.round(dimensions.height)}
-        </div>
-      )}
     </div>
   );
 };
