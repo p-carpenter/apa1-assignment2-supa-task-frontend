@@ -13,7 +13,7 @@ const createJestConfig = nextJest({
 
 const config = {
   // Automatically clear mock calls and instances between every test
-  clearMocks: false,
+  clearMocks: true,
 
   // The directory where Jest should output its coverage files
   coverageDirectory: "coverage",
@@ -54,6 +54,10 @@ const config = {
       "./node_modules/jest-html-reporter",
       {
         pageTitle: "Test Report",
+        includeFailureMsg: true,
+        includeStackTrace: true,
+        includeConsoleLog: true,
+        includeSuiteFailure: true,
       },
     ],
   ],

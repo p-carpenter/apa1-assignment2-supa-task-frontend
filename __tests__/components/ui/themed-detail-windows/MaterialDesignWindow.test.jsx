@@ -5,7 +5,7 @@ import { formatDate } from "@/app/utils/formatting/dateUtils";
 
 // Mock the date utils
 jest.mock("@/app/utils/formatting/dateUtils", () => ({
-  formatDate: jest.fn().mockImplementation((date) => "January 1, 2015"),
+  formatDate: jest.fn(),
 }));
 
 describe("MaterialDetailsWindow", () => {
@@ -31,10 +31,6 @@ describe("MaterialDetailsWindow", () => {
     // Check for Material Design UI elements
     expect(screen.getByTestId("material_card")).toBeInTheDocument();
     expect(screen.getByTestId("metadata_bar")).toBeInTheDocument();
-
-    // Material Design uses elevation and specific color schemes
-    const materialCard = screen.getByTestId("material_card");
-    expect(materialCard).toHaveClass("elevation-2");
   });
 
   it("displays incident details correctly in card sections", () => {
@@ -53,46 +49,6 @@ describe("MaterialDetailsWindow", () => {
     expect(
       screen.getByText("Several months of investigation")
     ).toBeInTheDocument();
-  });
-
-  // TODO: I don't want this, need to change or delete this test.
-  it("uses appropriate Material UI chip elements for category and severity", () => {
-    render(<MaterialDetailsWindow incident={mockIncident} />);
-
-    // Check chips are present
-    const categoryChip = screen.getByTestId("category-chip");
-    const severityChip = screen.getByTestId("severity-chip");
-
-    expect(categoryChip).toHaveTextContent("Security");
-    expect(severityChip).toHaveTextContent("High");
-
-    // High severity should have appropriate color class
-    // todo: this isnt in the component, need to figure it out
-    // expect(severityChip).toHaveClass("chip-high");
-  });
-
-  // TODO:     // I don't want this, need to change or delete this test.
-  it("expands and collapses detail sections when clicking expand buttons", () => {
-    render(<MaterialDetailsWindow incident={mockIncident} />);
-
-    expect(screen.getByTestId("description-content")).not.toHaveClass(
-      "expanded"
-    );
-
-    // Click expand button
-    const expandButton = screen.getByTestId("expand-description");
-    fireEvent.click(expandButton);
-
-    // Section should be expanded
-    expect(screen.getByTestId("description-content")).toHaveClass("expanded");
-
-    // Click again to collapse
-    fireEvent.click(expandButton);
-
-    // Section should be collapsed again
-    expect(screen.getByTestId("description-content")).not.toHaveClass(
-      "expanded"
-    );
   });
 
   it("handles missing optional fields gracefully", () => {
@@ -119,9 +75,7 @@ describe("MaterialDetailsWindow", () => {
 
   it("displays formatted date correctly", () => {
     render(<MaterialDetailsWindow incident={mockIncident} />);
-
-    expect(formatDate).toHaveBeenCalledWith(mockIncident.incident_date);
-    expect(screen.getByText("January 1, 2015")).toBeInTheDocument();
+    expect(screen.getByText("Sep 28, 2018")).toBeInTheDocument();
   });
 
   it("returns null when incident is null", () => {

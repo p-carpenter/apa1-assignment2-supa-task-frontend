@@ -35,8 +35,8 @@ describe("Win98DetailsWindow", () => {
     render(<Win98DetailsWindow incident={mockIncident} />);
 
     // Check for Windows 95/98 UI elements
-    expect(screen.getByTestId("win98-window")).toBeInTheDocument();
-    
+    expect(screen.getByTestId("1990s-window")).toBeInTheDocument();
+
     // Title bar now has empty data-testid
     const titleBar = screen.getByText("Y2K Bug").closest(".title-bar");
     expect(titleBar).toBeInTheDocument();
@@ -58,18 +58,24 @@ describe("Win98DetailsWindow", () => {
       ...mockIncident,
       cause: "Programming oversight with two-digit years",
       consequences: "Worldwide panic and massive remediation efforts",
-      time_to_resolve: "Several years of preparation"
+      time_to_resolve: "Several years of preparation",
     };
 
     render(<Win98DetailsWindow incident={incidentWithAllFields} />);
 
     // Check that all sections are rendered
     expect(screen.getByText("Why It Happened")).toBeInTheDocument();
-    expect(screen.getByText("Programming oversight with two-digit years")).toBeInTheDocument();
+    expect(
+      screen.getByText("Programming oversight with two-digit years")
+    ).toBeInTheDocument();
     expect(screen.getByText("Consequences")).toBeInTheDocument();
-    expect(screen.getByText("Worldwide panic and massive remediation efforts")).toBeInTheDocument();
+    expect(
+      screen.getByText("Worldwide panic and massive remediation efforts")
+    ).toBeInTheDocument();
     expect(screen.getByText("Resolution Time")).toBeInTheDocument();
-    expect(screen.getByText("Several years of preparation")).toBeInTheDocument();
+    expect(
+      screen.getByText("Several years of preparation")
+    ).toBeInTheDocument();
   });
 
   it("returns null when incident is null", () => {
@@ -79,8 +85,10 @@ describe("Win98DetailsWindow", () => {
 
   it("renders status bar with archive name and date", () => {
     render(<Win98DetailsWindow incident={mockIncident} />);
-    
-    const statusBar = screen.getByText("Tech Incident Archive").closest(".status-bar");
+
+    const statusBar = screen
+      .getByText("Tech Incident Archive")
+      .closest(".status-bar");
     expect(statusBar).toBeInTheDocument();
     expect(screen.getAllByText("Dec 31, 1999")[1]).toBeInTheDocument(); // Second instance in status bar
   });

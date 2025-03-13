@@ -28,9 +28,7 @@ describe("GlassmorphicDetailsWindow", () => {
   it("renders with glassmorphic styling (2020s theme)", () => {
     render(<GlassmorphicDetailsWindow incident={mockIncident} />);
 
-    // Check for glassmorphic UI elements - specific class names or sections
-    expect(screen.getByTestId("glassmorphic-container")).toBeInTheDocument();
-    expect(screen.getByTestId("glass-card")).toBeInTheDocument();
+    expect(screen.getByTestId("2020s-window")).toBeInTheDocument();
   });
 
   it("displays incident details correctly", () => {

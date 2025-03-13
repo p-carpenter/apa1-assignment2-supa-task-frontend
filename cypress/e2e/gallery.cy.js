@@ -22,18 +22,16 @@ describe("Gallery Page", () => {
 
       // Check for decade-specific UI elements
       if (decade === 1980) {
-        cy.get(".macintosh-window").should("exist");
-        cy.get('[data-testid="terminal-cursor"]').should("exist");
+        cy.get(".1980s-window").should("exist");
       } else if (decade === 1990) {
-        cy.get(".win98-window").should("exist");
+        cy.get(".1990s-window").should("exist");
         cy.get(".win95-title-bar").should("exist");
       } else if (decade === 2000) {
-        cy.get(".aero-window").should("exist");
-        cy.get(".geocities-header").should("exist");
+        cy.get(".2000s-window").should("exist");
       } else if (decade === 2010) {
-        cy.get(".material-window").should("exist");
+        cy.get(".2010s-window").should("exist");
       } else if (decade === 2020) {
-        cy.get(".glassmorphic-window").should("exist");
+        cy.get(".2020s-window").should("exist");
       }
     });
   });

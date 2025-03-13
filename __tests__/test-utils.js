@@ -29,9 +29,9 @@ export const mockIncidents = [
 // Set up custom render function with providers
 const customRender = (ui, options = {}) => {
   const Wrapper = ({ children }) => (
-    <ThemeProvider>
-      <IncidentProvider>{children}</IncidentProvider>
-    </ThemeProvider>
+    <IncidentProvider>
+      <ThemeProvider>{children}</ThemeProvider>
+    </IncidentProvider>
   );
 
   return render(ui, { wrapper: Wrapper, ...options });
