@@ -6,6 +6,7 @@ import {
   useState,
   useMemo,
   useCallback,
+  useEffect,
 } from "react";
 
 const IncidentContext = createContext(null);
@@ -15,6 +16,7 @@ export const IncidentProvider = ({
   incidents: initialIncidents = [],
 }) => {
   const [incidents, setIncidents] = useState(initialIncidents);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading state true
   const [selectedIncidents, setSelectedIncidents] = useState([]);
   const [displayedIncident, setDisplayedIncident] = useState(null);
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
@@ -22,6 +24,44 @@ export const IncidentProvider = ({
   const [currentYear, setCurrentYear] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [hasInitialFetch, setHasInitialFetch] = useState(false);
+
+  // Auto-fetch incidents on initial mount
+  useEffect(() => {
+    if (!hasInitialFetch) {
+      fetchIncidents();
+    }
+  }, [hasInitialFetch]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchIncidents = useCallback(async () => {
+    // If we're already loading or have loaded incidents, don't fetch again
+    if (hasInitialFetch && incidents.length > 0) {
+      return incidents;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      console.log("Fetching incidents from API...");
+      const response = await fetch("/api/fetch-incidents");
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Fetched ${data.length} incidents successfully`);
+      
+      setIncidents(data);
+      setHasInitialFetch(true);
+      return data;
+    } catch (error) {
+      console.error("Failed to fetch incidents:", error);
+      return [];
+    } finally {
+      setIsLoading(false);
+    }
+  }, [incidents.length, hasInitialFetch]);
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;
@@ -29,7 +69,6 @@ export const IncidentProvider = ({
   };
 
   const incidentsByDecade = useMemo(() => {
-
     if (!Array.isArray(incidents)) {
       console.warn("incidents is not an array:", incidents);
       return {};
@@ -52,7 +91,6 @@ export const IncidentProvider = ({
 
 
   const filteredIncidents = useMemo(() => {
-
     if (!Array.isArray(incidents) || !incidents.length) return [];
 
     let result = [...incidents];
@@ -142,6 +180,10 @@ export const IncidentProvider = ({
     incidents,
     setIncidents,
     incidentsByDecade,
+    fetchIncidents,
+    isLoading,
+    setIsLoading,
+    hasInitialFetch,
     // Selection state
     selectedIncidents,
     setSelectedIncidents,
