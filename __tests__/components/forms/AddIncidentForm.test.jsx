@@ -52,8 +52,10 @@ describe("AddIncidentForm", () => {
 
     // Check optional fields are present
     expect(screen.getByLabelText(/category/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/severity level/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/consequences/i)).toBeInTheDocument();
+    expect(screen.getByRole("select"))
+      .queryByText("Severity")
+      .toBeInTheDocument();
+    expect(screen.getByLabelText(/impact/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/cause/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/time to resolve/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/artifact type/i)).toBeInTheDocument();
@@ -79,10 +81,8 @@ describe("AddIncidentForm", () => {
 
     // Dropdown defaults
     expect(screen.getByLabelText(/category/i)).toHaveValue("Software");
+    expect(screen.getByRole("select")).toHaveValue("Moderate");
     expect(screen.getByLabelText(/artifact type/i)).toHaveValue("none");
-
-    // Radio button default (severity 3)
-    expect(screen.getByLabelText("3")).toBeChecked();
   });
 
   it("conditionally shows different fields based on artifact type selection", async () => {
@@ -115,6 +115,40 @@ describe("AddIncidentForm", () => {
     expect(screen.getByLabelText(/upload image/i)).toBeInTheDocument();
   });
 
+  it("shows severity info when ? button is clicked", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <IncidentProvider value={mockIncidentContext}>
+        <AddIncidentForm onClose={mockOnClose} />
+      </IncidentProvider>
+    );
+
+    // Initially, severity info should not be visible
+    expect(
+      screen.queryByText(/minor\/localized impact/i)
+    ).not.toBeInTheDocument();
+
+    // Click the ? button near severity
+    const infoButton = screen.getByTitle("View severity level descriptions");
+    await user.click(infoButton);
+
+    // Now severity info should be visible
+    expect(screen.getByText(/minor\/localized impact/i)).toBeInTheDocument();
+    expect(screen.getByText(/catastrophic failure/i)).toBeInTheDocument();
+
+    // Click the close button
+    const closeButton = screen.getByRole("button", { name: /close/i });
+    await user.click(closeButton);
+
+    // Severity info should be hidden again
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/minor\/localized impact/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it("handles form submission with required fields", async () => {
     const user = userEvent.setup();
 
@@ -129,7 +163,7 @@ describe("AddIncidentForm", () => {
       screen.getByLabelText(/incident name \*/i),
       "Test Incident"
     );
-    await user.type(screen.getByLabelText(/date \*/i), "01/01/2022");
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2022");
     await user.type(
       screen.getByLabelText(/description \*/i),
       "Test description"
@@ -143,10 +177,10 @@ describe("AddIncidentForm", () => {
       expect(crudHandlers.handleAddNewIncident).toHaveBeenCalledWith({
         addition: expect.objectContaining({
           name: "Test Incident",
-          incident_date: "2022-01-01",
+          incident_date: "2022-01-01", // Should be converted to YYYY-MM-DD
           description: "Test description",
           category: "Software",
-          severity: "3",
+          severity: "Moderate",
         }),
       });
     });
@@ -170,11 +204,13 @@ describe("AddIncidentForm", () => {
     // Submit without filling required fields
     await user.click(screen.getByRole("button", { name: /add incident/i }));
 
-    // Should show error message
+    // Should show error messages
     await waitFor(() => {
       expect(
-        screen.getByText(/please fill in this field./i)
+        screen.getByText(/incident name is required/i)
       ).toBeInTheDocument();
+      expect(screen.getByText(/date is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/description is required/i)).toBeInTheDocument();
     });
 
     // handleAddNewIncident should not be called
@@ -198,7 +234,7 @@ describe("AddIncidentForm", () => {
       screen.getByLabelText(/incident name \*/i),
       "Test Incident"
     );
-    await user.type(screen.getByLabelText(/date \*/i), "01/01/2022"); // Wrong format
+    await user.type(screen.getByLabelText(/date \*/i), "2022/01/01"); // Wrong format
     await user.type(
       screen.getByLabelText(/description \*/i),
       "Test description"
@@ -210,12 +246,76 @@ describe("AddIncidentForm", () => {
     // Should show error message about date format
     await waitFor(() => {
       expect(
-        screen.getByText(/please enter a valid date in yyyy-mm-dd format/i)
+        screen.getByText(/please enter a valid date in DD-MM-YYYY format/i)
       ).toBeInTheDocument();
     });
 
     // handleAddNewIncident should not be called
     expect(crudHandlers.handleAddNewIncident).not.toHaveBeenCalled();
+  });
+
+  it("formats date input automatically", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <IncidentProvider value={mockIncidentContext}>
+        <AddIncidentForm onClose={mockOnClose} />
+      </IncidentProvider>
+    );
+
+    // Type digits without hyphens
+    const dateInput = screen.getByLabelText(/date \*/i);
+    await user.type(dateInput, "01012022");
+
+    // Should format with hyphens automatically
+    expect(dateInput).toHaveValue("01-01-2022");
+  });
+
+  it("validates date range", async () => {
+    const user = userEvent.setup();
+
+    render(
+      <IncidentProvider value={mockIncidentContext}>
+        <AddIncidentForm onClose={mockOnClose} />
+      </IncidentProvider>
+    );
+
+    // Test date before minimum allowed (1980-01-01)
+    await user.type(
+      screen.getByLabelText(/incident name \*/i),
+      "Test Incident"
+    );
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-1979");
+    await user.type(
+      screen.getByLabelText(/description \*/i),
+      "Test description"
+    );
+
+    // Submit the form
+    await user.click(screen.getByRole("button", { name: /add incident/i }));
+
+    // Should show error message about date range
+    await waitFor(() => {
+      expect(
+        screen.getByText(/date must be on or after 01-01-1980/i)
+      ).toBeInTheDocument();
+    });
+
+    // Clear date field
+    await user.clear(screen.getByLabelText(/date \*/i));
+
+    // Test date after maximum allowed (2029-12-31)
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2030");
+
+    // Submit the form
+    await user.click(screen.getByRole("button", { name: /add incident/i }));
+
+    // Should show error message about date range
+    await waitFor(() => {
+      expect(
+        screen.getByText(/date must be on or before 31-12-2029/i)
+      ).toBeInTheDocument();
+    });
   });
 
   it("handles error from handleAddNewIncident", async () => {
@@ -235,7 +335,7 @@ describe("AddIncidentForm", () => {
       screen.getByLabelText(/incident name \*/i),
       "Test Incident"
     );
-    await user.type(screen.getByLabelText(/date \*/i), "2022-01-01");
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2022");
     await user.type(
       screen.getByLabelText(/description \*/i),
       "Test description"
@@ -275,7 +375,7 @@ describe("AddIncidentForm", () => {
       screen.getByLabelText(/incident name \*/i),
       "Test Incident"
     );
-    await user.type(screen.getByLabelText(/date \*/i), "2022-01-01");
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2022");
     await user.type(
       screen.getByLabelText(/description \*/i),
       "Test description"
@@ -318,7 +418,7 @@ describe("AddIncidentForm", () => {
       screen.getByLabelText(/incident name \*/i),
       "Test Incident"
     );
-    await user.type(screen.getByLabelText(/date \*/i), "2022-01-01");
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2022");
     await user.type(
       screen.getByLabelText(/description \*/i),
       "Test description"
@@ -336,10 +436,8 @@ describe("AddIncidentForm", () => {
     await user.upload(fileInput, file);
 
     // Simulate FileReader onload event
-    waitFor(() => {
-      mockFileReaderInstance.result = "data:image/png;base64,dummybase64";
-      mockFileReaderInstance.onload({ target: mockFileReaderInstance });
-    });
+    mockFileReaderInstance.result = "data:image/png;base64,dummybase64";
+    mockFileReaderInstance.onload({ target: mockFileReaderInstance });
 
     // Submit the form
     await user.click(screen.getByRole("button", { name: /add incident/i }));
@@ -379,7 +477,7 @@ describe("AddIncidentForm", () => {
       screen.getByLabelText(/incident name \*/i),
       "Test Incident"
     );
-    await user.type(screen.getByLabelText(/date \*/i), "2022-01-01");
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2022");
     await user.type(
       screen.getByLabelText(/description \*/i),
       "Test description"

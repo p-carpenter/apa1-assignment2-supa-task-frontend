@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server';
-
 export async function POST(request) {
   try {
     const { email, password, displayName } = await request.json();
@@ -15,19 +13,31 @@ export async function POST(request) {
     
     if (!response.ok) {
       const error = await response.json();
-      return NextResponse.json(
-        { error: error.error || 'Failed to sign up' },
-        { status: response.status }
+      return new Response(
+        JSON.stringify({ error: error.error || 'Failed to sign up' }),
+        { 
+          status: response.status,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
     
     const data = await response.json();
-    return NextResponse.json(data);
+    return new Response(
+      JSON.stringify(data),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (error) {
     console.error('Sign up error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 }

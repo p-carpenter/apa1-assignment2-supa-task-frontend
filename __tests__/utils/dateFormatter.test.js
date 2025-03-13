@@ -2,7 +2,7 @@ import {
   formatDate,
   formatYear,
   extractYearFromDate,
-} from "@/app/utils/formatters/dateFormatter";
+} from "@/app/utils/formatting/dateUtils";
 
 describe("Date Formatter Utils", () => {
   describe("formatDate", () => {

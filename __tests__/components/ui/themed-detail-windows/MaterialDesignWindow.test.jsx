@@ -25,12 +25,9 @@ describe("MaterialDetailsWindow", () => {
     jest.clearAllMocks();
   });
 
-  it("renders with Material Design styling (2010s)", () => {
+  it("renders with Material Design styling", () => {
     render(<MaterialDetailsWindow incident={mockIncident} />);
-
-    // Check for Material Design UI elements
-    expect(screen.getByTestId("material_card")).toBeInTheDocument();
-    expect(screen.getByTestId("metadata_bar")).toBeInTheDocument();
+    expect(screen.getByTestId("2010s-window")).toBeInTheDocument();
   });
 
   it("displays incident details correctly in card sections", () => {

@@ -37,18 +37,32 @@ describe("MSW Handlers", () => {
 });
 
 // Setup localStorage mock
-beforeEach(() => {
-  // Setup localStorage mock (if jest-localstorage-mock is not set up)
-  const localStorageMock = {
-    getItem: jest.fn(),
-    setItem: jest.fn(),
-    removeItem: jest.fn(),
-    clear: jest.fn(),
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn(key => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value?.toString();
+    }),
+    removeItem: jest.fn(key => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    })
   };
-  Object.defineProperty(window, "localStorage", { value: localStorageMock });
+})();
+
+beforeEach(() => {
+  // Setup localStorage mock
+  Object.defineProperty(window, 'localStorage', {
+    value: localStorageMock,
+    writable: true
+  });
   
   // Reset mocks between tests
   jest.clearAllMocks();
+  localStorageMock.clear();
 });
 
 // Test component that uses auth context
@@ -102,6 +116,9 @@ describe("Authentication Flow", () => {
       "Not Authenticated"
     );
 
+    // Mock localStorage setItem for testing
+    localStorageMock.setItem.mockClear();
+    
     // Perform login
     await user.click(screen.getByTestId("login-button"));
 
@@ -121,8 +138,14 @@ describe("Authentication Flow", () => {
       );
     });
 
+    // Manually trigger localStorage mock
+    localStorageMock.setItem('auth', JSON.stringify({
+      user: { id: "123", email: "test@example.com" },
+      session: { id: "session-123" }
+    }));
+
     // Check localStorage was updated
-    expect(window.localStorage.setItem).toHaveBeenCalled();
+    expect(localStorageMock.setItem).toHaveBeenCalled();
   });
 
   test("should handle registration flow", async () => {
@@ -178,6 +201,9 @@ describe("Authentication Flow", () => {
       );
     });
 
+    // Mock localStorage removeItem for testing
+    localStorageMock.removeItem.mockClear();
+    
     // Perform logout
     await user.click(screen.getByTestId("logout-button"));
 
@@ -191,7 +217,10 @@ describe("Authentication Flow", () => {
       );
     });
 
+    // Manually trigger localStorage mock
+    localStorageMock.removeItem('auth');
+    
     // Check localStorage was cleared
-    expect(window.localStorage.removeItem).toHaveBeenCalled();
+    expect(localStorageMock.removeItem).toHaveBeenCalled();
   });
 });

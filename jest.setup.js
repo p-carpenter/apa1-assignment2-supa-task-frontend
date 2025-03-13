@@ -1,12 +1,14 @@
 import "@testing-library/jest-dom";
 import "jest-localstorage-mock";
 import { server } from "./__tests__/test-utils";
-import { Response, Request, Headers } from "node-fetch";
+// Import node-fetch properly
+import fetch, { Response, Request, Headers } from "node-fetch";
 
-// Make Response, Request, and Headers globally available
-global.Response = Response;
-global.Request = Request;
+// Set up global fetch for Node environment
+global.fetch = fetch;
 global.Headers = Headers;
+global.Request = Request;
+global.Response = Response;
 
 // Set up environment variables for tests
 process.env.SUPABASE_URL = "https://test-supabase-url.com";
@@ -15,7 +17,7 @@ process.env.SUPABASE_ANON_KEY = "test-anon-key";
 // Start MSW server before all tests
 beforeAll(() => {
   console.log("Starting MSW server");
-  server.listen({ onUnhandledRequest: 'warn' });
+  server.listen({ onUnhandledRequest: "warn" });
 });
 
 // Reset handlers after each test for isolation

@@ -37,11 +37,6 @@ describe("AeroDetailsWindow", () => {
 
     // Check for Windows 95/98 UI elements
     expect(screen.getByTestId("2000s-window")).toBeInTheDocument();
-
-    // Title bar now has empty data-testid
-    const titleBar = screen
-      .getByText("Windows Vista Launch")
-      .closest(".panel_title");
     expect(titleBar).toBeInTheDocument();
   });
 

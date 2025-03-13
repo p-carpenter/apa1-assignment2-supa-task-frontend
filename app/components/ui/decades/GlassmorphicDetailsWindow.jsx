@@ -92,7 +92,10 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
         </div>
 
         {incident.cause && (
-          <div className={styles.macos_section_compact}>
+          <div
+            className={styles.macos_section_compact}
+            data-testid="cause-section"
+          >
             <ExpandableSection
               title={
                 <div className={styles.section_header_compact}>

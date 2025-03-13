@@ -1,4 +1,4 @@
-import { http, HttpResponse } from "msw";
+import { http, HttpResponse, delay } from "msw";
 
 export const handlers = [
   // GET all incidents from Supabase Edge Function
@@ -60,7 +60,6 @@ export const handlers = [
     "https://test-supabase-url.com/functions/v1/tech-incidents",
     async ({ request }) => {
       try {
-        // Extract the request body correctly
         const body = await request.json();
         let idsToDelete = [];
 
@@ -79,8 +78,8 @@ export const handlers = [
         });
       } catch (error) {
         console.error("MSW handler for DELETE error:", error);
-        return HttpResponse.json(
-          { error: "MSW parsing error" },
+        return new HttpResponse(
+          JSON.stringify({ error: "MSW parsing error" }),
           { status: 500 }
         );
       }
@@ -90,6 +89,7 @@ export const handlers = [
   // API route handlers
   http.post("/api/new-incident", async ({ request }) => {
     const body = await request.json();
+
     return HttpResponse.json({
       success: true,
       incident: {
@@ -100,6 +100,7 @@ export const handlers = [
 
   http.put("/api/update-incident", async ({ request }) => {
     const body = await request.json();
+
     return HttpResponse.json({
       success: true,
       incident: {
@@ -111,6 +112,7 @@ export const handlers = [
 
   http.delete("/api/delete-incident", async ({ request }) => {
     const body = await request.json();
+
     return HttpResponse.json({
       success: true,
       deletedIds: body.ids,
@@ -120,6 +122,7 @@ export const handlers = [
   // Auth API handlers
   http.post("/api/auth/signin", async ({ request }) => {
     const { email } = await request.json();
+
     return HttpResponse.json({
       user: { id: "user-123", email },
       session: { token: "mock-token" },
@@ -128,6 +131,7 @@ export const handlers = [
 
   http.post("/api/auth/signup", async ({ request }) => {
     const { email } = await request.json();
+
     return HttpResponse.json({
       user: { id: "user-456", email },
       session: { token: "mock-token" },
@@ -138,7 +142,7 @@ export const handlers = [
     return HttpResponse.json({ success: true });
   }),
 
-  http.get("/api/auth/user", () => {
+  http.get("/api/auth/user", ({}) => {
     return HttpResponse.json({
       user: { id: "user-123", email: "test@example.com" },
       session: { token: "mock-token" },

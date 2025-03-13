@@ -1,12 +1,13 @@
 export async function DELETE(req) {
   const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
 
-  try {
-    const corsHeaders = {
-      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+  };
 
+  try {
     if (req.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders });
     }
@@ -35,7 +36,7 @@ export async function DELETE(req) {
     }
 
     const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/fetch-incidents`,
+      `${SUPABASE_URL}/functions/v1/tech-incidents`,
       {
         method: "DELETE",
         headers: {
@@ -47,7 +48,7 @@ export async function DELETE(req) {
     );
 
     if (!response.ok) {
-      console.error("Supabase update error:", response.status);
+      console.error("Supabase delete error:", response.status);
       return new Response(
         JSON.stringify({ error: `Supabase error: ${response.status}` }),
         {
@@ -63,12 +64,7 @@ export async function DELETE(req) {
       headers: corsHeaders,
     });
   } catch (error) {
-    const corsHeaders = {
-      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
-    
-    console.error("Update error:", error);
+    console.error("Delete error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: corsHeaders,

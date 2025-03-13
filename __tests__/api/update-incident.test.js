@@ -1,9 +1,10 @@
-import { server, rest } from "../test-utils";
+import { server } from "../test-utils";
+import { http, HttpResponse } from "msw";
 import { PUT } from "@/app/api/update-incident/route";
 
 // Mock the corsHeaders object that's used in the route
 const corsHeaders = {
-  "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, PUT, OPTIONS",
   "Access-Control-Allow-Headers": "Authorization, Content-Type",
 };
 
@@ -11,21 +12,21 @@ describe("update-incident API route", () => {
   it("successfully updates an incident", async () => {
     // Set up a specific response for this test
     server.use(
-      rest.put("https://test-supabase-url.com/functions/v1/tech-incidents", (req, res, ctx) => {
-        return res(
-          ctx.status(200),
-          ctx.json({
+      http.put(
+        "https://test-supabase-url.com/functions/v1/tech-incidents",
+        () => {
+          return HttpResponse.json({
             success: true,
             incident: {
               id: "123",
               name: "Updated Incident",
               description: "This is an updated incident",
               category: "software",
-              severity: "medium"
-            }
-          })
-        );
-      })
+              severity: "medium",
+            },
+          });
+        }
+      )
     );
 
     const incidentData = {
@@ -34,8 +35,8 @@ describe("update-incident API route", () => {
         name: "Updated Incident",
         description: "This is an updated incident",
         category: "software",
-        severity: "medium"
-      }
+        severity: "medium",
+      },
     };
 
     const mockRequest = {
@@ -48,36 +49,38 @@ describe("update-incident API route", () => {
 
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(data.incident).toEqual(expect.objectContaining({
-      id: "123", 
-      name: "Updated Incident",
-    }));
+    expect(data.incident).toEqual(
+      expect.objectContaining({
+        id: "123",
+        name: "Updated Incident",
+      })
+    );
   });
 
   it("handles date format conversion for incident_date", async () => {
     // Set up a specific response for this test
     server.use(
-      rest.put("https://test-supabase-url.com/functions/v1/tech-incidents", (req, res, ctx) => {
-        return res(
-          ctx.status(200),
-          ctx.json({
+      http.put(
+        "https://test-supabase-url.com/functions/v1/tech-incidents",
+        () => {
+          return HttpResponse.json({
             success: true,
             incident: {
               id: "123",
               name: "Updated Incident",
-              incident_date: "2023-05-15T00:00:00.000Z"
-            }
-          })
-        );
-      })
+              incident_date: "2023-05-15T00:00:00.000",
+            },
+          });
+        }
+      )
     );
-    
+
     const incidentData = {
       id: "123",
       update: {
         name: "Updated Incident",
         incident_date: "2023-05-15", // Simple date format
-      }
+      },
     };
 
     const mockRequest = {
@@ -108,12 +111,12 @@ describe("update-incident API route", () => {
   it("handles API errors from Supabase", async () => {
     // Mock a failed response
     server.use(
-      rest.put("https://test-supabase-url.com/functions/v1/tech-incidents", (req, res, ctx) => {
-        return res(
-          ctx.status(500),
-          ctx.text("Database error")
-        );
-      })
+      http.put(
+        "https://test-supabase-url.com/functions/v1/tech-incidents",
+        () => {
+          return new HttpResponse("Database error", { status: 500 });
+        }
+      )
     );
 
     const mockRequest = {
@@ -131,30 +134,30 @@ describe("update-incident API route", () => {
   it("handles image updates with file data", async () => {
     // Set up a specific response for image updates
     server.use(
-      rest.put("https://test-supabase-url.com/functions/v1/tech-incidents", (req, res, ctx) => {
-        return res(
-          ctx.status(200),
-          ctx.json({
+      http.put(
+        "https://test-supabase-url.com/functions/v1/tech-incidents",
+        () => {
+          return HttpResponse.json({
             success: true,
             incident: {
               id: "123",
               name: "Updated Incident with Image",
-              artifactType: "image"
-            }
-          })
-        );
-      })
+              artifactType: "image",
+            },
+          });
+        }
+      )
     );
-    
+
     const incidentData = {
       id: "123",
       update: {
         name: "Updated Incident with Image",
-        artifactType: "image"
+        artifactType: "image",
       },
       fileData: "base64data...",
       fileType: "image/png",
-      fileName: "test-image.png"
+      fileName: "test-image.png",
     };
 
     const mockRequest = {

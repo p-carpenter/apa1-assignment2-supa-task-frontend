@@ -33,7 +33,7 @@ const config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js", "jest-extended/all"],
 
   // The test environment that will be used for testing
-  testEnvironment: "jsdom",
+  testEnvironment: "jest-fixed-jsdom",
 
   // The glob patterns Jest uses to detect test files
   testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
@@ -56,8 +56,8 @@ const config = {
         pageTitle: "Test Report",
         includeFailureMsg: true,
         includeStackTrace: true,
-        includeConsoleLog: true,
         includeSuiteFailure: true,
+        includeConsoleLog: true,
       },
     ],
   ],
