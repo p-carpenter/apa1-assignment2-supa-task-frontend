@@ -5,9 +5,12 @@ import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
 
 function LoginForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login, loading: authLoading } = useAuth();
@@ -15,49 +18,112 @@ function LoginForm() {
   // Combine component's internal loading state with auth context loading state
   const loading = isSubmitting || authLoading;
 
+  // Validate a single field
+  const validateField = (name, value) => {
+    let error = null;
+
+    switch (name) {
+      case "email":
+        if (!value.trim()) {
+          error = "Email is required.";
+        } else {
+          // Email format validation
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) {
+            error = "Please enter a valid email address.";
+          }
+        }
+        break;
+
+      case "password":
+        if (!value.trim()) {
+          error = "Password is required.";
+        } else if (value.length < 8) {
+          error = "Password must be at least 8 characters long.";
+        } else {
+          // Check for password requirements
+          const hasNumber = /[0-9]/.test(value);
+          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+            value
+          );
+          const hasUpperCase = /[A-Z]/.test(value);
+
+          if (!hasNumber) {
+            error = "Password must contain at least one number.";
+          } else if (!hasSpecialChar) {
+            error = "Password must contain at least one special character.";
+          } else if (!hasUpperCase) {
+            error = "Password must contain at least one uppercase letter.";
+          }
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    return error;
+  };
+
+  // Validate all fields and return true if all are valid
+  const validateFields = () => {
+    const errors = {};
+
+    // Validate email
+    const emailError = validateField("email", formData.email);
+    if (emailError) errors.email = emailError;
+
+    // Validate password
+    const passwordError = validateField("password", formData.password);
+    if (passwordError) errors.password = passwordError;
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Validate field as user types and update errors
+    const error = validateField(name, value);
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: error,
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrorMessage("");
 
-    // Validate if fields are filled
-    if (!email) {
-      setError("Email is required");
-      return;
-    }
-
-    if (!password) {
-      setError("Password is required");
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Invalid email address");
-      return;
-    }
-
-    // Validate password (at least 8 characters with at least one number)
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return;
-    }
-
-    if (!/\d/.test(password)) {
-      setError("Password must contain at least one number");
+    // Validate all fields before submission
+    if (!validateFields()) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      await login({ email, password });
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
       // Redirect is handled by useEffect in the LoginPage component
     } catch (err) {
-      setError(err.message || "Failed to sign in");
+      setErrorMessage(err.message || "Failed to sign in");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Helper to determine if a field has an error
+  const hasError = (fieldName) => {
+    return !!formErrors[fieldName];
   };
 
   return (
@@ -67,7 +133,7 @@ function LoginForm() {
         <p className="auth-subtitle">Enter credentials to access archive</p>
       </div>
 
-      {error && <div className="auth-error">{error}</div>}
+      {errorMessage && <div className="auth-error">{errorMessage}</div>}
 
       <form className="auth-form" onSubmit={handleSubmit} noValidate>
         <div className="form-group">
@@ -79,11 +145,15 @@ function LoginForm() {
             name="email"
             type="email"
             autoComplete="email"
-            className="form-input"
+            className={`form-input ${hasError("email") ? "input-error" : ""}`}
             placeholder="user@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
+            disabled={loading}
           />
+          {formErrors.email && (
+            <div className="form-error">{formErrors.email}</div>
+          )}
         </div>
 
         <div className="form-group">
@@ -95,15 +165,18 @@ function LoginForm() {
             name="password"
             type="password"
             autoComplete="current-password"
-            className="form-input"
+            className={`form-input ${hasError("password") ? "input-error" : ""}`}
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
             disabled={loading}
           />
+          {formErrors.password && (
+            <div className="form-error">{formErrors.password}</div>
+          )}
           <p style={{ fontSize: "0.7rem", marginTop: "4px", color: "#888" }}>
-            Password must be at least 8 characters long and contain at least one
-            number
+            Password must be at least 8 characters and include one number, one
+            special character, and one uppercase letter.
           </p>
         </div>
 

@@ -15,7 +15,7 @@ const IncidentGrid = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="incident-grid">
+      <div className="incident-grid" data-testid="incident-grid">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="loading-card"></div>
         ))}
@@ -35,34 +35,35 @@ const IncidentGrid = ({
   }
 
   return (
-    <div className={`incident-grid ${selectionMode ? 'selection-mode' : ''}`}>
+    <div className={`incident-grid ${selectionMode ? "selection-mode" : ""}`}>
       {incidents.map((incident) => {
         const year = getIncidentYear(incident);
-        const isSelected = selectedIncidents.some(inc => inc.id === incident.id);
+        const isSelected = selectedIncidents.some(
+          (inc) => inc.id === incident.id
+        );
 
         return (
           <Link
             key={incident.id || `incident-${incident.name || "unknown"}`}
             href={`/gallery?incident=${generateSlug(incident.name || "Unknown Incident")}`}
             onClick={(e) => onIncidentSelect && onIncidentSelect(incident, e)}
-            className={`incident-item ${isSelected ? 'selected' : ''}`}
+            className={`incident-item ${isSelected ? "selected" : ""}`}
             data-testid="incident-item"
           >
-            {selectionMode && (
-              <div className="selection-circle"></div>
-            )}
+            {selectionMode && <div className="selection-circle"></div>}
             <div className="incident-year">{year || "Unknown Year"}</div>
             <div className="incident-name">
               {incident.name || "Unknown Incident"}
             </div>
             <div className="incident-category">
               <div className="category-name">
-                {getCategoryIcon(incident.category)} {incident.category || "Uncategorized"}
+                {getCategoryIcon(incident.category)}{" "}
+                {incident.category || "Uncategorized"}
               </div>
               {getSeverityIcon(incident.severity)}
             </div>
             <div className="view-details">
-              {selectionMode ? 'Select' : 'View Details'}
+              {selectionMode ? "Select" : "View Details"}
             </div>
           </Link>
         );

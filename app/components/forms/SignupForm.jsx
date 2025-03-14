@@ -5,53 +5,137 @@ import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
 
 function SignupForm() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register } = useAuth();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  const validateField = (name, value) => {
+    let error = null;
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError("Please enter a valid email address");
-      return;
+    switch (name) {
+      case "email":
+        if (!value.trim()) {
+          error = "Email is required.";
+        } else {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) {
+            error = "Please enter a valid email address.";
+          }
+        }
+        break;
+
+      case "password":
+        if (!value.trim()) {
+          error = "Password is required.";
+        } else {
+          const hasMinLength = value.length >= 8;
+          const hasNumber = /\d/.test(value);
+          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+            value
+          );
+          const hasUpperCase = /[A-Z]/.test(value);
+
+          setFormErrors((prev) => ({
+            ...prev,
+            passwordMinLength: hasMinLength
+              ? null
+              : "Password must be at least 8 characters long.",
+            passwordNumber: hasNumber
+              ? null
+              : "Password must contain at least one number.",
+            passwordSpecialChar: hasSpecialChar
+              ? null
+              : "Password must contain at least one special character.",
+            passwordUpperCase: hasUpperCase
+              ? null
+              : "Password must contain at least one uppercase letter.",
+          }));
+
+          if (!hasMinLength || !hasNumber || !hasSpecialChar || !hasUpperCase) {
+            error = "Please ensure all password requirements are met.";
+          }
+        }
+        break;
+
+      case "confirmPassword":
+        if (!value.trim()) {
+          error = "Please confirm your password.";
+        } else if (value !== formData.password) {
+          error = "Passwords do not match.";
+        }
+        break;
+
+      default:
+        break;
     }
 
-    // Validate input
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+    return error;
+  };
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return;
-    }
+  const validateFields = () => {
+    const errors = {};
+    Object.keys(formData).forEach((field) => {
+      const error = validateField(field, formData[field]);
+      if (error) errors[field] = error;
+    });
 
-    if (!/\d/.test(password)) {
-      setError("Password must contain at least one number");
-      return;
-    }
+    setFormErrors((prev) => ({ ...prev, ...errors }));
+    return Object.keys(errors).length === 0;
+  };
 
-    setLoading(true);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    try {
-      // Use email as displayName since we removed the username field
-      await register({ email, password, displayName: email.split("@")[0] });
-      // Redirect is handled by useEffect in the SignupPage component
-    } catch (err) {
-      setError(err.message || "Failed to create account");
-    } finally {
-      setLoading(false);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value),
+    }));
+
+    if (name === "password" && formData.confirmPassword) {
+      setFormErrors((prev) => ({
+        ...prev,
+        confirmPassword:
+          formData.confirmPassword !== value ? "Passwords do not match." : null,
+      }));
     }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+
+    if (!validateFields()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await register({
+        email: formData.email,
+        password: formData.password,
+        displayName: formData.email.split("@")[0],
+      });
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to create account");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const hasError = (fieldName) => !!formErrors[fieldName];
 
   return (
     <div className="auth-form-container">
@@ -60,26 +144,34 @@ function SignupForm() {
         <p className="auth-subtitle">Register for archive access</p>
       </div>
 
-      {error && <div className="auth-error">{error}</div>}
+      {errorMessage && <div className="auth-error">{errorMessage}</div>}
 
-      <form className="auth-form" onSubmit={handleSubmit}>
+      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+        {/* Email Field */}
         <div className="form-group">
-          <label htmlFor="email-address" className="form-label">
+          <label htmlFor="email" className="form-label">
             <span className="prompt">$</span> EMAIL
           </label>
           <input
-            id="email-address"
+            id="email"
             name="email"
             type="email"
             autoComplete="email"
-            required
-            className="form-input"
+            className={`form-input ${hasError("email") ? "input-error" : ""}`}
             placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
+            disabled={isSubmitting}
+            aria-describedby={hasError("email") ? "email-error" : undefined}
           />
+          {hasError("email") && (
+            <div id="email-error" className="form-error">
+              {formErrors.email}
+            </div>
+          )}
         </div>
 
+        {/* Password Field */}
         <div className="form-group">
           <label htmlFor="password" className="form-label">
             <span className="prompt">$</span> PASSWORD
@@ -89,44 +181,68 @@ function SignupForm() {
             name="password"
             type="password"
             autoComplete="new-password"
-            required
-            className="form-input"
+            className={`form-input ${hasError("password") ? "input-error" : ""}`}
             placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={formData.password}
+            onChange={handleChange}
+            disabled={isSubmitting}
+            aria-describedby={
+              hasError("password") ? "password-error" : undefined
+            }
           />
-          <p style={{ fontSize: "0.7rem", marginTop: "4px", color: "#888" }}>
-            Password must be at least 8 characters long and contain at least one
-            number
-          </p>
+          {hasError("password") && (
+            <div id="password-error" className="form-error">
+              {formErrors.password}
+            </div>
+          )}
+          {formErrors.passwordMinLength && (
+            <div className="form-error">{formErrors.passwordMinLength}</div>
+          )}
+          {formErrors.passwordNumber && (
+            <div className="form-error">{formErrors.passwordNumber}</div>
+          )}
+          {formErrors.passwordSpecialChar && (
+            <div className="form-error">{formErrors.passwordSpecialChar}</div>
+          )}
+          {formErrors.passwordUpperCase && (
+            <div className="form-error">{formErrors.passwordUpperCase}</div>
+          )}
         </div>
 
+        {/* Confirm Password Field */}
         <div className="form-group">
-          <label htmlFor="confirm-password" className="form-label">
+          <label htmlFor="confirmPassword" className="form-label">
             <span className="prompt">$</span> CONFIRM PASSWORD
           </label>
           <input
-            id="confirm-password"
+            id="confirmPassword"
             name="confirmPassword"
             type="password"
             autoComplete="new-password"
-            required
-            className="form-input"
+            className={`form-input ${hasError("confirmPassword") ? "input-error" : ""}`}
             placeholder="Re-enter password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            disabled={isSubmitting}
+            aria-describedby={
+              hasError("confirmPassword") ? "confirmPassword-error" : undefined
+            }
           />
+          {hasError("confirmPassword") && (
+            <div id="confirmPassword-error" className="form-error">
+              {formErrors.confirmPassword}
+            </div>
+          )}
         </div>
 
-        <button type="submit" className="auth-button" disabled={loading}>
-          {loading ? (
-            <>
-              <span className="auth-loading"></span>
-              REGISTERING...
-            </>
-          ) : (
-            "CREATE ACCOUNT"
-          )}
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="auth-button"
+          disabled={isSubmitting}
+          data-testid="signup-button"
+        >
+          {isSubmitting ? "REGISTERING..." : "CREATE ACCOUNT"}
         </button>
       </form>
 

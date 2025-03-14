@@ -2,16 +2,15 @@ import { server } from "../../app/utils/testing/test-utils";
 import { http, HttpResponse } from "msw";
 import { DELETE } from "@/app/api/delete-incident/route";
 
-process.env.SUPABASE_URL = "https";
+process.env.SUPABASE_URL = "https://test-supabase-url.com";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
 describe("delete-incident API route", () => {
   beforeEach(() => {
     server.use(
-      http.delete("https", async ({ request }) => {
+      http.delete(process.env.SUPABASE_URL, async ({ request }) => {
         const body = await request.json();
         const ids = body.ids || [];
-
         return HttpResponse.json(
           {
             success: true,
@@ -73,9 +72,15 @@ describe("delete-incident API route", () => {
 
   it("handles errors from Supabase", async () => {
     server.use(
-      http.delete("https", () => {
-        return HttpResponse.json({ error: "Database error" }, { status: 500 });
-      })
+      http.delete(
+        "https://test-supabase-url.com/functions/v1/tech-incidents",
+        () => {
+          return HttpResponse.json(
+            { error: "Database error" },
+            { status: 500 }
+          );
+        }
+      )
     );
 
     const mockRequest = {

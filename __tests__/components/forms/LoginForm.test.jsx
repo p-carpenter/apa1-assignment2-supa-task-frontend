@@ -59,12 +59,12 @@ describe("LoginForm", () => {
     const submitButton = screen.getByRole("button", { name: /LOGIN/i });
     fireEvent.click(submitButton);
 
-    expect(screen.getByText("Email is required")).toBeInTheDocument();
+    expect(screen.getByText("Email is required.")).toBeInTheDocument();
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
     fireEvent.click(submitButton);
 
-    expect(screen.getByText("Password is required")).toBeInTheDocument();
+    expect(screen.getByText("Password is required.")).toBeInTheDocument();
 
     expect(mockLogin).not.toHaveBeenCalled();
   });
@@ -76,12 +76,14 @@ describe("LoginForm", () => {
     const passwordInput = screen.getByLabelText(/PASSWORD/i);
 
     fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.change(passwordInput, { target: { value: "Password1!" } });
 
     const submitButton = screen.getByRole("button", { name: /LOGIN/i });
     fireEvent.click(submitButton);
 
-    expect(screen.getByText("Invalid email address")).toBeInTheDocument();
+    expect(
+      screen.getByText("Please enter a valid email address.")
+    ).toBeInTheDocument();
 
     expect(mockLogin).not.toHaveBeenCalled();
   });
@@ -95,7 +97,7 @@ describe("LoginForm", () => {
     const passwordInput = screen.getByLabelText(/PASSWORD/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
 
     const submitButton = screen.getByRole("button", { name: /LOGIN/i });
     fireEvent.click(submitButton);
@@ -103,7 +105,7 @@ describe("LoginForm", () => {
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith({
         email: "test@example.com",
-        password: "password123",
+        password: "Password123!",
       });
     });
   });
@@ -118,7 +120,7 @@ describe("LoginForm", () => {
     const passwordInput = screen.getByLabelText(/PASSWORD/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
 
     const submitButton = screen.getByRole("button", { name: /LOGIN/i });
     fireEvent.click(submitButton);
@@ -143,29 +145,77 @@ describe("LoginForm", () => {
     expect(submitButton).toHaveTextContent("AUTHENTICATING...");
   });
 
-  it("validates password requirements", async () => {
+  it("validates password number requirement", async () => {
     render(<LoginForm />);
 
     const emailInput = screen.getByLabelText(/EMAIL/i);
     const passwordInput = screen.getByLabelText(/PASSWORD/i);
 
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password" } });
+    fireEvent.change(passwordInput, { target: { value: "Password!" } });
 
     const submitButton = screen.getByRole("button", { name: /LOGIN/i });
     fireEvent.click(submitButton);
 
     expect(
-      screen.getByText("Password must contain at least one number")
+      screen.getByText("Password must contain at least one number.")
     ).toBeInTheDocument();
 
     expect(mockLogin).not.toHaveBeenCalled();
+  });
 
-    fireEvent.change(passwordInput, { target: { value: "pass1" } });
+  it("validates password uppercase requirement", async () => {
+    render(<LoginForm />);
+
+    const emailInput = screen.getByLabelText(/EMAIL/i);
+    const passwordInput = screen.getByLabelText(/PASSWORD/i);
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "password1!" } });
+
+    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
     fireEvent.click(submitButton);
 
     expect(
-      screen.getByText("Password must be at least 8 characters long")
+      screen.getByText("Password must contain at least one uppercase letter.")
+    ).toBeInTheDocument();
+
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
+  it("validates password special character requirement", async () => {
+    render(<LoginForm />);
+
+    const emailInput = screen.getByLabelText(/EMAIL/i);
+    const passwordInput = screen.getByLabelText(/PASSWORD/i);
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "Password1" } });
+
+    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
+    fireEvent.click(submitButton);
+
+    expect(
+      screen.getByText("Password must contain at least one special character.")
+    ).toBeInTheDocument();
+
+    expect(mockLogin).not.toHaveBeenCalled();
+  });
+
+  it("validates password length requirement", async () => {
+    render(<LoginForm />);
+
+    const emailInput = screen.getByLabelText(/EMAIL/i);
+    const passwordInput = screen.getByLabelText(/PASSWORD/i);
+
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    fireEvent.change(passwordInput, { target: { value: "P1!" } });
+
+    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
+    fireEvent.click(submitButton);
+
+    expect(
+      screen.getByText("Password must be at least 8 characters long.")
     ).toBeInTheDocument();
 
     expect(mockLogin).not.toHaveBeenCalled();

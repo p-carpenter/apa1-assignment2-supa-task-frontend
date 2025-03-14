@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/app/contexts/AuthContext";
 import { useState, useEffect } from "react";
-import { Button } from "../ui/buttons";
+import { Button } from "../components/ui/buttons";
 import { getProtectedData, addProtectedData } from "@/app/utils/auth/authUtils";
 
 export default function ProfileInfo() {
