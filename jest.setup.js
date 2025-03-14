@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom";
 import "jest-localstorage-mock";
-import { server } from "./__tests__/test-utils";
+import { server } from "./app/utils/testing/test-utils";
 // Import node-fetch properly
 import fetch, { Response, Request, Headers } from "node-fetch";
 

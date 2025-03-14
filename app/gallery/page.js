@@ -4,7 +4,7 @@ import { useIncidents } from "@/app/contexts/IncidentContext";
 import { useTheme } from "@/app/contexts/ThemeContext";
 import GalleryNavButtons from "@/app/components/ui/gallery-navigation/GalleryNavButtons";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import {
   findIncidentBySlug,
   generateSlug,
@@ -171,7 +171,7 @@ export default function GalleryPage() {
     hasIncidents,
     setCurrentIncidentIndex,
     setDisplayedIncident,
-    incidentsLoading
+    incidentsLoading,
   ]);
 
   // Completely rewritten to handle both regular navigation and year-specific navigation

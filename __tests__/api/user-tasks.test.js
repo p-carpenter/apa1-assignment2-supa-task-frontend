@@ -1,4 +1,4 @@
-import { server } from "../test-utils";
+import { server } from "../../app/utils/testing/test-utils";
 import { http, HttpResponse } from "msw";
 import { GET, POST } from "@/app/api/user-tasks/route";
 

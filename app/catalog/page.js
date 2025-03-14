@@ -10,8 +10,8 @@ import { CatalogFilters, IncidentGrid } from "../components/layouts";
 import { Button } from "../components/ui/buttons";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { handleDeleteIncidents } from "./crudHandlers";
-import AddIncidentForm from "../components/ui/forms/AddIncidentForm";
-import EditIncidentForm from "../components/ui/forms/EditIncidentForm";
+import AddIncidentForm from "../components/forms/AddIncidentForm";
+import EditIncidentForm from "../components/forms/EditIncidentForm";
 
 const Catalog = () => {
   const {
@@ -21,7 +21,7 @@ const Catalog = () => {
     setCurrentIncidentIndex,
     isLoading: incidentsLoading,
   } = useIncidents();
-  
+
   const [selectedYears, setSelectedYears] = useState(["all"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [yearsAvailable, setYearsAvailable] = useState([]);
@@ -259,7 +259,8 @@ const Catalog = () => {
 
   const { isAuthenticated } = useAuth();
 
-  const hasFilteredIncidents = filteredIncidents && filteredIncidents.length > 0;
+  const hasFilteredIncidents =
+    filteredIncidents && filteredIncidents.length > 0;
 
   return (
     <>
@@ -281,7 +282,9 @@ const Catalog = () => {
               showGlitch={true}
               showLoadingBar={true}
             >
-              {incidentsLoading ? "Retrieving incidents..." : "Found incidents."}
+              {incidentsLoading
+                ? "Retrieving incidents..."
+                : "Found incidents."}
             </CommandOutput>
           </ConsoleSection>
 
@@ -361,7 +364,11 @@ const Catalog = () => {
             <IncidentGrid
               incidents={sortedIncidents}
               isLoading={incidentsLoading || isDeleting}
-              emptyMessage={incidentsLoading ? "Loading incidents..." : "No matching incidents found."}
+              emptyMessage={
+                incidentsLoading
+                  ? "Loading incidents..."
+                  : "No matching incidents found."
+              }
               onIncidentSelect={handleIncidentSelect}
               getIncidentYear={getIncidentYear}
               selectionMode={selectionMode}

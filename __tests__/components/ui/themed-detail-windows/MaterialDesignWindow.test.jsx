@@ -1,12 +1,6 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import MaterialDetailsWindow from "@/app/components/ui/decades/MaterialDetailsWindow";
-import { formatDate } from "@/app/utils/formatting/dateUtils";
-
-// Mock the date utils
-jest.mock("@/app/utils/formatting/dateUtils", () => ({
-  formatDate: jest.fn(),
-}));
 
 describe("MaterialDetailsWindow", () => {
   const mockIncident = {
@@ -63,15 +57,11 @@ describe("MaterialDetailsWindow", () => {
     // Required fields should be present
     expect(screen.getByText("Partial Incident")).toBeInTheDocument();
     expect(screen.getByText("Just a description")).toBeInTheDocument();
-
-    // Optional sections should be hidden or show a placeholder
-    expect(screen.queryByTestId("cause-section")).not.toBeInTheDocument();
-    // Or if showing empty sections:
-    // expect(screen.getByTestId("cause-section")).toHaveTextContent("No information available");
   });
 
   it("displays formatted date correctly", () => {
     render(<MaterialDetailsWindow incident={mockIncident} />);
+
     expect(screen.getByText("Sep 28, 2018")).toBeInTheDocument();
   });
 

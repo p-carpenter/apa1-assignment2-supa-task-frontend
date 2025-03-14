@@ -1,4 +1,4 @@
-import { server } from "../test-utils";
+import { server } from "../../app/utils/testing/test-utils";
 import { GET } from "@/app/api/fetch-incidents/route";
 import { http, HttpResponse } from "msw";
 

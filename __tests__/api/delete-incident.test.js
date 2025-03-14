@@ -1,47 +1,26 @@
-import { server } from "../test-utils";
+import { server } from "../../app/utils/testing/test-utils";
 import { http, HttpResponse } from "msw";
 import { DELETE } from "@/app/api/delete-incident/route";
-import { setupDebugFetch } from "../utils/debug-fetch";
 
-// Set environment variables directly in the test
-process.env.SUPABASE_URL = "https://test-supabase-url.com";
+process.env.SUPABASE_URL = "https";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
 describe("delete-incident API route", () => {
-  let cleanupDebugFetch;
-
   beforeEach(() => {
-    // Setup debug fetch to log all fetch calls
-    cleanupDebugFetch = setupDebugFetch();
-
-    // Reset environment variables before each test
-    process.env.SUPABASE_URL = "https://test-supabase-url.com";
-    process.env.SUPABASE_ANON_KEY = "test-anon-key";
-
-    // Setup default handlers for the Supabase delete endpoint
     server.use(
-      http.delete(
-        "https://test-supabase-url.com/functions/v1/tech-incidents",
-        async ({ request }) => {
-          // Extract body from the request
-          const body = await request.json();
-          const ids = body.ids || [];
+      http.delete("https", async ({ request }) => {
+        const body = await request.json();
+        const ids = body.ids || [];
 
-          return HttpResponse.json(
-            {
-              success: true,
-              deletedIds: ids,
-            },
-            { status: 200 }
-          );
-        }
-      )
+        return HttpResponse.json(
+          {
+            success: true,
+            deletedIds: ids,
+          },
+          { status: 200 }
+        );
+      })
     );
-  });
-
-  afterEach(() => {
-    // Clean up the debug fetch after each test
-    if (cleanupDebugFetch) cleanupDebugFetch();
   });
 
   it("successfully deletes a single incident by id", async () => {
@@ -51,7 +30,7 @@ describe("delete-incident API route", () => {
     };
 
     const response = await DELETE(mockRequest);
-    // Check that response is a valid Response object
+
     expect(response instanceof Response).toBe(true);
 
     const data = await response.json();
@@ -93,17 +72,10 @@ describe("delete-incident API route", () => {
   });
 
   it("handles errors from Supabase", async () => {
-    // Override the default handler for this specific test
     server.use(
-      http.delete(
-        "https://test-supabase-url.com/functions/v1/tech-incidents",
-        () => {
-          return HttpResponse.json(
-            { error: "Database error" },
-            { status: 500 }
-          );
-        }
-      )
+      http.delete("https", () => {
+        return HttpResponse.json({ error: "Database error" }, { status: 500 });
+      })
     );
 
     const mockRequest = {
@@ -119,7 +91,6 @@ describe("delete-incident API route", () => {
   });
 
   it("handles general exceptions", async () => {
-    // Force an exception in JSON parsing
     const mockRequest = {
       json: () => Promise.reject(new Error("JSON parsing error")),
       method: "DELETE",

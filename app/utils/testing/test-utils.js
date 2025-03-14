@@ -4,7 +4,7 @@ import { rest } from "msw";
 import { setupServer } from "msw/node";
 import { IncidentProvider } from "@/app/contexts/IncidentContext";
 import { ThemeProvider } from "@/app/contexts/ThemeContext";
-import { handlers } from "../app/utils/msw-handlers";
+import { handlers } from "./msw-handlers";
 
 // Mock data for testing
 export const mockIncidents = [

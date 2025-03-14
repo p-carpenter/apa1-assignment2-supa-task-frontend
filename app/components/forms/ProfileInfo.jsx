@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useAuth } from '../../contexts/AuthContext';
-import { useState, useEffect } from 'react';
-import { Button } from '../ui/buttons';
-import { getProtectedData, addProtectedData } from '../../utils/auth/authUtils';
+import { useAuth } from "@/app/contexts/AuthContext";
+import { useState, useEffect } from "react";
+import { Button } from "../ui/buttons";
+import { getProtectedData, addProtectedData } from "@/app/utils/auth/authUtils";
 
 export default function ProfileInfo() {
   const { user, logout } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Get username from user object, fallback to email if not available
-  const username = user?.displayName || user?.email?.split('@')[0] || 'Guest';
+  const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
   const handleLogout = async () => {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
@@ -31,7 +31,7 @@ export default function ProfileInfo() {
         <h2 className="auth-title">USER PROFILE</h2>
         <p className="auth-subtitle">Access level: Registered Member</p>
       </div>
-      
+
       <div className="profile-info">
         <div className="profile-row">
           <div className="profile-label">Username:</div>
@@ -48,16 +48,9 @@ export default function ProfileInfo() {
       </div>
 
       <div className="button-container">
-        <Button 
-          className="auth-button" 
-          label="VIEW CATALOG" 
-          href="/catalog" 
-        />
-        
-        <button
-          onClick={handleLogout}
-          className="auth-button logout-button"
-        >
+        <Button className="auth-button" label="VIEW CATALOG" href="/catalog" />
+
+        <button onClick={handleLogout} className="auth-button logout-button">
           SIGN OUT
         </button>
       </div>

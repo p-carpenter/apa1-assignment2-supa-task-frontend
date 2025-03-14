@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext } from "react";
 import { useIncidents } from "./IncidentContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/artifactUtils";
+import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
 import MacintoshDetailsWindow from "@/app/components/ui/decades/MacintoshDetailsWindow";
 import AeroDetailsWindow from "@/app/components/ui/decades/AeroDetailsWindow";

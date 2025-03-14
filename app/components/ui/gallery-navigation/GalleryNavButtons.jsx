@@ -13,14 +13,12 @@ const GalleryNavButtons = ({
   currentIncidentYear,
   onYearClick,
   incidentCounts = {},
-  // Add a prop to track which incident we're viewing within a year
+
   currentIncidentIndexInYear = 0,
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const previousYearRef = useRef(currentIncidentYear);
   const timelineInnerRef = useRef(null);
-
-  // No longer need to track current index here since it's now passed from parent
 
   const calculateTransform = () => {
     if (!incidentYears || incidentYears.length === 0 || !currentIncidentYear) {
@@ -62,28 +60,22 @@ const GalleryNavButtons = ({
     }
   }, [currentIncidentYear, incidentYears]);
 
-  // Simplified year click handler - now just passes the year, parent handles index
   const handleYearClick = (year) => {
-    if (isAnimating) return;
-    if (!incidentYears || incidentYears.length === 0) return;
+    if (isAnimating && year === currentIncidentYear) {
+      return;
+    }
 
     setIsAnimating(true);
 
-    // When clicking on a year, we always want to cycle to the next incident
-    // If it's the current year, we'll increment the index
-    const isCurrentYear = year === currentIncidentYear;
-
-    // If clicking current year, move to next incident in that year
-    // Otherwise start with the first incident in the clicked year
-    const nextIndex = isCurrentYear
-      ? (currentIncidentIndexInYear + 1) % (incidentCounts[year] || 1)
-      : 0;
-
-    // Let the parent component handle the navigation
-    onYearClick(year, nextIndex);
+    if (year !== currentIncidentYear) {
+      onYearClick(year, 0);
+    } else {
+      const nextIndex =
+        (currentIncidentIndexInYear + 1) % (incidentCounts[year] || 1);
+      onYearClick(year, nextIndex);
+    }
   };
 
-  // Get next and previous years for navigation
   const getNextPrevYears = () => {
     if (
       !incidentYears ||
@@ -122,6 +114,7 @@ const GalleryNavButtons = ({
             style={{
               transform: `translateX(${transformValue}px)`,
             }}
+            data-testid="timeline-inner"
           >
             {incidentYears && incidentYears.length > 0 ? (
               incidentYears.map((year) => {
@@ -159,7 +152,7 @@ const GalleryNavButtons = ({
       <div className="gallery-nav-buttons">
         <button
           className="gallery-nav-button"
-          onClick={onPreviousClick} // Now just use the parent's handler directly
+          onClick={onPreviousClick}
           aria-label="Previous artifact"
         >
           &#9664;
@@ -167,7 +160,7 @@ const GalleryNavButtons = ({
 
         <button
           className="gallery-nav-button"
-          onClick={onNextClick} // Now just use the parent's handler directly
+          onClick={onNextClick}
           aria-label="Next artifact"
         >
           &#9654;

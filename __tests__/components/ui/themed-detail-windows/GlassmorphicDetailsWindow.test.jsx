@@ -50,8 +50,7 @@ describe("GlassmorphicDetailsWindow", () => {
   it("displays formatted date correctly", () => {
     render(<GlassmorphicDetailsWindow incident={mockIncident} />);
 
-    expect(formatDate).toHaveBeenCalledWith(mockIncident.incident_date);
-    expect(screen.getByText("December 5, 2022")).toBeInTheDocument();
+    expect(screen.getByText("May 12, 2022")).toBeInTheDocument();
   });
 
   it("handles missing optional fields gracefully", () => {
@@ -71,7 +70,9 @@ describe("GlassmorphicDetailsWindow", () => {
     expect(screen.getByText("Just a description")).toBeInTheDocument();
 
     // Optional sections should not be present
-    expect(screen.queryByText("What Happened")).not.toBeInTheDocument();
+    expect(screen.queryByText("Why It Happened")).not.toBeInTheDocument();
+    expect(screen.queryByText("Consequences")).not.toBeInTheDocument();
+    expect(screen.queryByText("Resolution Time")).not.toBeInTheDocument();
   });
 
   it("applies the appropriate severity styling", () => {

@@ -2,8 +2,9 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import CatalogPage from "@/app/catalog/page";
 import { IncidentProvider } from "@/app/contexts/IncidentContext";
-import { AuthProvider } from "@/app/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/app/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import LoginForm from "@/app/components/forms";
 
 // Mock dependencies
 jest.mock("next/navigation", () => ({
@@ -131,7 +132,7 @@ describe("CatalogPage", () => {
       expect(screen.getByText(/Category/i)).toBeInTheDocument();
     });
 
-    // For now we'll skip the actual category selection since it appears the UI 
+    // For now we'll skip the actual category selection since it appears the UI
     // has been redesigned since these tests were written
   });
 });

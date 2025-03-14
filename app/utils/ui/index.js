@@ -1,2 +1,2 @@
-// UI utils exports
-export * from './categoryIcons';
+export * from "./categoryIcons";
+export * from "./severityIcons";

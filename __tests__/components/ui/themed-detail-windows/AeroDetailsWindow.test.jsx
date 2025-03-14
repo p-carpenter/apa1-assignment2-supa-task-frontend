@@ -35,9 +35,7 @@ describe("AeroDetailsWindow", () => {
   it("renders with Windows Vista/Aero styling", () => {
     render(<AeroDetailsWindow incident={mockIncident} />);
 
-    // Check for Windows 95/98 UI elements
     expect(screen.getByTestId("2000s-window")).toBeInTheDocument();
-    expect(titleBar).toBeInTheDocument();
   });
 
   it("displays incident details in correct panels", () => {
@@ -94,7 +92,7 @@ describe("AeroDetailsWindow", () => {
 
   it("calls formatDate with correct incident date", () => {
     render(<AeroDetailsWindow incident={mockIncident} />);
-    expect(formatDate).toHaveBeenCalledWith(mockIncident.incident_date);
+    expect(screen.getByText("Jan 30, 2007")).toBeInTheDocument();
   });
 
   it("returns null when incident is null", () => {

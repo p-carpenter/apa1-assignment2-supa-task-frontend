@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../contexts/AuthContext';
-import SignupForm from '../components/auth/SignupForm';
-import './signup.styles.css';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { SignupForm } from "@/app/components/forms";
+import "./signup.styles.css";
 
 // Import reusable components
-import { 
-  ConsoleWindow, 
-  ConsoleSection, 
-  CommandOutput, 
-  CatalogHeader 
-} from '../components/ui';
-import { Button } from '../components/ui/buttons';
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+  CatalogHeader,
+} from "../components/ui";
+import { Button } from "../components/ui/buttons";
 
 export default function SignupPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -21,7 +21,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/profile');
+      router.push("/profile");
     }
   }, [isAuthenticated, loading, router]);
 
@@ -35,25 +35,33 @@ export default function SignupPage() {
   return (
     <>
       <div className="circuit-background"></div>
-      
-      <div className="auth-page-container">
-        <ConsoleWindow title="tech-incidents-registration" statusItems={statusItems} className="auth-console">
-        <ConsoleSection command="security --register" commandParts={
-                {
-                  baseCommand: "security",
-                  flags: ["--register"]
-                }
-              }>
 
-            <CommandOutput title="JOIN THE ARCHIVE" showGlitch={true} showLoadingBar={true}>
+      <div className="auth-page-container">
+        <ConsoleWindow
+          title="tech-incidents-registration"
+          statusItems={statusItems}
+          className="auth-console"
+        >
+          <ConsoleSection
+            command="security --register"
+            commandParts={{
+              baseCommand: "security",
+              flags: ["--register"],
+            }}
+          >
+            <CommandOutput
+              title="JOIN THE ARCHIVE"
+              showGlitch={true}
+              showLoadingBar={true}
+            >
               <div className="output-text">
-                Create a new account to become a member of the Archive and contribute.
+                Create a new account to become a member of the Archive and
+                contribute.
               </div>
-              </CommandOutput>
-              
+            </CommandOutput>
+
             <SignupForm />
           </ConsoleSection>
-
         </ConsoleWindow>
       </div>
     </>

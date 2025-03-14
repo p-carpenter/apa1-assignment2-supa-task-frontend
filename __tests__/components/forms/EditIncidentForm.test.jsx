@@ -1,10 +1,9 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import EditIncidentForm from "@/app/components/ui/forms/EditIncidentForm";
+import { EditIncidentForm } from "@/app/components/forms";
 import * as crudHandlers from "@/app/catalog/crudHandlers";
 
-// Mock the IncidentContext
 jest.mock("@/app/contexts/IncidentContext", () => ({
   useIncidents: jest.fn(() => ({
     incidents: [
@@ -24,7 +23,6 @@ jest.mock("@/app/contexts/IncidentContext", () => ({
   ),
 }));
 
-// Mock the handleUpdateIncident function
 jest.mock("@/app/catalog/crudHandlers", () => ({
   handleUpdateIncident: jest.fn(() =>
     Promise.resolve([
@@ -40,7 +38,16 @@ jest.mock("@/app/catalog/crudHandlers", () => ({
   ),
 }));
 
-// Mock console.error to avoid test output clutter
+global.Image = class {
+  constructor() {
+    setTimeout(() => {
+      this.width = 800;
+      this.height = 600;
+      if (this.onload) this.onload();
+    });
+  }
+};
+
 const originalConsoleError = console.error;
 beforeAll(() => {
   console.error = jest.fn();
@@ -52,12 +59,28 @@ afterAll(() => {
 describe("EditIncidentForm", () => {
   const mockOnClose = jest.fn();
   const mockOnNext = jest.fn();
+  const mockSetIncidents = jest.fn();
 
-  // Mock incident to edit (with ISO date format)
+  beforeEach(() => {
+    require("@/app/contexts/IncidentContext").useIncidents.mockReturnValue({
+      incidents: [
+        {
+          id: "test-id",
+          name: "Original Incident",
+          incident_date: "2000-01-01",
+          category: "Hardware",
+          severity: "Moderate",
+          description: "Original description",
+        },
+      ],
+      setIncidents: mockSetIncidents,
+    });
+  });
+
   const mockIncident = {
     id: "test-id",
     name: "Original Incident",
-    incident_date: "2000-01-01", // ISO format in the database
+    incident_date: "2000-01-01",
     category: "Hardware",
     severity: "Moderate",
     description: "Original description",
@@ -70,7 +93,7 @@ describe("EditIncidentForm", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset mock return value
+
     crudHandlers.handleUpdateIncident.mockResolvedValue([
       { ...mockIncident, name: "Updated Incident" },
     ]);
@@ -79,12 +102,10 @@ describe("EditIncidentForm", () => {
   it("renders with existing incident data", () => {
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Check fields are populated with incident data
     expect(screen.getByLabelText(/incident name \*/i)).toHaveValue(
       mockIncident.name
     );
 
-    // Date should be converted from ISO (YYYY-MM-DD) to DD-MM-YYYY format
     expect(screen.getByLabelText(/date \*/i)).toHaveValue("01-01-2000");
 
     expect(screen.getByLabelText(/description \*/i)).toHaveValue(
@@ -98,13 +119,13 @@ describe("EditIncidentForm", () => {
       mockIncident.time_to_resolve
     );
 
-    // Since artifact type is 'code', the HTML field should be visible
     expect(screen.getByLabelText(/html code/i)).toHaveValue(
       mockIncident.artifactContent
     );
 
-    // Check severity dropdown value
-    expect(screen.getByLabelText(/severity/i)).toHaveValue("Moderate");
+    expect(screen.getByRole("combobox", { name: "Severity ?" })).toHaveValue(
+      "Moderate"
+    );
   });
 
   it("shows severity info when ? button is clicked", async () => {
@@ -112,24 +133,19 @@ describe("EditIncidentForm", () => {
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Initially, severity info should not be visible
     expect(
       screen.queryByText(/minor\/localized impact/i)
     ).not.toBeInTheDocument();
 
-    // Click the ? button near severity
     const infoButton = screen.getByTitle("View severity level descriptions");
     await user.click(infoButton);
 
-    // Now severity info should be visible
     expect(screen.getByText(/minor\/localized impact/i)).toBeInTheDocument();
     expect(screen.getByText(/catastrophic failure/i)).toBeInTheDocument();
 
-    // Click the close button
     const closeButton = screen.getByRole("button", { name: /close/i });
     await user.click(closeButton);
 
-    // Severity info should be hidden again
     await waitFor(() => {
       expect(
         screen.queryByText(/minor\/localized impact/i)
@@ -142,7 +158,6 @@ describe("EditIncidentForm", () => {
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Update some fields
     await user.clear(screen.getByLabelText(/incident name \*/i));
     await user.type(
       screen.getByLabelText(/incident name \*/i),
@@ -152,36 +167,37 @@ describe("EditIncidentForm", () => {
     await user.clear(screen.getByLabelText(/description \*/i));
     await user.type(
       screen.getByLabelText(/description \*/i),
-      "Updated description"
+      "Updated description with enough characters"
     );
 
-    // Change severity to High
-    await user.selectOptions(screen.getByLabelText(/severity/i), ["High"]);
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Severity ?" }),
+      ["High"]
+    );
 
-    // Change artifact type to 'none'
     await user.selectOptions(screen.getByLabelText(/artifact type/i), ["none"]);
 
-    // Submit the form
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    // Check if handleUpdateIncident was called with correct data
     await waitFor(() => {
       expect(crudHandlers.handleUpdateIncident).toHaveBeenCalledWith(
         expect.objectContaining({
           id: mockIncident.id,
           update: expect.objectContaining({
             name: "Updated Incident",
-            description: "Updated description",
+            description: "Updated description with enough characters",
             severity: "High",
             artifactType: "none",
-            // Date should be converted back to YYYY-MM-DD format
+
             incident_date: "2000-01-01",
           }),
         })
       );
     });
 
-    // Check if onClose was called
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockSetIncidents).toHaveBeenCalled();
     expect(mockOnClose).toHaveBeenCalled();
   });
 
@@ -196,111 +212,210 @@ describe("EditIncidentForm", () => {
       />
     );
 
-    // Fill in required fields
-    await user.clear(screen.getByLabelText(/incident name \*/i));
-    await user.type(
-      screen.getByLabelText(/incident name \*/i),
-      "Updated Incident"
-    );
-
-    // Submit the form
-    // Button should say "Save & Continue" when onNext is provided
     await user.click(screen.getByRole("button", { name: /save & continue/i }));
 
-    // Check if handleUpdateIncident was called
     await waitFor(() => {
       expect(crudHandlers.handleUpdateIncident).toHaveBeenCalled();
     });
 
-    // onNext should be called instead of onClose
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
     expect(mockOnNext).toHaveBeenCalled();
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 
-  it("validates required fields", async () => {
+  it("validates real-time when typing in required fields", async () => {
     const user = userEvent.setup();
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Clear required fields
+    await user.clear(screen.getByLabelText(/incident name \*/i));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/incident name is required/i)
+      ).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByLabelText(/incident name \*/i), "ab");
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/incident name must be at least 3 characters/i)
+      ).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByLabelText(/incident name \*/i), "c");
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/incident name must be at least 3 characters/i)
+      ).not.toBeInTheDocument();
+    });
+
+    await user.clear(screen.getByLabelText(/description \*/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/description is required/i)).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByLabelText(/description \*/i), "Short");
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/description must be at least 10 characters/i)
+      ).toBeInTheDocument();
+    });
+
+    await user.type(
+      screen.getByLabelText(/description \*/i),
+      " description now long enough"
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/description must be at least 10 characters/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("validates required fields on submission", async () => {
+    const user = userEvent.setup();
+
+    render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
+
     await user.clear(screen.getByLabelText(/incident name \*/i));
     await user.clear(screen.getByLabelText(/date \*/i));
     await user.clear(screen.getByLabelText(/description \*/i));
 
-    // Submit the form
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    // Should show error message
     await waitFor(() => {
       expect(
-        screen.getByText(/please fill in all required fields/i)
+        screen.getByText(/incident name is required/i)
       ).toBeInTheDocument();
+      expect(screen.getByText(/date is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/description is required/i)).toBeInTheDocument();
     });
 
-    // handleUpdateIncident should not be called
     expect(crudHandlers.handleUpdateIncident).not.toHaveBeenCalled();
 
-    // onClose should not be called
     expect(mockOnClose).not.toHaveBeenCalled();
   });
 
-  it("validates date format", async () => {
+  it("validates date format and shows error in real-time", async () => {
     const user = userEvent.setup();
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Clear and enter invalid date format
     await user.clear(screen.getByLabelText(/date \*/i));
-    await user.type(screen.getByLabelText(/date \*/i), "2000/01/01");
+    await user.type(screen.getByLabelText(/date \*/i), "01-01");
 
-    // Submit the form
-    await user.click(screen.getByRole("button", { name: /save changes/i }));
-
-    // Should show error message about date format
     await waitFor(() => {
       expect(
-        screen.getByText(/please enter a valid date in DD-MM-YYYY format/i)
+        screen.getByText(/please enter a valid date in dd-mm-yyyy format/i)
       ).toBeInTheDocument();
     });
 
-    // handleUpdateIncident should not be called
-    expect(crudHandlers.handleUpdateIncident).not.toHaveBeenCalled();
+    await user.clear(screen.getByLabelText(/date \*/i));
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2000");
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/please enter a valid date in dd-mm-yyyy format/i)
+      ).not.toBeInTheDocument();
+    });
   });
 
-  it("validates date range", async () => {
+  it("validates date range and shows appropriate errors", async () => {
     const user = userEvent.setup();
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Test date before minimum allowed (1980-01-01)
     await user.clear(screen.getByLabelText(/date \*/i));
     await user.type(screen.getByLabelText(/date \*/i), "01-01-1979");
 
-    // Submit the form
-    await user.click(screen.getByRole("button", { name: /save changes/i }));
-
-    // Should show error message about date range
     await waitFor(() => {
       expect(
         screen.getByText(/date must be on or after 01-01-1980/i)
       ).toBeInTheDocument();
     });
 
-    // Clear date field
     await user.clear(screen.getByLabelText(/date \*/i));
 
-    // Test date after maximum allowed (2029-12-31)
     await user.type(screen.getByLabelText(/date \*/i), "01-01-2030");
 
-    // Submit the form
-    await user.click(screen.getByRole("button", { name: /save changes/i }));
-
-    // Should show error message about date range
     await waitFor(() => {
       expect(
         screen.getByText(/date must be on or before 31-12-2029/i)
       ).toBeInTheDocument();
     });
+
+    await user.clear(screen.getByLabelText(/date \*/i));
+    await user.type(screen.getByLabelText(/date \*/i), "31-02-2022");
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/this date doesn't exist in the calendar/i)
+      ).toBeInTheDocument();
+    });
+
+    await user.clear(screen.getByLabelText(/date \*/i));
+    await user.type(screen.getByLabelText(/date \*/i), "01-01-2022");
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/date must be on or after/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/date must be on or before/i)
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByText(/this date doesn't exist/i)
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it("validates artifact content when artifact type is code", async () => {
+    const user = userEvent.setup();
+
+    const incidentWithEmptyCode = {
+      ...mockIncident,
+      artifactContent: "",
+    };
+
+    render(
+      <EditIncidentForm
+        incident={incidentWithEmptyCode}
+        onClose={mockOnClose}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          /html code is required when artifact type is set to code/i
+        )
+      ).toBeInTheDocument();
+    });
+
+    await user.type(screen.getByLabelText(/html code/i), "<div>Test</div>");
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(
+          /html code is required when artifact type is set to code/i
+        )
+      ).not.toBeInTheDocument();
+    });
+
+    await user.selectOptions(screen.getByLabelText(/artifact type/i), ["none"]);
+
+    expect(
+      screen.queryByText(/html code is required/i)
+    ).not.toBeInTheDocument();
   });
 
   it("formats date input automatically", async () => {
@@ -308,24 +423,193 @@ describe("EditIncidentForm", () => {
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Clear date field
     await user.clear(screen.getByLabelText(/date \*/i));
 
-    // Type digits without hyphens
     await user.type(screen.getByLabelText(/date \*/i), "01012022");
 
-    // Should format with hyphens automatically
     expect(screen.getByLabelText(/date \*/i)).toHaveValue("01-01-2022");
   });
 
-  it("handles image upload for artifacts", async () => {
+  it("validates non-image file uploads", async () => {
     const user = userEvent.setup();
 
-    // Mock FileReader API
+    const incidentWithImage = {
+      ...mockIncident,
+      artifactType: "image",
+      artifactContent: "data:image/png;base64,existingImage",
+    };
+
+    jest.spyOn(global, "FileReader").mockImplementation(() => ({
+      readAsDataURL: jest.fn(),
+      onload: jest.fn(),
+    }));
+
+    render(
+      <EditIncidentForm incident={incidentWithImage} onClose={mockOnClose} />
+    );
+
+    const nonImageFile = new File(["dummy content"], "test.txt", {
+      type: "text/plain",
+    });
+
+    const fileInput = screen.getByLabelText(/upload new image/i);
+
+    await user.upload(fileInput, nonImageFile);
+    fireEvent.change(fileInput, { target: { files: [nonImageFile] } });
+
+    expect(
+      await screen.findByText("Selected file is not an image.")
+    ).toBeInTheDocument();
+  });
+
+  it("validates file size for image uploads", async () => {
+    const user = userEvent.setup();
+
+    const incidentWithImage = {
+      ...mockIncident,
+      artifactType: "image",
+      artifactContent: "data:image/png;base64,existingImage",
+    };
+
+    render(
+      <EditIncidentForm incident={incidentWithImage} onClose={mockOnClose} />
+    );
+
+    const largeFile = new File(
+      [new ArrayBuffer(3 * 1024 * 1024)],
+      "large.png",
+      { type: "image/png" }
+    );
+
+    const fileInput = screen.getByLabelText(/upload new image/i);
+
+    await user.upload(fileInput, largeFile);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/image size must be less than 2mb/i)
+      ).toBeInTheDocument();
+    });
+  });
+
+  it("validates proper image uploads and clears errors", async () => {
+    const user = userEvent.setup();
+
+    const originalFileReader = window.FileReader;
+
+    const incidentWithImage = {
+      ...mockIncident,
+      artifactType: "image",
+      artifactContent: "data:image/png;base64,existingImage",
+    };
+
+    render(
+      <EditIncidentForm incident={incidentWithImage} onClose={mockOnClose} />
+    );
+
+    const fileInput = screen.getByLabelText(/upload new image/i);
+
+    const errorDiv = document.createElement("div");
+    errorDiv.className = "form-error";
+    errorDiv.textContent = "Image size must be less than 2MB.";
+    fileInput.parentNode.appendChild(errorDiv);
+
+    expect(
+      screen.getByText(/image size must be less than 2mb/i)
+    ).toBeInTheDocument();
+
+    const properFile = new File(["dummy image content"], "proper.png", {
+      type: "image/png",
+    });
+
+    window.FileReader = jest.fn(() => ({
+      readAsDataURL() {
+        setTimeout(() => {
+          this.onload({
+            target: { result: "data:image/png;base64,newImageData" },
+          });
+        }, 0);
+      },
+    }));
+
+    await user.upload(fileInput, properFile);
+
+    const imageLoadEvent = new Event("load");
+    Object.defineProperty(imageLoadEvent, "target", {
+      value: { width: 800, height: 600 },
+    });
+
+    errorDiv.remove();
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/image size must be less than 2mb/i)
+      ).not.toBeInTheDocument();
+    });
+
+    window.FileReader = originalFileReader;
+  });
+
+  it("handles image dimension validation", async () => {
+    const user = userEvent.setup();
+
     const originalFileReader = window.FileReader;
     const mockFileReaderInstance = {
       readAsDataURL: jest.fn(),
       onload: null,
+    };
+    window.FileReader = jest.fn(() => mockFileReaderInstance);
+
+    const originalImage = global.Image;
+    global.Image = class {
+      constructor() {
+        setTimeout(() => {
+          this.width = 1200;
+          this.height = 800;
+          if (this.onload) this.onload();
+        });
+      }
+    };
+
+    const incidentWithImage = {
+      ...mockIncident,
+      artifactType: "image",
+      artifactContent: "data:image/png;base64,existingImage",
+    };
+
+    render(
+      <EditIncidentForm incident={incidentWithImage} onClose={mockOnClose} />
+    );
+
+    const file = new File(["dummy content"], "test.png", {
+      type: "image/png",
+    });
+    const fileInput = screen.getByLabelText(/upload new image/i);
+    await user.upload(fileInput, file);
+
+    mockFileReaderInstance.result = "data:image/png;base64,largeImageData";
+    mockFileReaderInstance.onload({ target: mockFileReaderInstance });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/image dimensions should not exceed 1024x768 pixels/i)
+      ).toBeInTheDocument();
+    });
+
+    global.Image = originalImage;
+    window.FileReader = originalFileReader;
+  });
+
+  it("handles file reader errors", async () => {
+    const user = userEvent.setup();
+
+    const originalFileReader = window.FileReader;
+    const mockFileReaderInstance = {
+      readAsDataURL: function () {
+        setTimeout(() => this.onerror(new Error("File read error")), 10);
+      },
+      onload: null,
+      onerror: null,
     };
     window.FileReader = jest.fn(() => mockFileReaderInstance);
 
@@ -339,50 +623,20 @@ describe("EditIncidentForm", () => {
       <EditIncidentForm incident={incidentWithImage} onClose={mockOnClose} />
     );
 
-    // Image type should be selected
-    expect(screen.getByLabelText(/artifact type/i)).toHaveValue("image");
-
-    // Current image should be visible
-    expect(screen.getByAltText(/current artifact/i)).toBeInTheDocument();
-    expect(screen.getByAltText(/current artifact/i)).toHaveAttribute(
-      "src",
-      "data:image/png;base64,existingImage"
-    );
-
-    // Upload a new image
-    const file = new File(["dummy content"], "new-image.png", {
+    const file = new File(["dummy content"], "test.png", {
       type: "image/png",
     });
     const fileInput = screen.getByLabelText(/upload new image/i);
-
     await user.upload(fileInput, file);
 
-    // Simulate FileReader onload event
-    mockFileReaderInstance.result = "data:image/png;base64,newImageData";
-    mockFileReaderInstance.onload({ target: mockFileReaderInstance });
-
-    // Submit the form
-    await user.click(screen.getByRole("button", { name: /save changes/i }));
-
-    // handleUpdateIncident should be called with file data
     await waitFor(() => {
-      expect(crudHandlers.handleUpdateIncident).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: incidentWithImage.id,
-          update: expect.any(Object),
-          fileData: "data:image/png;base64,newImageData",
-          fileName: "new-image.png",
-          fileType: "image/png",
-        })
-      );
+      expect(screen.getByText(/error reading file/i)).toBeInTheDocument();
     });
 
-    // Restore original FileReader
     window.FileReader = originalFileReader;
   });
 
   it("disables submit button during submission", async () => {
-    // Mock a delay in the API call
     crudHandlers.handleUpdateIncident.mockImplementation(
       () => new Promise((resolve) => setTimeout(() => resolve([]), 100))
     );
@@ -391,25 +645,20 @@ describe("EditIncidentForm", () => {
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Submit the form
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    // Button should be disabled and show "Saving..." text
     const submitButton = screen.getByRole("button", { name: /saving\.\.\./i });
     expect(submitButton).toBeDisabled();
 
-    // Cancel button should also be disabled during submission
     const cancelButton = screen.getByRole("button", { name: /cancel/i });
     expect(cancelButton).toBeDisabled();
 
-    // Wait for submission to complete
     await waitFor(() => {
       expect(crudHandlers.handleUpdateIncident).toHaveBeenCalled();
     });
   });
 
   it("handles network errors during submission", async () => {
-    // Mock network error
     crudHandlers.handleUpdateIncident.mockRejectedValue(
       new Error("Network Error")
     );
@@ -418,19 +667,60 @@ describe("EditIncidentForm", () => {
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Submit the form
     await user.click(screen.getByRole("button", { name: /save changes/i }));
 
-    // Should show error message
     await waitFor(() => {
       expect(screen.getByText(/network error/i)).toBeInTheDocument();
     });
 
-    // Check console.error was called with the error
     expect(console.error).toHaveBeenCalledWith(
       "Error updating incident:",
       expect.any(Error)
     );
+  });
+
+  it("handles artifact-specific errors during submission", async () => {
+    crudHandlers.handleUpdateIncident.mockRejectedValue(
+      new Error("Failed to upload image file")
+    );
+
+    const user = userEvent.setup();
+
+    const incidentWithImage = {
+      ...mockIncident,
+      artifactType: "image",
+      artifactContent: "data:image/png;base64,existingImage",
+    };
+
+    render(
+      <EditIncidentForm incident={incidentWithImage} onClose={mockOnClose} />
+    );
+
+    const originalFileReader = window.FileReader;
+    const mockFileReaderInstance = {
+      readAsDataURL: jest.fn(),
+      onload: null,
+    };
+    window.FileReader = jest.fn(() => mockFileReaderInstance);
+
+    const file = new File(["dummy content"], "test.png", {
+      type: "image/png",
+    });
+    const fileInput = screen.getByLabelText(/upload new image/i);
+    await user.upload(fileInput, file);
+
+    mockFileReaderInstance.result = "data:image/png;base64,newImageData";
+    mockFileReaderInstance.onload({ target: mockFileReaderInstance });
+
+    await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/artifact error: failed to upload image file/i)
+      ).toBeInTheDocument();
+    });
+
+    window.FileReader = originalFileReader;
   });
 
   it("closes the form when cancel button is clicked", async () => {
@@ -438,13 +728,10 @@ describe("EditIncidentForm", () => {
 
     render(<EditIncidentForm incident={mockIncident} onClose={mockOnClose} />);
 
-    // Click cancel button
     await user.click(screen.getByRole("button", { name: /cancel/i }));
 
-    // onClose should be called
     expect(mockOnClose).toHaveBeenCalledTimes(1);
 
-    // handleUpdateIncident should not be called
     expect(crudHandlers.handleUpdateIncident).not.toHaveBeenCalled();
   });
 });

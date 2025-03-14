@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/app/contexts/ThemeContext";
 import { IncidentProvider } from "@/app/contexts/IncidentContext";
 import { useIncidents } from "@/app/contexts/IncidentContext";
 import { useTheme } from "@/app/contexts/ThemeContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/artifactUtils";
+import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
 jest.mock("@/app/contexts/IncidentContext", () => ({
   useIncidents: jest.fn(),
