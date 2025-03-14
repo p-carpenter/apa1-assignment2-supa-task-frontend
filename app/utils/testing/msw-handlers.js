@@ -63,7 +63,6 @@ export const handlers = [
         const body = await request.json();
         let idsToDelete = [];
 
-        // Handle both single id and array of ids formats
         if (body.id) {
           idsToDelete = [body.id];
         } else if (body.ids) {
@@ -83,6 +82,24 @@ export const handlers = [
           { status: 500 }
         );
       }
+    }
+  ),
+
+  http.post(
+    "https://test-supabase-url.com/functions/v1/password-recovery",
+    async ({ request }) => {
+      return HttpResponse.json({
+        message: "Password reset request processed by Supabase",
+      });
+    }
+  ),
+
+  http.post(
+    "https://test-supabase-url.com/functions/v1/password-recovery/confirm",
+    async ({ request }) => {
+      return HttpResponse.json({
+        message: "Password reset confirmation processed by Supabase",
+      });
     }
   ),
 
@@ -152,31 +169,34 @@ export const handlers = [
   // Password recovery API handlers
   http.post("/api/auth/password-recovery", async ({ request }) => {
     const body = await request.json();
-    
+
     if (!body.email) {
-      return new HttpResponse(JSON.stringify({ error: "Email is required" }), { 
-        status: 400 
+      return new HttpResponse(JSON.stringify({ error: "Email is required" }), {
+        status: 400,
       });
     }
-    
-    return HttpResponse.json({ 
-      message: "Password reset instructions sent" 
+
+    return HttpResponse.json({
+      message: "Password reset instructions sent",
     });
   }),
-  
+
   http.post("/api/auth/password-recovery/confirm", async ({ request }) => {
     const body = await request.json();
-    
+
     if (!body.email || !body.password || !body.token) {
-      return new HttpResponse(JSON.stringify({ 
-        error: "Email, password, and token are required" 
-      }), { 
-        status: 400 
-      });
+      return new HttpResponse(
+        JSON.stringify({
+          error: "Email, password, and token are required",
+        }),
+        {
+          status: 400,
+        }
+      );
     }
-    
-    return HttpResponse.json({ 
-      message: "Password has been reset successfully" 
+
+    return HttpResponse.json({
+      message: "Password has been reset successfully",
     });
   }),
 

@@ -6,7 +6,6 @@ import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
 import "../resetpassword.module.css";
 
-// Import reusable components
 import {
   ConsoleWindow,
   ConsoleSection,
@@ -16,8 +15,7 @@ import {
 export default function ConfirmResetPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
-  
-  // State to store the token from hash
+
   const [token, setToken] = useState("");
   const [formData, setFormData] = useState({
     email: "",
@@ -30,15 +28,16 @@ export default function ConfirmResetPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    // Extract token from URL hash if present
     if (typeof window !== "undefined") {
-      // Check if we have an access_token in the hash
       const hash = window.location.hash;
       console.log("Hash:", hash);
-      
+
       if (hash && hash.includes("access_token=")) {
         const extractedToken = hash.replace("#access_token=", "");
-        console.log("Token found in hash:", extractedToken.substring(0, 10) + "...");
+        console.log(
+          "Token found in hash:",
+          extractedToken.substring(0, 10) + "..."
+        );
         setToken(extractedToken);
       } else {
         console.log("No token found in hash");
@@ -47,19 +46,20 @@ export default function ConfirmResetPage() {
   }, []);
 
   useEffect(() => {
-    // If user is already logged in, redirect to profile
     if (!loading && isAuthenticated) {
       router.push("/profile");
     }
-    
-    // If no token is present after check, redirect to the main reset password page
-    if (typeof window !== "undefined" && !token && !window.location.hash.includes("access_token")) {
+
+    if (
+      typeof window !== "undefined" &&
+      !token &&
+      !window.location.hash.includes("access_token")
+    ) {
       console.log("No token found, redirecting to reset_password");
       router.push("/reset_password");
     }
   }, [isAuthenticated, loading, router, token]);
 
-  // Validate a field
   const validateField = (name, value) => {
     let error = null;
 
@@ -68,7 +68,6 @@ export default function ConfirmResetPage() {
         if (!value.trim()) {
           error = "Email is required.";
         } else {
-          // Email format validation
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
             error = "Please enter a valid email address.";
@@ -82,9 +81,10 @@ export default function ConfirmResetPage() {
         } else if (value.length < 8) {
           error = "Password must be at least 8 characters long.";
         } else {
-          // Check for password requirements
           const hasNumber = /[0-9]/.test(value);
-          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+            value
+          );
           const hasUpperCase = /[A-Z]/.test(value);
 
           if (!hasNumber) {
@@ -112,19 +112,19 @@ export default function ConfirmResetPage() {
     return error;
   };
 
-  // Validate all fields and return true if all are valid
   const validateFields = () => {
     const errors = {};
 
-    // Validate email
     const emailError = validateField("email", formData.email);
     if (emailError) errors.email = emailError;
 
-    // Validate password fields
     const passwordError = validateField("password", formData.password);
     if (passwordError) errors.password = passwordError;
 
-    const confirmPasswordError = validateField("confirmPassword", formData.confirmPassword);
+    const confirmPasswordError = validateField(
+      "confirmPassword",
+      formData.confirmPassword
+    );
     if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
 
     setFormErrors(errors);
@@ -139,7 +139,6 @@ export default function ConfirmResetPage() {
       [name]: value,
     }));
 
-    // Validate field as user types and update errors
     const error = validateField(name, value);
     setFormErrors((prev) => ({
       ...prev,
@@ -152,7 +151,6 @@ export default function ConfirmResetPage() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    // Validate all fields before submission
     if (!validateFields()) {
       return;
     }
@@ -165,10 +163,10 @@ export default function ConfirmResetPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          email: formData.email, 
+        body: JSON.stringify({
+          email: formData.email,
           password: formData.password,
-          token 
+          token,
         }),
       });
 
@@ -178,9 +176,9 @@ export default function ConfirmResetPage() {
         throw new Error(data.error || "Something went wrong");
       }
 
-      // Display success message
-      setSuccessMessage("Your password has been successfully reset. You can now login with your new password.");
-      
+      setSuccessMessage(
+        "Your password has been successfully reset. You can now login with your new password."
+      );
     } catch (err) {
       setErrorMessage(err.message || "Failed to process request");
     } finally {
@@ -188,20 +186,21 @@ export default function ConfirmResetPage() {
     }
   };
 
-  // Helper to determine if a field has an error
   const hasError = (fieldName) => {
     return !!formErrors[fieldName];
   };
 
-  // Define status items for the console footer
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "PASSWORD RECOVERY",
     { text: "RESET PASSWORD", blink: true },
   ];
 
-  // Show loading state while checking for token
-  if (typeof window !== "undefined" && !token && window.location.hash.includes("access_token")) {
+  if (
+    typeof window !== "undefined" &&
+    !token &&
+    window.location.hash.includes("access_token")
+  ) {
     return (
       <div className="loading-container">
         <div className="auth-loading"></div>
@@ -210,8 +209,11 @@ export default function ConfirmResetPage() {
     );
   }
 
-  // If no token and no hash, return null (will redirect in useEffect)
-  if (!token && typeof window !== "undefined" && !window.location.hash.includes("access_token")) {
+  if (
+    !token &&
+    typeof window !== "undefined" &&
+    !window.location.hash.includes("access_token")
+  ) {
     return null;
   }
 
@@ -240,21 +242,19 @@ export default function ConfirmResetPage() {
               <div className="output-text">
                 Create a new password for your account.
               </div>
-              <div className="output-text highlight">
-                ENTER NEW PASSWORD
-              </div>
+              <div className="output-text highlight">ENTER NEW PASSWORD</div>
             </CommandOutput>
 
             <div className="auth-form-container">
               <div className="auth-header">
                 <h2 className="auth-title">RESET PASSWORD</h2>
-                <p className="auth-subtitle">
-                  Create a new secure password
-                </p>
+                <p className="auth-subtitle">Create a new secure password</p>
               </div>
 
               {errorMessage && <div className="auth-error">{errorMessage}</div>}
-              {successMessage && <div className="auth-success">{successMessage}</div>}
+              {successMessage && (
+                <div className="auth-success">{successMessage}</div>
+              )}
 
               {!successMessage && (
                 <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -296,9 +296,15 @@ export default function ConfirmResetPage() {
                     {formErrors.password && (
                       <div className="form-error">{formErrors.password}</div>
                     )}
-                    <p style={{ fontSize: "0.7rem", marginTop: "4px", color: "#888" }}>
-                      Password must be at least 8 characters and include one number, one
-                      special character, and one uppercase letter.
+                    <p
+                      style={{
+                        fontSize: "0.7rem",
+                        marginTop: "4px",
+                        color: "#888",
+                      }}
+                    >
+                      Password must be at least 8 characters and include one
+                      number, one special character, and one uppercase letter.
                     </p>
                   </div>
 
@@ -320,7 +326,9 @@ export default function ConfirmResetPage() {
                       disabled={isSubmitting}
                     />
                     {formErrors.confirmPassword && (
-                      <div className="form-error">{formErrors.confirmPassword}</div>
+                      <div className="form-error">
+                        {formErrors.confirmPassword}
+                      </div>
                     )}
                   </div>
 

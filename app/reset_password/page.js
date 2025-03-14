@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
               <div className="auth-header">
                 <h2 className="auth-title">RECOVER ACCESS</h2>
                 <p className="auth-subtitle">
-                  We'll send you password reset instructions to your email.
+                  We&apos;ll send you password reset instructions to your email.
                 </p>
               </div>
 

@@ -6,7 +6,6 @@ import { useAuth } from "@/app/contexts/AuthContext";
 import ProfileInfo from "./ProfileInfo";
 import "./profile.styles.css";
 
-
 import {
   ConsoleWindow,
   ConsoleSection,
@@ -25,10 +24,8 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, loading, router]);
 
-  
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
-  
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "USER MANAGEMENT",
@@ -70,7 +67,7 @@ export default function ProfilePage() {
               </div>
             </CommandOutput>
 
-            <ProfileInfo />
+            <ProfileInfo data-testid="profile-info" />
           </ConsoleSection>
         </ConsoleWindow>
       </div>

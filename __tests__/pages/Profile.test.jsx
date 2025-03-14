@@ -113,7 +113,9 @@ describe("ProfilePage", () => {
     expect(screen.getByTestId("console-window")).toBeInTheDocument();
     expect(screen.getByTestId("console-section")).toBeInTheDocument();
     expect(screen.getByTestId("command-output")).toBeInTheDocument();
-    expect(screen.getByTestId("profile-info")).toBeInTheDocument();
+    expect(
+      screen.getByText("Access level: Registered Member")
+    ).toBeInTheDocument();
 
     // Verify welcome text
     expect(
