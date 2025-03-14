@@ -3,10 +3,10 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
-import { ProfileInfo } from "@/app/components/forms";
+import ProfileInfo from "./ProfileInfo";
 import "./profile.styles.css";
 
-// Import reusable components
+
 import {
   ConsoleWindow,
   ConsoleSection,
@@ -25,10 +25,10 @@ export default function ProfilePage() {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Get username from user object, fallback to email if not available
+  
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
-  // Define status items for the console footer
+  
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "USER MANAGEMENT",

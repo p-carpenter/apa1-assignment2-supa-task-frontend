@@ -204,6 +204,12 @@ function LoginForm() {
             Register account
           </Link>
         </p>
+        <p>
+          Forgot password?{" "}
+          <Link href="/reset_password" className="auth-link">
+            Reset password
+          </Link>
+        </p>
       </div>
     </div>
   );

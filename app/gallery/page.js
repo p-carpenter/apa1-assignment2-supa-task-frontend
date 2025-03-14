@@ -32,7 +32,7 @@ export default function GalleryPage() {
 
   const [currentIncident, setCurrentIncident] = useState(null);
   const [incidentCountByYear, setIncidentCountByYear] = useState({});
-  // Add state to track which incident we're viewing within each year
+
   const [currentIncidentIndexByYear, setCurrentIncidentIndexByYear] = useState(
     {}
   );
@@ -49,7 +49,6 @@ export default function GalleryPage() {
       : incidents;
   }, [incidents, filteredIncidents, activeFilter, searchQuery, hasIncidents]);
 
-  // Group incidents by year for easier navigation
   const incidentsByYear = useMemo(() => {
     if (!availableIncidents.length) return {};
 
@@ -72,7 +71,6 @@ export default function GalleryPage() {
       }
     });
 
-    // Update our counts state
     setIncidentCountByYear(counts);
     return grouped;
   }, [availableIncidents]);
@@ -83,7 +81,6 @@ export default function GalleryPage() {
       .sort((a, b) => a - b);
   }, [incidentsByYear]);
 
-  // Define currentIncidentYear BEFORE it's used in dependencies
   const currentIncidentYear = useMemo(() => {
     try {
       return currentIncident?.incident_date
@@ -94,7 +91,6 @@ export default function GalleryPage() {
     }
   }, [currentIncident]);
 
-  // When the current incident changes, update the index within the year
   useEffect(() => {
     if (!currentIncident || !currentIncidentYear) return;
 
@@ -130,7 +126,6 @@ export default function GalleryPage() {
   }, [currentIncident, incidents, hasIncidents]);
 
   useEffect(() => {
-    // Don't try to set up incident until data is loaded and we have incidents
     if (incidentsLoading || !hasIncidents) return;
 
     if (!slug) {
@@ -174,13 +169,11 @@ export default function GalleryPage() {
     incidentsLoading,
   ]);
 
-  // Completely rewritten to handle both regular navigation and year-specific navigation
   const handleNavigation = (direction) => {
     if (!hasIncidents || !currentIncident) return;
 
     const year = currentIncidentYear;
     if (!year) {
-      // Fall back to simple navigation if we don't have year information
       navigateWithoutYearContext(direction);
       return;
     }
@@ -188,15 +181,12 @@ export default function GalleryPage() {
     const incidentsInYear = incidentsByYear[year] || [];
     const currentYearIndex = currentIncidentIndexByYear[year] || 0;
 
-    // If there's only one incident in the year or we're going to the last/first incident,
-    // move to the previous/next year
     if (
       incidentsInYear.length <= 1 ||
       (direction === "next" &&
         currentYearIndex >= incidentsInYear.length - 1) ||
       (direction === "prev" && currentYearIndex === 0)
     ) {
-      // Find the next/previous year that has incidents
       const yearIndex = incidentYears.indexOf(year);
       if (yearIndex === -1) {
         navigateWithoutYearContext(direction);
@@ -216,14 +206,12 @@ export default function GalleryPage() {
         return;
       }
 
-      // Choose the first incident from the next year or the last incident from the previous year
       const targetIndexInYear =
         direction === "next" ? 0 : incidentsInTargetYear.length - 1;
       const targetIncident = incidentsInTargetYear[targetIndexInYear];
 
       navigateToIncident(targetIncident, targetYear, targetIndexInYear);
     } else {
-      // Navigate within the same year
       const nextIndexInYear =
         direction === "next"
           ? (currentYearIndex + 1) % incidentsInYear.length
@@ -235,7 +223,6 @@ export default function GalleryPage() {
     }
   };
 
-  // Helper function to navigate when we need to bypass year structure
   const navigateWithoutYearContext = (direction) => {
     const newIndex =
       direction === "next"
@@ -246,7 +233,6 @@ export default function GalleryPage() {
     navigateToIncident(nextIncident);
   };
 
-  // Helper function for consistent navigation
   const navigateToIncident = (incident, year = null, indexInYear = null) => {
     if (!incident) return;
 
@@ -254,7 +240,6 @@ export default function GalleryPage() {
     const url = `/gallery?incident=${slug}`;
     window.history.pushState({ path: url }, "", url);
 
-    // Find the global index
     const globalIndex = incidents.findIndex((inc) => inc.id === incident.id);
     if (globalIndex !== -1) {
       setCurrentIncidentIndex(globalIndex);
@@ -263,7 +248,6 @@ export default function GalleryPage() {
     setDisplayedIncident(incident);
     setCurrentIncident(incident);
 
-    // If year info is provided, update our indices
     if (year !== null && indexInYear !== null) {
       setCurrentIncidentIndexByYear((prev) => ({
         ...prev,
@@ -272,20 +256,16 @@ export default function GalleryPage() {
     }
   };
 
-  // Updated to handle multiple incidents per year - with clearer logging
   const handleYearClick = (year, indexInYear = 0) => {
     if (!incidentsByYear[year] || incidentsByYear[year].length === 0) {
       console.log(`No incidents for year ${year}`);
       return;
     }
 
-    // Get all incidents for this year
     const yearIncidents = incidentsByYear[year];
 
-    // Make sure the index doesn't exceed the available incidents
     const safeIndex = indexInYear % yearIncidents.length;
 
-    // Get the incident at the calculated index
     const selectedIncident = yearIncidents[safeIndex];
 
     if (selectedIncident) {
@@ -293,11 +273,9 @@ export default function GalleryPage() {
       const url = `/gallery?incident=${yearSlug}`;
       window.history.pushState({ path: url }, "", url);
 
-      // Update the UI state with the selected incident
       setCurrentIncident(selectedIncident);
       setDisplayedIncident(selectedIncident);
 
-      // Also update the global incident index
       const globalIndex = incidents.findIndex(
         (inc) => inc.id === selectedIncident.id
       );
@@ -307,12 +285,10 @@ export default function GalleryPage() {
     }
   };
 
-  // Calculate the current index in year for display
   const currentYearIndex = currentIncidentYear
     ? currentIncidentIndexByYear[currentIncidentYear] || 0
     : 0;
 
-  // Create a placeholder incident for the skeleton
   const placeholderIncident = useMemo(() => {
     return {
       name: "Loading...",
@@ -331,8 +307,8 @@ export default function GalleryPage() {
         incidentYears={incidentYears}
         currentIncidentYear={currentIncidentYear}
         onYearClick={handleYearClick}
-        incidentCounts={incidentCountByYear} // Pass incident counts to the component
-        currentIncidentIndexInYear={currentYearIndex} // Pass the current index within the year
+        incidentCounts={incidentCountByYear}
+        currentIncidentIndexInYear={currentYearIndex}
       />
 
       <div className="incident-detail-container" style={{ flexGrow: 1 }}>

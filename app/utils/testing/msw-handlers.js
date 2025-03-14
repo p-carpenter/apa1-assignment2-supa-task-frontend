@@ -149,6 +149,37 @@ export const handlers = [
     });
   }),
 
+  // Password recovery API handlers
+  http.post("/api/auth/password-recovery", async ({ request }) => {
+    const body = await request.json();
+    
+    if (!body.email) {
+      return new HttpResponse(JSON.stringify({ error: "Email is required" }), { 
+        status: 400 
+      });
+    }
+    
+    return HttpResponse.json({ 
+      message: "Password reset instructions sent" 
+    });
+  }),
+  
+  http.post("/api/auth/password-recovery/confirm", async ({ request }) => {
+    const body = await request.json();
+    
+    if (!body.email || !body.password || !body.token) {
+      return new HttpResponse(JSON.stringify({ 
+        error: "Email, password, and token are required" 
+      }), { 
+        status: 400 
+      });
+    }
+    
+    return HttpResponse.json({ 
+      message: "Password has been reset successfully" 
+    });
+  }),
+
   // Add handlers for protected routes
   http.get("/api/auth/protected", () => {
     return HttpResponse.json({ data: "Protected data" });
