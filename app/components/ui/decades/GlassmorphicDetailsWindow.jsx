@@ -1,29 +1,44 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./GlassmorphicDetailsWindow.module.css";
 import ExpandableSection from "../shared/ExpandableSection";
 
-/**
- * Modern macOS Styled Details Window (2020s)
- *
- * This component implements a modern macOS-inspired UI with subtle
- * glass effect, rounded corners, and clean typography, using a
- * compact, auto-height layout without scrolling.
- */
 const GlassmorphicDetailsWindow = ({ incident }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      setIsDarkMode(true);
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
   if (!incident) return null;
 
   const getCategoryColor = (category) => {
-    if (!category) return "#64748b";
+    if (!category) return isDarkMode ? "#64748b" : "#64748b";
 
     const lowerCategory = category.toLowerCase();
-    if (lowerCategory.includes("security")) return "#8b5cf6";
-    if (lowerCategory.includes("hardware")) return "#ec4899";
-    if (lowerCategory.includes("software")) return "#3b82f6";
-    if (lowerCategory.includes("network")) return "#10b981";
-    if (lowerCategory.includes("database")) return "#f59e0b";
+    if (lowerCategory.includes("security"))
+      return isDarkMode ? "#a78bfa" : "#8b5cf6";
+    if (lowerCategory.includes("hardware"))
+      return isDarkMode ? "#f472b6" : "#ec4899";
+    if (lowerCategory.includes("software"))
+      return isDarkMode ? "#60a5fa" : "#3b82f6";
+    if (lowerCategory.includes("network"))
+      return isDarkMode ? "#34d399" : "#10b981";
+    if (lowerCategory.includes("database"))
+      return isDarkMode ? "#fbbf24" : "#f59e0b";
 
-    return "#64748b";
+    return isDarkMode ? "#71717a" : "#64748b";
   };
 
   const getSeverityClass = (severity) => {
@@ -40,46 +55,59 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
   const categoryColor = getCategoryColor(incident.category);
   const severityClass = getSeverityClass(incident.severity);
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
-    <div className={styles.macos_window} data-testid="2020s-window">
-      <div className={styles.macos_header}>
-        <h2 className={styles.header_title}>
-          {incident.name || "Unknown Incident"}
-        </h2>
+    <div
+      className={`${styles.macos_window} ${isDarkMode ? styles.dark_mode : ""}`}
+      data-testid="2020s-window"
+    >
+      <div className={styles.window_header}>
+        <div className={styles.header_controls}>
+          <h2 className={styles.header_title}>
+            {incident.name || "Unknown Incident"}
+          </h2>
+          <button
+            className={styles.dark_mode_toggle}
+            onClick={toggleDarkMode}
+            aria-label={
+              isDarkMode ? "Switch to light mode" : "Switch to dark mode"
+            }
+          >
+            {isDarkMode ? "☀" : "☾"}
+          </button>
+        </div>
       </div>
 
-      {/* Compact Metadata Pills */}
-      <div className={styles.metadata_container_compact}>
+      {/* Metadata Pills */}
+      <div className={styles.metadata_container}>
         <div className={styles.metadata_pill}>
-          <span className={styles.pill_icon}>📅</span>
           <span>{formatDate(incident.incident_date)}</span>
         </div>
         <div
           className={styles.metadata_pill}
           style={{ backgroundColor: categoryColor }}
         >
-          <span className={styles.pill_icon}>📁</span>
           <span>{incident.category || "Unknown"}</span>
         </div>
-
         <div
           className={`${styles.metadata_pill} ${styles[`severity_${incident.severity?.toLowerCase() || "unknown"}`]}`}
         >
-          <span className={styles.pill_icon}>🚨</span>
           <span data-testid="severity-indicator" className={severityClass}>
             {incident.severity || "Unknown"}
           </span>
         </div>
       </div>
 
-      {/* Content Area - No scrolling */}
-      <div className={styles.macos_content_auto}>
-        <div className={styles.macos_section_compact}>
+      {/* Content Area */}
+      <div className={styles.window_content}>
+        <div className={styles.content_section}>
           <ExpandableSection
             title={
-              <div className={styles.section_header_compact}>
-                <div className={styles.section_icon}>⚠️</div>
-                <h3 className={styles.section_title}>What Happened</h3>
+              <div className={styles.section_header}>
+                <span className={styles.section_title}>What Happened</span>
               </div>
             }
             expandedByDefault={true}
@@ -92,15 +120,11 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
         </div>
 
         {incident.cause && (
-          <div
-            className={styles.macos_section_compact}
-            data-testid="cause-section"
-          >
+          <div className={styles.content_section} data-testid="cause-section">
             <ExpandableSection
               title={
-                <div className={styles.section_header_compact}>
-                  <div className={styles.section_icon}>🔍</div>
-                  <h3 className={styles.section_title}>Why It Happened</h3>
+                <div className={styles.section_header}>
+                  <span className={styles.section_title}>Why It Happened</span>
                 </div>
               }
               maxLines={2}
@@ -113,12 +137,11 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
         )}
 
         {incident.consequences && (
-          <div className={styles.macos_section_compact}>
+          <div className={styles.content_section}>
             <ExpandableSection
               title={
-                <div className={styles.section_header_compact}>
-                  <div className={styles.section_icon}>💥</div>
-                  <h3 className={styles.section_title}>Consequences</h3>
+                <div className={styles.section_header}>
+                  <span className={styles.section_title}>Consequences</span>
                 </div>
               }
               maxLines={2}
@@ -131,12 +154,11 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
         )}
 
         {incident.time_to_resolve && (
-          <div className={styles.macos_section_compact}>
+          <div className={styles.content_section}>
             <ExpandableSection
               title={
-                <div className={styles.section_header_compact}>
-                  <div className={styles.section_icon}>🕒</div>
-                  <h3 className={styles.section_title}>Resolution Time</h3>
+                <div className={styles.section_header}>
+                  <span className={styles.section_title}>Resolution Time</span>
                 </div>
               }
               maxLines={1}
@@ -147,13 +169,6 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
             </ExpandableSection>
           </div>
         )}
-      </div>
-
-      {/* Footer */}
-      <div className={styles.macos_footer_compact}>
-        <div className={styles.footnote}>
-          Tech Failures Museum • {new Date().getFullYear()}
-        </div>
       </div>
     </div>
   );

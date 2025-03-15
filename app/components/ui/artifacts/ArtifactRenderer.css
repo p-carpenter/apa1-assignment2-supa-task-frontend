@@ -1,18 +1,42 @@
-/* File: app/components/ui/artifacts/ArtifactRenderer.css */
-/* Add these styles to work better with IframeResizer */
-
 .artifact-renderer {
   display: flex;
   justify-content: center;
   align-items: center;
   position: relative;
-  overflow: hidden; /* Changed from 'hidden' to allow content to flow naturally */
+  overflow: hidden;
   background-color: #fff;
   margin: 0 auto;
   width: 100%;
-  height: 100%; /* Changed from 100% to auto */
-  transition: all 0.3s ease;
+  height: 100%;
+  transition: all 0.2s ease;
   box-sizing: border-box;
+}
+
+
+.artifact-clickable {
+  cursor: pointer;
+}
+
+.artifact-clickable iframe {
+  pointer-events: auto;
+}
+
+
+.artifact-clickable::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.artifact-clickable:hover::after {
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .artifact-content {
@@ -21,7 +45,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: visible; /* Changed from 'hidden' */
+  overflow: visible;
   position: relative;
 }
 
@@ -32,18 +56,19 @@
 }
 
 .artifact-image-container {
-  width: 100%;
-  height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 .artifact-image {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  cursor: pointer;
 }
 
 /* Code-specific styling */
@@ -64,30 +89,11 @@
   align-items: center;
 }
 
-/* Transparent overlay to capture clicks on code */
-.artifact-code-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: transparent;
-  z-index: 2;
-  cursor: pointer;
-  width: auto;
-  height: auto;
-}
-
-.artifact-code-overlay:hover {
-  box-shadow: 0px 0px 10px rgb(255, 255, 255);
-}
-
 .artifact-code {
   width: 100%;
   height: 100%;
-  /* min-height: 100px; */
   border: none;
-  overflow: visible;
+  overflow: auto;
   margin: 0;
   padding: 0;
   display: block;
@@ -142,6 +148,18 @@
   padding: 70px;
 }
 
+/* Dark overlay when expanded - positioned BEHIND the artifact content */
+.artifact-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 99;
+  cursor: pointer;
+}
+
 /* Expanded state */
 .artifact-expanded {
   z-index: 100;
@@ -153,56 +171,69 @@
   max-width: 1200px !important;
   height: 80vh !important;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  cursor: default; /* Reset cursor when expanded */
 }
 
-/* When expanded, change the "Click to expand" text */
-.artifact-expanded.artifact-clickable:hover::after {
-  content: "Click to collapse";
+.artifact-expanded::after {
+  display: none;
 }
 
-/* Debug panel for iframe messaging */
-.iframe-debug-panel {
+/* Expand button */
+.artifact-expand-btn {
   position: absolute;
-  bottom: 40px;
+  bottom: 10px;
   right: 10px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: #00ff00;
-  font-family: monospace;
-  font-size: 12px;
-  padding: 10px;
-  border-radius: 4px;
-  max-width: 300px;
-  max-height: 200px;
-  overflow: auto;
-  z-index: 1000;
-}
-
-.iframe-debug-panel h4 {
-  margin-top: 0;
-  color: #ffffff;
-  font-size: 14px;
-}
-
-.iframe-debug-panel pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-/* Error message styling */
-.iframe-error-message {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(255, 0, 0, 0.1);
-  border: 1px solid #ff0000;
-  color: #ff0000;
-  padding: 20px;
-  border-radius: 4px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #555;
+  font-size: 16px;
+  line-height: 32px;
   text-align: center;
-  max-width: 80%;
-  z-index: 10;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.artifact-expand-btn:hover {
+  opacity: 1;
+  background: white;
+}
+
+/* Close button for expanded artifacts */
+.artifact-close-btn {
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  font-size: 24px;
+  line-height: 24px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  z-index: 101;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.2s ease;
+}
+
+.artifact-close-btn:hover {
+  background: rgba(0, 0, 0, 1);
+}
+
+/* Disable body scrolling when artifact is expanded */
+body.artifact-modal-open {
+  overflow: hidden;
 }
 
 /* Responsive styling for smaller screens */
@@ -240,5 +271,10 @@
 
   .artifact-padding-xl {
     padding: 40px;
+  }
+
+  .artifact-close-btn {
+    top: 10px;
+    right: 10px;
   }
 }

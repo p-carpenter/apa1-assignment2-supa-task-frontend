@@ -9,7 +9,7 @@ import {
   findIncidentBySlug,
   generateSlug,
 } from "@/app/utils/navigation/slugUtils";
-import GalleryExhibit from "@/app/components/layouts/GalleryExhibit";
+import GalleryExhibit from "@/app/gallery/GalleryExhibit";
 
 export default function GalleryPage() {
   const { theme } = useTheme();

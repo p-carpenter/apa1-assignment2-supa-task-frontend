@@ -4,7 +4,6 @@
   width: 100%;
   max-width: 380px;
   background: #f5f5f5;
-  border-radius: 4px;
   box-shadow:
     0 2px 4px -1px rgba(0, 0, 0, 0.2),
     0 4px 5px 0 rgba(0, 0, 0, 0.14),
@@ -57,13 +56,12 @@
   color: white;
   font-size: 12px;
   font-weight: 500;
-  border-radius: 16px;
   display: flex;
   align-items: center;
   letter-spacing: 0.1px;
 }
 
-/* Compact, No-Scroll Content Area */
+/* Content Area */
 .content_area_compact {
   flex: 1;
   overflow: visible;
@@ -75,12 +73,11 @@
   height: auto;
 }
 
-/* Section row layout - more compact than cards */
+/* Section row */
 .section_row {
   background-color: white;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
   margin-bottom: 2px;
 }
 
@@ -89,7 +86,6 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background-color: #fafafa;
   border-bottom: 1px solid #eee;
 }
 

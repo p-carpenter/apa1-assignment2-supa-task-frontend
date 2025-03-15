@@ -1,14 +1,12 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import GalleryExhibit from "@/app/components/layouts/GalleryExhibit";
+import GalleryExhibit from "@/app/gallery/GalleryExhibit";
 import { ThemeProvider } from "@/app/contexts/ThemeContext";
 import { IncidentProvider } from "@/app/contexts/IncidentContext";
 
-// Mock the theme context to provide the necessary functions and components
 jest.mock("@/app/contexts/ThemeContext", () => {
   const originalModule = jest.requireActual("@/app/contexts/ThemeContext");
 
-  // Mock component for Details Window
   const MockDetailsWindow = ({ incident }) => (
     <div data-testid="mock-details-window">
       <h2>{incident.name}</h2>
@@ -28,7 +26,6 @@ jest.mock("@/app/contexts/ThemeContext", () => {
   };
 });
 
-// Mock ArtifactRenderer component
 jest.mock("@/app/components/ui/artifacts/ArtifactRenderer", () => {
   return function MockArtifactRenderer({ artifact, className, paddingSize }) {
     return (
@@ -57,7 +54,6 @@ jest.mock("@/app/components/ui/artifacts/ArtifactRenderer", () => {
   };
 });
 
-// Mock console.log to avoid cluttering tests
 const originalConsoleLog = console.log;
 beforeAll(() => {
   console.log = jest.fn();
@@ -66,7 +62,6 @@ afterAll(() => {
   console.log = originalConsoleLog;
 });
 
-// Store original getBoundingClientRect for cleanup
 const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
 
 describe("GalleryExhibit", () => {
@@ -87,7 +82,6 @@ describe("GalleryExhibit", () => {
     Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
   });
 
-  // Define test cases
   const testCases = [
     {
       name: "with image artifact",
@@ -138,15 +132,12 @@ describe("GalleryExhibit", () => {
         </IncidentProvider>
       );
 
-      // Check main structure
       expect(screen.getByTestId("mock-artifact-renderer")).toBeInTheDocument();
       expect(screen.getByTestId("mock-details-window")).toBeInTheDocument();
 
-      // Check incident details are passed correctly
       expect(screen.getByText(incident.name)).toBeInTheDocument();
       expect(screen.getByText(incident.description)).toBeInTheDocument();
 
-      // Check if artifact info is passed
       if (incident.artifactType) {
         expect(
           screen.getByText(`Artifact Type: ${incident.artifactType}`)
@@ -155,10 +146,8 @@ describe("GalleryExhibit", () => {
         expect(screen.getByText("Artifact Type: none")).toBeInTheDocument();
       }
 
-      // Check pedestal image
       expect(screen.getByAltText("Pedestal")).toBeInTheDocument();
 
-      // Check background image
       expect(screen.getByAltText("Background")).toBeInTheDocument();
     });
   });
@@ -186,7 +175,6 @@ describe("GalleryExhibit", () => {
       </IncidentProvider>
     );
 
-    // Check padding size is passed from theme provider
     expect(screen.getByText("Padding Size: medium")).toBeInTheDocument();
   });
 });

@@ -17,7 +17,9 @@ const GalleryExhibitSkeleton = () => {
         <div className={styles.main_content}>
           {/* Artifact skeleton */}
           <div className={styles.artifact_section}>
-            <div className={`${styles.artifact_container} ${styles.skeleton_artifact}`}>
+            <div
+              className={`${styles.artifact_container} ${styles.skeleton_artifact}`}
+            >
               <div className={styles.skeleton_pulse}></div>
             </div>
             <div className={styles.pedestal}>
@@ -31,19 +33,39 @@ const GalleryExhibitSkeleton = () => {
 
           {/* Details skeleton */}
           <div className={styles.details_section}>
-            <div className={`${styles.details_window} ${styles.skeleton_details}`}>
+            <div
+              className={`${styles.details_window} ${styles.skeleton_details}`}
+            >
               <div className={styles.skeleton_header}>
-                <div className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}></div>
-                <div className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}></div>
-                <div className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}></div>
+                <div
+                  className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}
+                ></div>
+                <div
+                  className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}
+                ></div>
+                <div
+                  className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}
+                ></div>
               </div>
-              <div className={`${styles.skeleton_title} ${styles.skeleton_pulse}`}></div>
+              <div
+                className={`${styles.skeleton_title} ${styles.skeleton_pulse}`}
+              ></div>
               <div className={styles.skeleton_content}>
-                <div className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}></div>
-                <div className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}></div>
-                <div className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}></div>
-                <div className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}></div>
-                <div className={`${styles.skeleton_line} ${styles.skeleton_line_short} ${styles.skeleton_pulse}`}></div>
+                <div
+                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                ></div>
+                <div
+                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                ></div>
+                <div
+                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                ></div>
+                <div
+                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                ></div>
+                <div
+                  className={`${styles.skeleton_line} ${styles.skeleton_line_short} ${styles.skeleton_pulse}`}
+                ></div>
               </div>
             </div>
           </div>
@@ -90,7 +112,7 @@ const GalleryExhibit = ({ incident, isLoading }) => {
                 className={styles.artifact_transparent}
                 paddingSize={paddingSize}
                 maxWidth={hasArtifactContent ? undefined : 400}
-                maxHeight={350} // Fixed height to ensure consistency
+                maxHeight={350}
               />
             </div>
             <div className={styles.pedestal}>
@@ -102,7 +124,7 @@ const GalleryExhibit = ({ incident, isLoading }) => {
             </div>
           </div>
 
-          {/* Details section with decade-specific component */}
+          {/* Details section */}
           <div className={styles.details_section} ref={detailsRef}>
             <div className={styles.details_window}>
               <IncidentDetailsWindows incident={incident} />

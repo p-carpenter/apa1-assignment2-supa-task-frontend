@@ -1,43 +1,77 @@
-import React from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./AeroDetailsWindow.module.css";
 import ExpandableSection from "../shared/ExpandableSection";
+import { Shield, Cpu, Code, Cloud, Users, Building2, Info } from "lucide-react";
 
-/**
- * Glass Window Effect for 2000s style
- *
- * Redesigned with expandable sections that maintain the Aero glass
- * aesthetic while allowing for content expansion without scrolling.
- */
 const AeroDetailsWindow = ({ incident }) => {
   if (!incident) return null;
+
+  const getCategoryIcon = (category) => {
+    const categoryLower = (category || "").toLowerCase();
+
+    switch (categoryLower) {
+      case "security":
+        return <Shield size={14} />;
+      case "hardware":
+        return <Cpu size={14} />;
+      case "software":
+        return <Code size={14} />;
+      case "external factors":
+        return <Cloud size={14} />;
+      case "human error":
+        return <Users size={14} />;
+      case "infrastructure":
+        return <Building2 size={14} />;
+      default:
+        return <Info size={14} />;
+    }
+  };
+
+  const getCategoryIconClass = (category) => {
+    const categoryLower = (category || "").toLowerCase();
+    let iconClass = `${styles.categoryIcon} `;
+
+    switch (categoryLower) {
+      case "security":
+        return iconClass + styles.securityIcon;
+      case "hardware":
+        return iconClass + styles.hardwareIcon;
+      case "software":
+        return iconClass + styles.softwareIcon;
+      case "external factors":
+        return iconClass + styles.externalFactorsIcon;
+      case "human error":
+        return iconClass + styles.humanErrorIcon;
+      case "infrastructure":
+        return iconClass + styles.infrastructureIcon;
+      default:
+        return iconClass + styles.defaultIcon;
+    }
+  };
 
   return (
     <div className={styles.blurBackground}>
       <div className={styles.windowContainer} data-testid="2000s-window">
-        {/* Background and window layers */}
+        {/* Glass Background */}
         <div className={styles.windowBackground}></div>
-
-        {/* Diagonal highlights */}
-        <div className={styles.diagonalHighlight1}></div>
-        <div className={styles.diagonalHighlight2}></div>
-        <div className={styles.diagonalHighlight3}></div>
-        <div className={styles.diagonalHighlight4}></div>
-
+        {/* Border layers */}
         <div className={styles.whiteBorder}></div>
         <div className={styles.blackBorder}></div>
         <div className={styles.blueBorder}></div>
 
-        {/* Title Bar */}
+        {/* Title Bar with Category-specific Icon */}
         <div className={styles.header}>
+          <div className={getCategoryIconClass(incident.category)}>
+            {getCategoryIcon(incident.category)}
+          </div>
           <h2 className={styles.windowTitle}>
             {incident.name || "Unknown Incident"}
           </h2>
         </div>
 
-        {/* Content area with no cards */}
+        {/* Content area with glass panels */}
         <div className={styles.contentArea}>
-          {/* Metadata row for Date, Category, Severity */}
+          {/* Metadata row */}
           <div className={styles.metadataRow}>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Date:</span>
@@ -49,11 +83,13 @@ const AeroDetailsWindow = ({ incident }) => {
             </div>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Severity:</span>
-              <span>{incident.severity || "Unknown"}</span>
+              <span className={styles.severityBadge}>
+                {incident.severity || "Unknown"}
+              </span>
             </div>
           </div>
 
-          {/* Content sections with expandable behavior */}
+          {/* Glass panel content sections */}
           <div className={styles.contentSections}>
             {/* What Happened Section - Always expanded by default */}
             <ExpandableSection
@@ -102,7 +138,9 @@ const AeroDetailsWindow = ({ incident }) => {
                 maxLines={1}
                 minLinesForExpansion={3}
               >
-                {incident.time_to_resolve}
+                <div className={styles.resolutionTime}>
+                  {incident.time_to_resolve}
+                </div>
               </ExpandableSection>
             )}
           </div>
