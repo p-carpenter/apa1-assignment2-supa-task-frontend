@@ -4,15 +4,15 @@ import { useIncidents } from "@/app/contexts/IncidentContext";
 import { useTheme } from "@/app/contexts/ThemeContext";
 import GalleryNavButtons from "@/app/components/ui/gallery-navigation/GalleryNavButtons";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import {
   findIncidentBySlug,
   generateSlug,
 } from "@/app/utils/navigation/slugUtils";
-import GalleryExhibit from "@/app/components/layouts/GalleryExhibit";
+import GalleryExhibit from "@/app/gallery/GalleryExhibit";
 
 export default function GalleryPage() {
-  const { GalleryDisplay, theme } = useTheme();
+  const { theme } = useTheme();
   const {
     incidents,
     filteredIncidents,
@@ -23,6 +23,7 @@ export default function GalleryPage() {
     activeFilter,
     searchQuery,
     displayedIncident,
+    isLoading: incidentsLoading,
   } = useIncidents();
 
   const router = useRouter();
@@ -30,7 +31,11 @@ export default function GalleryPage() {
   const slug = searchParams.get("incident");
 
   const [currentIncident, setCurrentIncident] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [incidentCountByYear, setIncidentCountByYear] = useState({});
+
+  const [currentIncidentIndexByYear, setCurrentIncidentIndexByYear] = useState(
+    {}
+  );
 
   const hasIncidents = useMemo(
     () => Array.isArray(incidents) && incidents.length > 0,
@@ -44,22 +49,37 @@ export default function GalleryPage() {
       : incidents;
   }, [incidents, filteredIncidents, activeFilter, searchQuery, hasIncidents]);
 
-  const incidentYears = useMemo(() => {
-    return [
-      ...new Set(
-        availableIncidents
-          .map((incident) => {
-            try {
-              return new Date(incident.incident_date).getFullYear();
-            } catch (e) {
-              return null;
-            }
-          })
-          .filter(Boolean)
-          .sort((a, b) => a - b)
-      ),
-    ];
+  const incidentsByYear = useMemo(() => {
+    if (!availableIncidents.length) return {};
+
+    const grouped = {};
+    const counts = {};
+
+    availableIncidents.forEach((incident) => {
+      try {
+        if (incident.incident_date) {
+          const year = new Date(incident.incident_date).getFullYear();
+          if (!grouped[year]) {
+            grouped[year] = [];
+            counts[year] = 0;
+          }
+          grouped[year].push(incident);
+          counts[year]++;
+        }
+      } catch (e) {
+        console.error("Error processing incident:", e);
+      }
+    });
+
+    setIncidentCountByYear(counts);
+    return grouped;
   }, [availableIncidents]);
+
+  const incidentYears = useMemo(() => {
+    return Object.keys(incidentsByYear)
+      .map(Number)
+      .sort((a, b) => a - b);
+  }, [incidentsByYear]);
 
   const currentIncidentYear = useMemo(() => {
     try {
@@ -70,6 +90,23 @@ export default function GalleryPage() {
       return null;
     }
   }, [currentIncident]);
+
+  useEffect(() => {
+    if (!currentIncident || !currentIncidentYear) return;
+
+    const year = currentIncidentYear;
+    const incidents = incidentsByYear[year] || [];
+
+    if (incidents.length > 0) {
+      const index = incidents.findIndex((inc) => inc.id === currentIncident.id);
+      if (index !== -1) {
+        setCurrentIncidentIndexByYear((prev) => ({
+          ...prev,
+          [year]: index,
+        }));
+      }
+    }
+  }, [currentIncident, incidentsByYear, currentIncidentYear]);
 
   useEffect(() => {
     if (currentIncident?.incident_date) {
@@ -89,7 +126,7 @@ export default function GalleryPage() {
   }, [currentIncident, incidents, hasIncidents]);
 
   useEffect(() => {
-    if (!hasIncidents) return;
+    if (incidentsLoading || !hasIncidents) return;
 
     if (!slug) {
       const targetIncident = displayedIncident || incidents[0];
@@ -99,7 +136,6 @@ export default function GalleryPage() {
         window.history.replaceState({ path: url }, "", url);
 
         setCurrentIncident(targetIncident);
-        setIsLoading(false);
         return;
       }
     } else {
@@ -110,7 +146,6 @@ export default function GalleryPage() {
         setCurrentIncidentIndex(index);
         setDisplayedIncident(incident);
         setCurrentIncident(incident);
-        setIsLoading(false);
         return;
       }
     }
@@ -123,9 +158,6 @@ export default function GalleryPage() {
 
       setCurrentIncident(firstIncident);
       setDisplayedIncident(firstIncident);
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
     }
   }, [
     slug,
@@ -134,60 +166,138 @@ export default function GalleryPage() {
     hasIncidents,
     setCurrentIncidentIndex,
     setDisplayedIncident,
+    incidentsLoading,
   ]);
 
   const handleNavigation = (direction) => {
-    if (currentIndex === -1 || !hasIncidents) return;
+    if (!hasIncidents || !currentIncident) return;
 
+    const year = currentIncidentYear;
+    if (!year) {
+      navigateWithoutYearContext(direction);
+      return;
+    }
+
+    const incidentsInYear = incidentsByYear[year] || [];
+    const currentYearIndex = currentIncidentIndexByYear[year] || 0;
+
+    if (
+      incidentsInYear.length <= 1 ||
+      (direction === "next" &&
+        currentYearIndex >= incidentsInYear.length - 1) ||
+      (direction === "prev" && currentYearIndex === 0)
+    ) {
+      const yearIndex = incidentYears.indexOf(year);
+      if (yearIndex === -1) {
+        navigateWithoutYearContext(direction);
+        return;
+      }
+
+      const nextYearIndex =
+        direction === "next"
+          ? (yearIndex + 1) % incidentYears.length
+          : (yearIndex - 1 + incidentYears.length) % incidentYears.length;
+
+      const targetYear = incidentYears[nextYearIndex];
+      const incidentsInTargetYear = incidentsByYear[targetYear] || [];
+
+      if (incidentsInTargetYear.length === 0) {
+        navigateWithoutYearContext(direction);
+        return;
+      }
+
+      const targetIndexInYear =
+        direction === "next" ? 0 : incidentsInTargetYear.length - 1;
+      const targetIncident = incidentsInTargetYear[targetIndexInYear];
+
+      navigateToIncident(targetIncident, targetYear, targetIndexInYear);
+    } else {
+      const nextIndexInYear =
+        direction === "next"
+          ? (currentYearIndex + 1) % incidentsInYear.length
+          : (currentYearIndex - 1 + incidentsInYear.length) %
+            incidentsInYear.length;
+
+      const targetIncident = incidentsInYear[nextIndexInYear];
+      navigateToIncident(targetIncident, year, nextIndexInYear);
+    }
+  };
+
+  const navigateWithoutYearContext = (direction) => {
     const newIndex =
       direction === "next"
         ? (currentIndex + 1) % incidents.length
         : (currentIndex - 1 + incidents.length) % incidents.length;
 
     const nextIncident = incidents[newIndex];
-    const nextSlug = generateSlug(nextIncident.name);
-
-    // Update URL and state
-    const url = `/gallery?incident=${nextSlug}`;
-    window.history.pushState({ path: url }, "", url);
-
-    setCurrentIncidentIndex(newIndex);
-    setDisplayedIncident(nextIncident);
-    setCurrentIncident(nextIncident);
+    navigateToIncident(nextIncident);
   };
 
-  const handleYearClick = (year) => {
-    const yearIncident = availableIncidents.find((incident) => {
-      try {
-        return new Date(incident.incident_date).getFullYear() === year;
-      } catch (e) {
-        return false;
-      }
-    });
+  const navigateToIncident = (incident, year = null, indexInYear = null) => {
+    if (!incident) return;
 
-    if (yearIncident) {
-      const yearSlug = generateSlug(yearIncident.name);
-      const url = `/gallery?incident=${yearSlug}`;
-      window.history.pushState({ path: url }, "", url);
+    const slug = generateSlug(incident.name);
+    const url = `/gallery?incident=${slug}`;
+    window.history.pushState({ path: url }, "", url);
 
-      setCurrentIncident(yearIncident);
-      setDisplayedIncident(yearIncident);
+    const globalIndex = incidents.findIndex((inc) => inc.id === incident.id);
+    if (globalIndex !== -1) {
+      setCurrentIncidentIndex(globalIndex);
+    }
+
+    setDisplayedIncident(incident);
+    setCurrentIncident(incident);
+
+    if (year !== null && indexInYear !== null) {
+      setCurrentIncidentIndexByYear((prev) => ({
+        ...prev,
+        [year]: indexInYear,
+      }));
     }
   };
 
-  if (!currentIncident) {
-    return (
-      <div className="error-container">
-        <p>No incidents available to display.</p>
-        <button
-          onClick={() => router.push("/catalog?reset=true")}
-          className="catalog-button"
-        >
-          Return to Catalog
-        </button>
-      </div>
-    );
-  }
+  const handleYearClick = (year, indexInYear = 0) => {
+    if (!incidentsByYear[year] || incidentsByYear[year].length === 0) {
+      console.log(`No incidents for year ${year}`);
+      return;
+    }
+
+    const yearIncidents = incidentsByYear[year];
+
+    const safeIndex = indexInYear % yearIncidents.length;
+
+    const selectedIncident = yearIncidents[safeIndex];
+
+    if (selectedIncident) {
+      const yearSlug = generateSlug(selectedIncident.name);
+      const url = `/gallery?incident=${yearSlug}`;
+      window.history.pushState({ path: url }, "", url);
+
+      setCurrentIncident(selectedIncident);
+      setDisplayedIncident(selectedIncident);
+
+      const globalIndex = incidents.findIndex(
+        (inc) => inc.id === selectedIncident.id
+      );
+      if (globalIndex !== -1) {
+        setCurrentIncidentIndex(globalIndex);
+      }
+    }
+  };
+
+  const currentYearIndex = currentIncidentYear
+    ? currentIncidentIndexByYear[currentIncidentYear] || 0
+    : 0;
+
+  const placeholderIncident = useMemo(() => {
+    return {
+      name: "Loading...",
+      description: "Loading incident details...",
+      category: "Loading",
+      severity: "Medium",
+      incident_date: new Date().toISOString(),
+    };
+  }, []);
 
   return (
     <div className={`gallery-container incident-content`}>
@@ -197,15 +307,19 @@ export default function GalleryPage() {
         incidentYears={incidentYears}
         currentIncidentYear={currentIncidentYear}
         onYearClick={handleYearClick}
+        incidentCounts={incidentCountByYear}
+        currentIncidentIndexInYear={currentYearIndex}
       />
 
       <div className="incident-detail-container" style={{ flexGrow: 1 }}>
         <GalleryExhibit
-          incident={currentIncident}
+          incident={currentIncident || placeholderIncident}
           incidents={availableIncidents}
+          isLoading={incidentsLoading || !currentIncident}
           onClose={() => router.push("/catalog?reset=true")}
           currentIndex={currentIndex}
           onNavigate={(index) => {
+            if (!incidents[index]) return;
             const nextIncident = incidents[index];
             const nextSlug = generateSlug(nextIncident.name);
             const url = `/gallery?incident=${nextSlug}`;

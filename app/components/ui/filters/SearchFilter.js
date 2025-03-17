@@ -1,24 +1,19 @@
-import React from 'react';
+import React from "react";
 
-const SearchFilter = ({ searchQuery, setSearchQuery, placeholder = "Search incidents..." }) => {
+const SearchFilter = ({
+  searchQuery,
+  onSearchChange,
+  placeholder = "Search incidents...",
+}) => {
   return (
     <div className="search-container">
       <input
         type="text"
         placeholder={placeholder}
         value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
+        onChange={(e) => onSearchChange(e.target.value)}
         className="search-input"
       />
-      {searchQuery && (
-        <button 
-          className="clear-button" 
-          onClick={() => setSearchQuery("")}
-          aria-label="Clear search"
-        >
-          ×
-        </button>
-      )}
     </div>
   );
 };

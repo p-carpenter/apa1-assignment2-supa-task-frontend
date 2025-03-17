@@ -1,111 +1,159 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent, waitFor } from "@testing-library/react";
 import Home from "@/app/page";
-import { IncidentProvider } from "@/app/contexts/IncidentContext";
-import { AuthProvider } from "@/app/contexts/AuthContext";
-import React from "react";
+import { render } from "@/app/utils/testing/test-utils";
 
-// Mock ThemeProvider to avoid circular dependency
-jest.mock("@/app/contexts/ThemeContext", () => {
-  const originalModule = jest.requireActual("@/app/contexts/ThemeContext");
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  }),
+  usePathname: () => "/",
+}));
 
-  return {
-    ...originalModule,
-    ThemeProvider: ({ children }) => (
-      <div data-testid="mock-theme-provider">{children}</div>
-    ),
-    useTheme: () => ({
-      decade: 1990,
-      theme: {
-        name: "Windows 95",
-        background: "bg-[#008080]",
-        text: "text-black",
-        fontFamily: "font-WFA95",
-        accent: "bg-win95gray",
-      },
-      GalleryDisplay: ({ incident }) => (
-        <div data-testid="mock-gallery-display">
-          {incident?.name || "No incident"}
-        </div>
-      ),
-    }),
-  };
-});
-
-// Mock Next.js Link component
 jest.mock("next/link", () => {
   return ({ href, children, className, onClick }) => {
     return (
-      <a href={href} className={className} onClick={onClick}>
+      <a
+        href={href}
+        className={className}
+        onClick={onClick}
+        data-testid="mock-link"
+      >
         {children}
       </a>
     );
   };
 });
 
-// Custom render function with providers
-const customRender = (ui, options = {}) => {
-  const mockIncidents = [
-    {
-      id: "1",
-      name: "Test Incident 1",
-      category: "Software",
-      severity: 3,
-      incident_date: "2000-01-01",
-      description: "Test description 1",
-    },
-    {
-      id: "2",
-      name: "Test Incident 2",
-      category: "Hardware",
-      severity: 4,
-      incident_date: "1990-05-15",
-      description: "Test description 2",
-    },
-  ];
+jest.mock("@/app/contexts/AuthContext", () => {
+  const originalModule = jest.requireActual("@/app/contexts/AuthContext");
 
-  const Wrapper = ({ children }) => (
-    <AuthProvider>
-      <IncidentProvider incidents={mockIncidents}>{children}</IncidentProvider>
-    </AuthProvider>
-  );
+  return {
+    ...originalModule,
+    useAuth: jest.fn().mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+      loading: false,
+    }),
+  };
+});
 
-  return render(ui, { wrapper: Wrapper, ...options });
-};
-
-describe("Home Page", () => {
-  it("renders page correctly", () => {
-    customRender(<Home />);
-
-    // Check main elements
-    expect(
-      screen.getByText(/Database loaded successfully/i)
-    ).toBeInTheDocument();
-    expect(screen.getByText(/EXPLORE ARCHIVE/i)).toBeInTheDocument();
+describe("Homepage", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('opens info modal when "What is" link is clicked', () => {
-    customRender(<Home />);
+  it("renders basic page elements correctly", async () => {
+    render(<Home />);
 
-    // Find and click the learn more link
+    expect(screen.getByText("TECH INCIDENTS DATABASE")).toBeInTheDocument();
+    expect(
+      screen.getByText("Database loaded successfully.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("EXPLORE ARCHIVE")).toBeInTheDocument();
+
+    const infoLink = screen.getByText("What is the Tech Incidents Archive?");
+    expect(infoLink).toBeInTheDocument();
+  });
+
+  it("shows 'guest' in command prompt when unauthenticated", async () => {
+    const { useAuth } = require("@/app/contexts/AuthContext");
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+      loading: false,
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/guest@archive:~\$/)[0]).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Access level: PUBLIC")).toBeInTheDocument();
+    expect(
+      screen.getByText("YOU MAY EXAMINE THE ARTIFACTS")
+    ).toBeInTheDocument();
+  });
+
+  it("shows display name in command prompt when authenticated", async () => {
+    const { useAuth } = require("@/app/contexts/AuthContext");
+    useAuth.mockReturnValue({
+      isAuthenticated: true,
+      user: { email: "test@example.com", displayName: "TestUser" },
+      loading: false,
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText(/TestUser@archive:~\$/)[0]
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Access level: MEMBER")).toBeInTheDocument();
+    expect(
+      screen.getByText("YOU MAY EXAMINE AND CONTRIBUTE TO THE ARTIFACTS")
+    ).toBeInTheDocument();
+  });
+
+  it("displays loading state during authentication check", async () => {
+    const { useAuth } = require("@/app/contexts/AuthContext");
+    useAuth.mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+      loading: true,
+    });
+
+    render(<Home />);
+
+    expect(screen.getByText("Verifying credentials...")).toBeInTheDocument();
+  });
+
+  it("opens info modal when 'What is' link is clicked", async () => {
+    render(<Home />);
+
     const learnMoreButton = screen.getByText(
-      /What is the Tech Incidents Archive\?/i
+      "What is the Tech Incidents Archive?"
     );
     fireEvent.click(learnMoreButton);
 
-    // Modal should appear
     expect(
-      screen.getByText(/The Tech Incidents Archive is a digital museum/i)
+      screen.getByText(/The Tech Incidents Archive is a digital museum/)
     ).toBeInTheDocument();
+    expect(screen.getByText(/Y2K Bug/)).toBeInTheDocument();
+
+    const closeButton = screen.getByText("Close");
+    expect(closeButton).toBeInTheDocument();
+
+    fireEvent.click(closeButton);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText(/The Tech Incidents Archive is a digital museum/)
+      ).not.toBeInTheDocument();
+    });
   });
 
-  it("changes button text when donation button is clicked", () => {
-    customRender(<Home />);
+  it("changes donation button text when clicked", async () => {
+    render(<Home />);
 
-    // Find and click the dismiss button
-    const dismissButton = screen.getByText(/Maybe Later/i);
+    const dismissButton = screen.getByText("Maybe Later");
     fireEvent.click(dismissButton);
 
-    // Button text should change
-    expect(screen.getByText(/Donate £100/i)).toBeInTheDocument();
+    expect(screen.getByText("Donate £100")).toBeInTheDocument();
+    expect(screen.getByText("Donate £100").className).toContain(
+      "donate big-donate"
+    );
+  });
+
+  it("navigates to gallery when 'EXPLORE ARCHIVE' button is clicked", () => {
+    render(<Home />);
+
+    const exploreButton = screen.getByText("EXPLORE ARCHIVE");
+    const exploreLink = exploreButton.closest("a");
+
+    expect(exploreLink).toHaveAttribute("href", "/gallery");
   });
 });

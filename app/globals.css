@@ -886,6 +886,7 @@ body {
 
 .modal-lg {
   max-width: 800px;
+  overflow: hidden;
 }
 
 .close-modal {
@@ -990,10 +991,24 @@ body {
   box-shadow: 0 0 0 1px var(--color-accent-light);
 }
 
+.input-error {
+  border: 1px solid #cc5454 !important;
+  background-color: #fff2f0;
+}
+
 .form-error {
   color: #cc5454;
   font-size: 0.8rem;
-  margin-top: 0.3rem;
+  margin-top: 2px;
+}
+
+.form-error-message {
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #cc5454;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 15px;
 }
 
 .form-buttons {

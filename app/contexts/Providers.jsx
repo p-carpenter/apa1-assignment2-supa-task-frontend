@@ -1,38 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { AuthProvider } from "./AuthContext";
 import { IncidentProvider } from "./IncidentContext";
 import { ThemeProvider } from "./ThemeContext";
-import { AuthProvider } from "./AuthContext";
 
 const Providers = ({ children }) => {
-  const [incidentData, setIncidentData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchIncidents = async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetch("/api/fetch-incidents");
-        if (!response.ok) throw new Error(`Error: ${response.status}`);
-        const data = await response.json();
-        setIncidentData(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchIncidents();
-  }, []);
-
-  if (isLoading) {
-    return <div className="loading">Loading incidents...</div>;
-  }
-
   return (
     <AuthProvider>
-      <IncidentProvider incidents={incidentData}>
+      <IncidentProvider>
         <ThemeProvider>{children}</ThemeProvider>
       </IncidentProvider>
     </AuthProvider>

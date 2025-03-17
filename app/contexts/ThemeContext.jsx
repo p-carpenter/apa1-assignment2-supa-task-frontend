@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext } from "react";
 import { useIncidents } from "./IncidentContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/artifactUtils";
+import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
 import MacintoshDetailsWindow from "@/app/components/ui/decades/MacintoshDetailsWindow";
 import AeroDetailsWindow from "@/app/components/ui/decades/AeroDetailsWindow";
@@ -20,40 +20,40 @@ const IncidentDetailsWindows = {
 
 const StandardArtifactWidth = 863;
 
-const DecadeConfigurations = {
-  1980: {
-    maxHeight: 600,
-    frameType: "dos",
-    contentPadding: "medium",
-  },
-  1990: {
-    maxHeight: 640,
-    frameType: "win95",
-    contentPadding: "small",
-  },
-  2000: {
-    maxHeight: 680,
-    frameType: "geocities",
-    contentPadding: "medium",
-  },
-  2010: {
-    maxHeight: 690,
-    frameType: "android",
-    contentPadding: "small",
-  },
-  2020: {
-    maxHeight: 700,
-    frameType: "zoom",
-    contentPadding: "small",
-  },
-};
+// const DecadeConfigurations = {
+//   1980: {
+//     maxHeight: 600,
+//     frameType: "dos",
+//     contentPadding: "medium",
+//   },
+//   1990: {
+//     maxHeight: 640,
+//     frameType: "win95",
+//     contentPadding: "small",
+//   },
+//   2000: {
+//     maxHeight: 680,
+//     frameType: "geocities",
+//     contentPadding: "medium",
+//   },
+//   2010: {
+//     maxHeight: 690,
+//     frameType: "android",
+//     contentPadding: "small",
+//   },
+//   2020: {
+//     maxHeight: 700,
+//     frameType: "zoom",
+//     contentPadding: "small",
+//   },
+// };
 
 // Theme context structure
 const ThemeContext = createContext({
   decade: 1990,
   getPaddingSizeForArtifact: getPaddingSizeForArtifact,
   artifactWidth: StandardArtifactWidth,
-  decadeConfig: DecadeConfigurations[1990],
+  // decadeConfig: DecadeConfigurations[1990],
   IncidentDetailsWindows: IncidentDetailsWindows[1990],
 });
 
@@ -67,14 +67,14 @@ export const ThemeProvider = ({ children }) => {
     String(currentDecade)
   )
     ? currentDecade
-    : 1990;
+    : 2020;
 
   const value = {
     decade: decadeKey,
     IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
     getPaddingSizeForArtifact: getPaddingSizeForArtifact,
     artifactWidth: StandardArtifactWidth,
-    decadeConfig: DecadeConfigurations[decadeKey] || DecadeConfigurations[1990],
+    // decadeConfig: DecadeConfigurations[decadeKey] || DecadeConfigurations[1990],
   };
 
   return (

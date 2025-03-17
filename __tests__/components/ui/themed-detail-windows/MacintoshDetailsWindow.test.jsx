@@ -1,12 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import MacintoshDetailsWindow from "@/app/components/ui/decades/MacintoshDetailsWindow";
-import { formatDate } from "@/app/utils/formatting/dateUtils";
-
-// Mock the dateUtils module
-jest.mock("@/app/utils/formatting/dateUtils", () => ({
-  formatDate: jest.fn(),
-}));
 
 describe("MacintoshDetailsWindow", () => {
   const mockIncident = {
@@ -22,7 +16,7 @@ describe("MacintoshDetailsWindow", () => {
   };
 
   beforeEach(() => {
-    formatDate.mockReturnValue("Jan 15, 1988");
+    jest.clearAllMocks();
   });
 
   it("renders the window with incident details", () => {
@@ -48,6 +42,11 @@ describe("MacintoshDetailsWindow", () => {
 
     expect(screen.getByText("Resolution Time")).toBeInTheDocument();
     expect(screen.getByText("48 hours")).toBeInTheDocument();
+  });
+
+  it("calls formatDate with correct incident date", () => {
+    render(<MacintoshDetailsWindow incident={mockIncident} />);
+    expect(screen.getByText("Jan 15, 1988")).toBeInTheDocument();
   });
 
   it("handles missing optional fields gracefully", () => {

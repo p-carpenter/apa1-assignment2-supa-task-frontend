@@ -12,8 +12,9 @@ const createJestConfig = nextJest({
 });
 
 const config = {
+  // automock: true,
   // Automatically clear mock calls and instances between every test
-  clearMocks: false,
+  clearMocks: true,
 
   // The directory where Jest should output its coverage files
   coverageDirectory: "coverage",
@@ -33,7 +34,7 @@ const config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js", "jest-extended/all"],
 
   // The test environment that will be used for testing
-  testEnvironment: "jsdom",
+  testEnvironment: "jest-fixed-jsdom",
 
   // The glob patterns Jest uses to detect test files
   testMatch: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
@@ -54,6 +55,10 @@ const config = {
       "./node_modules/jest-html-reporter",
       {
         pageTitle: "Test Report",
+        includeFailureMsg: true,
+        includeStackTrace: true,
+        includeSuiteFailure: true,
+        includeConsoleLog: true,
       },
     ],
   ],

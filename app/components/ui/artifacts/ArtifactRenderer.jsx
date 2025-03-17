@@ -1,20 +1,17 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import "./ArtifactRenderer.css";
 
 const ArtifactRenderer = ({
   artifact,
-  maxWidth = 863, 
-  maxHeight = 2000, 
-  minHeight = 0, 
+  maxWidth = 863,
+  maxHeight = 768,
+  minHeight = 0,
   title,
   className = "",
   containerId = "artifact-container",
-  onExpand = null, 
-  paddingSize = "auto", 
-  showDimensions = true, 
+  onExpand = null,
+  paddingSize = "auto",
 }) => {
-  
   const [dimensions, setDimensions] = useState({
     width: maxWidth,
     height: Math.min(
@@ -27,35 +24,98 @@ const ArtifactRenderer = ({
   const containerRef = useRef(null);
   const contentRef = useRef(null);
   const iframeRef = useRef(null);
+  const expandTimerRef = useRef(null);
 
   const toggleExpand = () => {
     const newExpandedState = !expanded;
     setExpanded(newExpandedState);
+
+    // If expanded, add a class to the body to prevent scrolling
+    if (newExpandedState) {
+      document.body.classList.add("artifact-modal-open");
+    } else {
+      document.body.classList.remove("artifact-modal-open");
+    }
+
     if (onExpand) {
       onExpand(newExpandedState);
     }
   };
 
-  
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === "Escape" && expanded) {
+        toggleExpand();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+
+    // Add the event listener to iframe documents if they exist
+    if (iframeRef.current) {
+      try {
+        const iframeDoc =
+          iframeRef.current.contentDocument ||
+          (iframeRef.current.contentWindow &&
+            iframeRef.current.contentWindow.document);
+
+        if (iframeDoc) {
+          iframeDoc.addEventListener("keydown", handleEscape);
+        }
+      } catch (err) {
+        console.warn("Could not add ESC handler to iframe:", err);
+      }
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+
+      // Clean up iframe event listeners
+      if (iframeRef.current) {
+        try {
+          const iframeDoc =
+            iframeRef.current.contentDocument ||
+            (iframeRef.current.contentWindow &&
+              iframeRef.current.contentWindow.document);
+
+          if (iframeDoc) {
+            iframeDoc.removeEventListener("keydown", handleEscape);
+          }
+        } catch (err) {
+          // Silently fail if we can't access the iframe
+        }
+      }
+
+      // Clean up body class if component unmounts while expanded
+      document.body.classList.remove("artifact-modal-open");
+    };
+  }, [expanded]);
+
   useEffect(() => {
     const adjustIfScrollbarsAppear = () => {
       if (iframeRef.current) {
         try {
-          
           const iframe = iframeRef.current;
-          iframe.setAttribute("scrolling", "no");
+          iframe.setAttribute("scrolling", "auto");
 
-          
           iframe.onload = () => {
             try {
               const iframeDoc =
                 iframe.contentDocument || iframe.contentWindow.document;
               const iframeBody = iframeDoc.body;
 
-              iframeDoc.body.addEventListener("click", (e) => {
-                e.preventDefault();
-                toggleExpand();
-              });
+              // Add smart click handling to the iframe
+              setupSmartClickHandler(iframeDoc);
+
+              const handleIframeEscape = (e) => {
+                if (e.key === "Escape" && expanded) {
+                  toggleExpand();
+                }
+              };
+
+              iframeDoc.removeEventListener("keydown", handleIframeEscape);
+
+              iframeDoc.addEventListener("keydown", handleIframeEscape);
 
               const contentHeight = Math.max(
                 iframeBody.scrollHeight,
@@ -67,13 +127,6 @@ const ArtifactRenderer = ({
                 iframeBody.scrollWidth,
                 iframeBody.offsetWidth,
                 iframeBody.clientWidth
-              );
-
-              console.log(
-                "Content dimensions:",
-                contentWidth,
-                "x",
-                contentHeight
               );
 
               if (contentHeight > 0 && contentWidth > 0) {
@@ -96,7 +149,95 @@ const ArtifactRenderer = ({
     };
 
     adjustIfScrollbarsAppear();
-  }, [artifact]);
+  }, [artifact, expanded]);
+
+  const setupSmartClickHandler = (doc) => {
+    if (!doc) return;
+
+    const handleMouseDown = (e) => {
+      // If already expanded, no need for special handling
+      if (expanded) return;
+
+      // Check if the click target is an interactive element
+      const target = e.target;
+      const isInteractive =
+        target.tagName === "BUTTON" ||
+        target.tagName === "A" ||
+        target.tagName === "INPUT" ||
+        target.tagName === "SELECT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "OPTION" ||
+        target.tagName === "LABEL" ||
+        target.hasAttribute("onclick") ||
+        (target.parentElement &&
+          (target.parentElement.tagName === "BUTTON" ||
+            target.parentElement.tagName === "A"));
+
+      if (isInteractive) {
+        // For interactive elements, clear any pending expand timer
+        if (expandTimerRef.current) {
+          clearTimeout(expandTimerRef.current);
+          expandTimerRef.current = null;
+        }
+        return;
+      }
+
+      // For non-interactive elements, set up an expand timer
+      if (expandTimerRef.current) {
+        clearTimeout(expandTimerRef.current);
+      }
+
+      // Schedule the expansion
+      expandTimerRef.current = setTimeout(() => {
+        toggleExpand();
+        expandTimerRef.current = null;
+      }, 50);
+    };
+
+    const handleMouseUp = () => {
+      // If the mouse up happens very quickly after mouse down, cancel expansion
+      if (expandTimerRef.current) {
+        clearTimeout(expandTimerRef.current);
+        expandTimerRef.current = null;
+      }
+    };
+
+    // Clean up previous event listeners
+    doc.removeEventListener("mousedown", handleMouseDown);
+    doc.removeEventListener("mouseup", handleMouseUp);
+
+    // Add new listeners
+    doc.addEventListener("mousedown", handleMouseDown);
+    doc.addEventListener("mouseup", handleMouseUp);
+  };
+
+  useEffect(() => {
+    const setupImageClickHandler = () => {
+      if (!contentRef.current) return;
+
+      const imageContainer = contentRef.current.querySelector(
+        ".artifact-image-container"
+      );
+      if (!imageContainer) return;
+
+      const handleImageClick = (e) => {
+        if (!expanded) {
+          toggleExpand();
+        }
+      };
+
+      imageContainer.addEventListener("click", handleImageClick);
+
+      return () => {
+        imageContainer.removeEventListener("click", handleImageClick);
+      };
+    };
+
+    const cleanup = setupImageClickHandler();
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [artifact, expanded]);
 
   useEffect(() => {
     const detectPaddingNeeds = () => {
@@ -231,8 +372,6 @@ const ArtifactRenderer = ({
       case "code":
         return (
           <div className="artifact-code-container">
-            <div className="artifact-code-overlay" onClick={toggleExpand}></div>
-
             <iframe
               ref={iframeRef}
               className="artifact-code artifact-code-full-height"
@@ -240,7 +379,7 @@ const ArtifactRenderer = ({
               title={artifact.name || title || "Code artifact"}
               sandbox="allow-scripts allow-same-origin"
               frameBorder="0"
-              scrolling="no"
+              scrolling="auto"
             />
           </div>
         );
@@ -271,36 +410,50 @@ const ArtifactRenderer = ({
     }
   };
 
-  
   const containerClasses = [
     "artifact-renderer",
     className,
     `artifact-type-${artifact?.artifactType || "none"}`,
     getPaddingClass(),
     expanded ? "artifact-expanded" : "",
-    "artifact-clickable", 
   ]
     .filter(Boolean)
     .join(" ");
 
-  return (
-    <div
-      id={containerId}
-      ref={containerRef}
-      className={containerClasses}
-      style={{}}
-      onClick={toggleExpand}
-    >
-      <div ref={contentRef} className="artifact-content">
-        {renderArtifactContent()}
-      </div>
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape" && expanded) {
+      toggleExpand();
+    }
+  };
 
-      {showDimensions && (
-        <div className="artifact-dimensions-display">
-          {Math.round(dimensions.width)} x {Math.round(dimensions.height)}
-        </div>
+  return (
+    <>
+      {expanded && (
+        <div className="artifact-overlay" onClick={toggleExpand}></div>
       )}
-    </div>
+
+      <div
+        id={containerId}
+        ref={containerRef}
+        className={containerClasses}
+        tabIndex={expanded ? 0 : -1}
+        onKeyDown={handleKeyDown}
+      >
+        <div ref={contentRef} className="artifact-content">
+          {renderArtifactContent()}
+        </div>
+
+        {expanded && (
+          <button
+            className="artifact-close-btn"
+            onClick={toggleExpand}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        )}
+      </div>
+    </>
   );
 };
 

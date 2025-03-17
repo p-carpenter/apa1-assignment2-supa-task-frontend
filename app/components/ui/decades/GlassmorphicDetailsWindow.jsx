@@ -1,36 +1,44 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./GlassmorphicDetailsWindow.module.css";
+import ExpandableSection from "../shared/ExpandableSection";
 
-/**
- * Glassmorphic Styled Details Window (2020s)
- *
- * This component implements the popular Glassmorphism UI design trend
- * with frosted glass effects, subtle gradients, and colorful accents.
- * Includes dark/light mode toggle for modern UI experience.
- */
 const GlassmorphicDetailsWindow = ({ incident }) => {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      setIsDarkMode(true);
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e) => setIsDarkMode(e.matches);
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
   if (!incident) return null;
 
-  const [darkMode, setDarkMode] = useState(false);
-
-  
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
-
-  
   const getCategoryColor = (category) => {
-    if (!category) return "#64748b"; 
+    if (!category) return isDarkMode ? "#64748b" : "#64748b";
 
     const lowerCategory = category.toLowerCase();
-    if (lowerCategory.includes("security")) return "#8b5cf6"; 
-    if (lowerCategory.includes("hardware")) return "#ec4899"; 
-    if (lowerCategory.includes("software")) return "#3b82f6"; 
-    if (lowerCategory.includes("network")) return "#10b981"; 
-    if (lowerCategory.includes("database")) return "#f59e0b"; 
+    if (lowerCategory.includes("security"))
+      return isDarkMode ? "#a78bfa" : "#8b5cf6";
+    if (lowerCategory.includes("hardware"))
+      return isDarkMode ? "#f472b6" : "#ec4899";
+    if (lowerCategory.includes("software"))
+      return isDarkMode ? "#60a5fa" : "#3b82f6";
+    if (lowerCategory.includes("network"))
+      return isDarkMode ? "#34d399" : "#10b981";
+    if (lowerCategory.includes("database"))
+      return isDarkMode ? "#fbbf24" : "#f59e0b";
 
-    return "#64748b"; 
+    return isDarkMode ? "#71717a" : "#64748b";
   };
 
   const getSeverityClass = (severity) => {
@@ -47,132 +55,120 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
   const categoryColor = getCategoryColor(incident.category);
   const severityClass = getSeverityClass(incident.severity);
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
     <div
-      className={`${styles.glass_container} ${darkMode ? styles.dark : ""}`}
-      data-testid="glassmorphic-container"
+      className={`${styles.macos_window} ${isDarkMode ? styles.dark_mode : ""}`}
+      data-testid="2020s-window"
     >
-      {/* Blurred Background Shapes */}
-      <div className={styles.shape_1}></div>
-      <div className={styles.shape_2}></div>
-      <div className={styles.shape_3}></div>
-
-      {/* Header */}
-      <div className={styles.glass_header}>
-        <h2 className={styles.header_title}>
-          {incident.name || "Unknown Incident"}
-        </h2>
-
-        {/* Header Controls */}
+      <div className={styles.window_header}>
         <div className={styles.header_controls}>
+          <h2 className={styles.header_title}>
+            {incident.name || "Unknown Incident"}
+          </h2>
           <button
-            className={styles.mode_toggle}
+            className={styles.dark_mode_toggle}
             onClick={toggleDarkMode}
             aria-label={
-              darkMode ? "Switch to light mode" : "Switch to dark mode"
+              isDarkMode ? "Switch to light mode" : "Switch to dark mode"
             }
           >
-            <span className={styles.icon}>{darkMode ? "🌙" : "☀️"}</span>
+            {isDarkMode ? "☀" : "☾"}
           </button>
         </div>
       </div>
 
-      {/* Badges */}
-      <div className={styles.badges_container}>
+      {/* Metadata Pills */}
+      <div className={styles.metadata_container}>
+        <div className={styles.metadata_pill}>
+          <span>{formatDate(incident.incident_date)}</span>
+        </div>
         <div
-          className={styles.category_badge}
-          style={{ "--accent-color": categoryColor }}
+          className={styles.metadata_pill}
+          style={{ backgroundColor: categoryColor }}
         >
-          <span className={styles.badge_icon}>📁</span>
           <span>{incident.category || "Unknown"}</span>
         </div>
-
-        <div className={styles.severity_badge}>
-          <span className={styles.badge_icon}>🚨</span>
+        <div
+          className={`${styles.metadata_pill} ${styles[`severity_${incident.severity?.toLowerCase() || "unknown"}`]}`}
+        >
           <span data-testid="severity-indicator" className={severityClass}>
             {incident.severity || "Unknown"}
           </span>
         </div>
-
-        <div className={styles.date_badge}>
-          <span className={styles.badge_icon}>📅</span>
-          <span>{formatDate(incident.incident_date)}</span>
-        </div>
       </div>
 
       {/* Content Area */}
-      <div className={styles.glass_content}>
-        {/* What Happened */}
-        <div
-          className={styles.glass_card}
-          style={{ "--delay": "0.1s" }}
-          data-testid="glass-card"
-        >
-          <div className={styles.card_header}>
-            <div className={styles.card_icon} style={{ background: "#f43f5e" }}>
-              <span>⚠️</span>
-            </div>
-            <h3 className={styles.card_title}>What Happened</h3>
-          </div>
-          <div className={styles.card_content}>
+      <div className={styles.window_content}>
+        <div className={styles.content_section}>
+          <ExpandableSection
+            title={
+              <div className={styles.section_header}>
+                <span className={styles.section_title}>What Happened</span>
+              </div>
+            }
+            expandedByDefault={true}
+            maxLines={3}
+            contentClassName={styles.section_content}
+            minLinesForExpansion={3}
+          >
             <p>{incident.description}</p>
-          </div>
+          </ExpandableSection>
         </div>
 
-        {/* Why It Happened */}
-        <div
-          className={styles.glass_card}
-          style={{ "--delay": "0.2s" }}
-          data-testid="cause-section"
-        >
-          <div className={styles.card_header}>
-            <div className={styles.card_icon} style={{ background: "#8b5cf6" }}>
-              <span>🔍</span>
-            </div>
-            <h3 className={styles.card_title}>Why It Happened</h3>
+        {incident.cause && (
+          <div className={styles.content_section} data-testid="cause-section">
+            <ExpandableSection
+              title={
+                <div className={styles.section_header}>
+                  <span className={styles.section_title}>Why It Happened</span>
+                </div>
+              }
+              maxLines={2}
+              contentClassName={styles.section_content}
+              minLinesForExpansion={3}
+            >
+              <p>{incident.cause}</p>
+            </ExpandableSection>
           </div>
-          <div className={styles.card_content}>
-            <p>{incident.cause || "No cause information available"}</p>
-          </div>
-        </div>
+        )}
 
-        {/* Consequences */}
-        <div className={styles.glass_card} style={{ "--delay": "0.3s" }}>
-          <div className={styles.card_header}>
-            <div className={styles.card_icon} style={{ background: "#0ea5e9" }}>
-              <span>💥</span>
-            </div>
-            <h3 className={styles.card_title}>Consequences</h3>
+        {incident.consequences && (
+          <div className={styles.content_section}>
+            <ExpandableSection
+              title={
+                <div className={styles.section_header}>
+                  <span className={styles.section_title}>Consequences</span>
+                </div>
+              }
+              maxLines={2}
+              contentClassName={styles.section_content}
+              minLinesForExpansion={3}
+            >
+              <p>{incident.consequences}</p>
+            </ExpandableSection>
           </div>
-          <div className={styles.card_content}>
-            <p>
-              {incident.consequences || "No consequences information available"}
-            </p>
-          </div>
-        </div>
+        )}
 
-        {/* Resolution Time */}
-        <div className={styles.glass_card} style={{ "--delay": "0.4s" }}>
-          <div className={styles.card_header}>
-            <div className={styles.card_icon} style={{ background: "#14b8a6" }}>
-              <span>🕒</span>
-            </div>
-            <h3 className={styles.card_title}>Resolution Time</h3>
+        {incident.time_to_resolve && (
+          <div className={styles.content_section}>
+            <ExpandableSection
+              title={
+                <div className={styles.section_header}>
+                  <span className={styles.section_title}>Resolution Time</span>
+                </div>
+              }
+              maxLines={1}
+              contentClassName={styles.section_content}
+              minLinesForExpansion={3}
+            >
+              <p>{incident.time_to_resolve}</p>
+            </ExpandableSection>
           </div>
-          <div className={styles.card_content}>
-            <p>
-              {incident.time_to_resolve ||
-                "No resolution time information available"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className={styles.glass_footer}>
-        <div className={styles.footnote}>
-          Tech Failures Museum • {new Date().getFullYear()}
-        </div>
+        )}
       </div>
     </div>
   );

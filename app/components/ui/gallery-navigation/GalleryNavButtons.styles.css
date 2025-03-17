@@ -26,7 +26,9 @@
   pointer-events: auto;
   border: 1px solid var(--color-border, #c9b8a8);
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(73, 107, 99, 0.15), 0 1px 3px rgba(107, 92, 76, 0.2);
+  box-shadow:
+    0 4px 15px rgba(73, 107, 99, 0.15),
+    0 1px 3px rgba(107, 92, 76, 0.2);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
   overflow: hidden;
@@ -34,18 +36,24 @@
 
 .gallery-nav-button:hover {
   background-color: var(--color-bg, #f7f3ee);
-  box-shadow: 0 6px 20px rgba(73, 107, 99, 0.2), 0 2px 5px rgba(107, 92, 76, 0.15);
+  box-shadow:
+    0 6px 20px rgba(73, 107, 99, 0.2),
+    0 2px 5px rgba(107, 92, 76, 0.15);
   transform: translateY(-2px);
 }
 
 .gallery-nav-button::after {
-  content: '';
+  content: "";
   position: absolute;
   top: -50%;
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0) 70%
+  );
   opacity: 0;
   transition: opacity 0.5s ease;
   pointer-events: none;
@@ -132,15 +140,13 @@
   text-align: center;
   position: relative;
   user-select: none;
+  position: relative; /* Make sure this is set for absolute positioning of the count */
 }
 
 .year-button:active {
   border-color: #555 #dfdfdf #dfdfdf #555;
   box-shadow: none;
-  transform: translate(
-    1px,
-    1px
-  );
+  transform: translate(1px, 1px);
 }
 
 .year-button--active {
@@ -213,3 +219,16 @@
   }
 }
 
+/* Add this at the end of your existing CSS file */
+
+.incident-count {
+  font-size: 0.6em;
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background-color: var(--nav-counter-bg, #444);
+  color: var(--nav-counter-text, #fff);
+  border-radius: 8px;
+  padding: 1px 4px;
+  min-width: 12px;
+}

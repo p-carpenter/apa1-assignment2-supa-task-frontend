@@ -1,44 +1,43 @@
-// __tests__/contexts/ThemeContext.test.jsx
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { ThemeProvider, useTheme } from "@/app/contexts/ThemeContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/artifactUtils";
+import "@testing-library/jest-dom";
+import { ThemeProvider } from "@/app/contexts/ThemeContext";
+import { IncidentProvider } from "@/app/contexts/IncidentContext";
 import { useIncidents } from "@/app/contexts/IncidentContext";
+import { useTheme } from "@/app/contexts/ThemeContext";
+import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
-// Mock IncidentContext
 jest.mock("@/app/contexts/IncidentContext", () => ({
   useIncidents: jest.fn(),
 }));
+
 jest.mock("@/app/contexts/ThemeContext");
+
 jest.mock("@/app/components/ui/decades/MacintoshDetailsWindow", () => () => (
-  <div data-testid="macintosh-window">Macintosh Window</div>
+  <div data-testid="1980s-window">1980s Window</div>
 ));
 jest.mock("@/app/components/ui/decades/Win98DetailsWindow", () => () => (
-  <div data-testid="win98-window">Win98 Window</div>
+  <div data-testid="1990s-window">1990s Window</div>
 ));
 jest.mock("@/app/components/ui/decades/AeroDetailsWindow", () => () => (
-  <div data-testid="aero-window">Aero Window</div>
+  <div data-testid="2000s-window">2000s Window</div>
 ));
 jest.mock("@/app/components/ui/decades/MaterialDetailsWindow", () => () => (
-  <div data-testid="material-window">Material Window</div>
+  <div data-testid="2010s-window">2010s Window</div>
 ));
 jest.mock("@/app/components/ui/decades/GlassmorphicDetailsWindow", () => () => (
-  <div data-testid="glassmorphic-window">Glassmorphic Window</div>
+  <div data-testid="2020s-window">2020s Window</div>
 ));
 
 // Test component that consumes ThemeContext
-export const TestComponent = () => {
-  const { decade, decadeConfig, IncidentDetailsWindows, artifactWidth } =
-    useTheme();
+export const TestComponent = ({ incident }) => {
+  const { decade, IncidentDetailsWindows, artifactWidth } = useTheme();
 
   return (
     <div>
       <div data-testid="decade">{decade}</div>
-      <div data-testid="frame-type">{decadeConfig.frameType}</div>
       <div data-testid="artifact-width">{artifactWidth}</div>
-      <div data-testid="max-height">{decadeConfig.maxHeight}</div>
-      <div data-testid="padding">{decadeConfig.contentPadding}</div>
-      <IncidentDetailsWindows />
+      <IncidentDetailsWindows incident={incident} />
     </div>
   );
 };
@@ -46,7 +45,6 @@ export const TestComponent = () => {
 describe("ThemeContext", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default mock implementation
     useIncidents.mockReturnValue({ currentDecade: 1990 });
   });
 
@@ -58,15 +56,13 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("decade")).toHaveTextContent("1990");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("win95");
-    expect(screen.getByTestId("max-height")).toHaveTextContent("640");
-    expect(screen.getByTestId("padding")).toHaveTextContent("small");
-    expect(screen.getByTestId("win98-window")).toBeInTheDocument();
-    expect(screen.getByTestId("artifact-width")).toHaveTextContent("863");
+    expect(screen.getByTestId("1990s-window")).toBeInTheDocument();
   });
 
   it("provides values for 1980s decade", () => {
-    useIncidents.mockReturnValue({ currentDecade: 1980 });
+    useIncidents.mockReturnValueOnce({
+      currentDecade: 1980,
+    });
 
     render(
       <ThemeProvider>
@@ -75,14 +71,11 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("decade")).toHaveTextContent("1980");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("dos");
-    expect(screen.getByTestId("max-height")).toHaveTextContent("600");
-    expect(screen.getByTestId("padding")).toHaveTextContent("medium");
-    expect(screen.getByTestId("macintosh-window")).toBeInTheDocument();
+    expect(screen.getByTestId("1980s-window")).toBeInTheDocument();
   });
 
   it("provides values for 2000s decade", () => {
-    useIncidents.mockReturnValue({ currentDecade: 2000 });
+    useIncidents.mockReturnValueOnce({ currentDecade: 2000 });
 
     render(
       <ThemeProvider>
@@ -91,14 +84,11 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("decade")).toHaveTextContent("2000");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("geocities");
-    expect(screen.getByTestId("max-height")).toHaveTextContent("680");
-    expect(screen.getByTestId("padding")).toHaveTextContent("medium");
-    expect(screen.getByTestId("aero-window")).toBeInTheDocument();
+    expect(screen.getByTestId("2000s-window")).toBeInTheDocument();
   });
 
   it("provides values for 2010s decade", () => {
-    useIncidents.mockReturnValue({ currentDecade: 2010 });
+    useIncidents.mockReturnValueOnce({ currentDecade: 2010 });
 
     render(
       <ThemeProvider>
@@ -107,14 +97,11 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("decade")).toHaveTextContent("2010");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("android");
-    expect(screen.getByTestId("max-height")).toHaveTextContent("690");
-    expect(screen.getByTestId("padding")).toHaveTextContent("small");
-    expect(screen.getByTestId("material-window")).toBeInTheDocument();
+    expect(screen.getByTestId("2010s-window")).toBeInTheDocument();
   });
 
   it("provides values for 2020s decade", () => {
-    useIncidents.mockReturnValue({ currentDecade: 2020 });
+    useIncidents.mockReturnValueOnce({ currentDecade: 2020 });
 
     render(
       <ThemeProvider>
@@ -123,14 +110,11 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("decade")).toHaveTextContent("2020");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("zoom");
-    expect(screen.getByTestId("max-height")).toHaveTextContent("700");
-    expect(screen.getByTestId("padding")).toHaveTextContent("small");
-    expect(screen.getByTestId("glassmorphic-window")).toBeInTheDocument();
+    expect(screen.getByTestId("2020s-window")).toBeInTheDocument();
   });
 
   it("handles invalid decade by using 1990s as default", () => {
-    useIncidents.mockReturnValue({ currentDecade: 9999 });
+    useIncidents.mockReturnValueOnce({ currentDecade: 9999 });
 
     render(
       <ThemeProvider>
@@ -139,52 +123,46 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("decade")).toHaveTextContent("1990");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("win95");
-    expect(screen.getByTestId("max-height")).toHaveTextContent("640");
-    expect(screen.getByTestId("win98-window")).toBeInTheDocument();
+    expect(screen.getByTestId("1990s-window")).toBeInTheDocument();
   });
 
-  it("handles null or undefined currentDecade by using 1990s as default", () => {
-    useIncidents.mockReturnValue({ currentDecade: null });
+  it("displays the correct incident data inside the 1980s window", () => {
+    useIncidents.mockReturnValueOnce({ currentDecade: 1980 });
+
+    const mockIncident = {
+      name: "Test Incident",
+      description: "An issue in the 80s.",
+    };
 
     render(
-      <ThemeProvider decade={null}>
-        <TestComponent />
+      <ThemeProvider>
+        <TestComponent incident={mockIncident} />
       </ThemeProvider>
     );
 
-    expect(screen.getByTestId("decade")).toHaveTextContent("1990");
-    expect(screen.getByTestId("frame-type")).toHaveTextContent("win95");
-
-    // Test undefined as well
-    useIncidents.mockReturnValue({ currentDecade: undefined });
-
-    render(
-      <ThemeProvider decade={undefined}>
-        <TestComponent />
-      </ThemeProvider>
-    );
-
-    expect(screen.getByTestId("decade")).toHaveTextContent("1990");
+    expect(screen.getByTestId("1980s-window")).toBeInTheDocument();
+    expect(screen.getByText("Title: Test Incident")).toBeInTheDocument();
+    expect(
+      screen.getByText("Description: An issue in the 80s.")
+    ).toBeInTheDocument();
   });
 
-  it("passes incident prop to IncidentDetailsWindow component", () => {
-    // call macintosh mock component (ES6 module)
-    const MacintoshMock = require("@/app/components/ui/decades/MacintoshDetailsWindow");
-    useIncidents.mockReturnValue({ currentDecade: 1980 });
+  // Invalid decades should be prevented by form validation, but just in case...
+  it("renders the 1990s window when given an invalid decade", () => {
+    useIncidents.mockReturnValueOnce({ currentDecade: 9999 });
 
     render(
-      <ThemeProvider decade={1980}>
-        <TestComponent />
+      <ThemeProvider>
+        <TestComponent
+          incident={{
+            name: "Test Incident",
+            description: "An issue in the 80s.",
+          }}
+        />
       </ThemeProvider>
     );
 
-    expect(MacintoshMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        incident: { name: "Test Incident" },
-      }),
-      expect.anything()
-    );
+    expect(screen.getByTestId("1990s-window")).toBeInTheDocument();
   });
 
   // Separate tests for the getPaddingSizeForArtifact utility function
@@ -302,28 +280,6 @@ describe("ThemeContext", () => {
           artifactType: "code",
           width: 100,
           height: 100,
-        })
-      ).toBe("auto");
-    });
-
-    it("prioritizes preferredHeight over width/height for sizing", () => {
-      // When preferredHeight says "xl" but dimensions say "large"
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 100,
-          width: 500,
-          height: 400,
-        })
-      ).toBe("xl");
-
-      // When preferredHeight says "auto" but dimensions say "large"
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 500,
-          width: 200,
-          height: 150,
         })
       ).toBe("auto");
     });

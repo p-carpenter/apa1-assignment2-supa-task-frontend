@@ -3,26 +3,23 @@
 import "./globals.css";
 import "./styles/components.global.css";
 import Providers from "./contexts/Providers";
-import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "./components";
 
 export default function RootLayout({ children }) {
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const triggerReflow = document.body.offsetHeight;
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, []);
-
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+  
   return (
     <html lang="en">
       <body>
         <Providers>
           {children}
-          <div className="floating-home-button">
-            <Button href="/" />
-          </div>
+          {!isHomePage && (
+            <div className="floating-home-button">
+              <Button href="/" />
+            </div>
+          )}
         </Providers>
       </body>
     </html>

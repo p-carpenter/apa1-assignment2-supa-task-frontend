@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import MultiSelectDropdown from "@/app/components/ui/MultiSelectDropdown";
+import MultiSelectDropdown from "@/app/components/ui/shared/MultiSelectDropdown";
 
 describe("MSW Handlers", () => {
   it("defines API handlers", () => {
@@ -42,7 +42,9 @@ describe("MultiSelectDropdown", () => {
     );
 
     // Click the dropdown header to open it, not the label
-    const dropdownHeader = screen.getByText("0 selected").closest(".dropdown-header");
+    const dropdownHeader = screen
+      .getByText("0 selected")
+      .closest(".dropdown-header");
     fireEvent.click(dropdownHeader);
 
     // Options should now be visible, including the "All" option
@@ -63,7 +65,9 @@ describe("MultiSelectDropdown", () => {
     );
 
     // Open dropdown
-    const dropdownHeader = screen.getByText("0 selected").closest(".dropdown-header");
+    const dropdownHeader = screen
+      .getByText("0 selected")
+      .closest(".dropdown-header");
     fireEvent.click(dropdownHeader);
 
     // Select an option
@@ -84,7 +88,9 @@ describe("MultiSelectDropdown", () => {
     );
 
     // Open dropdown
-    const dropdownHeader = screen.getByText("1 selected").closest(".dropdown-header");
+    const dropdownHeader = screen
+      .getByText("1 selected")
+      .closest(".dropdown-header");
     fireEvent.click(dropdownHeader);
 
     // Check for active class on selected option
@@ -105,7 +111,9 @@ describe("MultiSelectDropdown", () => {
     );
 
     // Open dropdown
-    const dropdownHeader = screen.getByText("1 selected").closest(".dropdown-header");
+    const dropdownHeader = screen
+      .getByText("1 selected")
+      .closest(".dropdown-header");
     fireEvent.click(dropdownHeader);
 
     // Click already selected option
@@ -130,7 +138,9 @@ describe("MultiSelectDropdown", () => {
     );
 
     // Open dropdown
-    const dropdownHeader = screen.getByText("0 selected").closest(".dropdown-header");
+    const dropdownHeader = screen
+      .getByText("0 selected")
+      .closest(".dropdown-header");
     fireEvent.click(dropdownHeader);
 
     // Options should be visible (check for All option which is always there)

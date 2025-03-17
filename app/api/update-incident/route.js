@@ -73,7 +73,7 @@ export async function PUT(req) {
       "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
-    
+
     console.error("Update error:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,

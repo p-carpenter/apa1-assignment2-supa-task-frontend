@@ -1,7 +1,7 @@
 import React from "react";
 import ConsoleSection from "../ui/console/ConsoleSection";
 import SearchFilter from "../ui/filters/SearchFilter";
-import MultiSelectDropdown from "../ui/MultiSelectDropdown";
+import MultiSelectDropdown from "../ui/shared/MultiSelectDropdown";
 import SortControls from "../ui/filters/SortControls";
 import { getCategoryIcon } from "../../utils/ui/categoryIcons";
 import "@/app/catalog/catalog.styles.css";
@@ -26,9 +26,7 @@ const CatalogFilters = ({
   );
 
   return (
-    <ConsoleSection
-      className="catalog-filters"
-    >
+    <ConsoleSection className="catalog-filters">
       <div className="filters-container">
         <div className="search-container">
           <SearchFilter

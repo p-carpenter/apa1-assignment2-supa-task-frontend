@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function POST(request) {
@@ -18,9 +17,12 @@ export async function POST(request) {
     
     if (!response.ok) {
       const error = await response.json();
-      return NextResponse.json(
-        { error: error.error || 'Failed to sign out' },
-        { status: response.status }
+      return new Response(
+        JSON.stringify({ error: error.error || 'Failed to sign out' }),
+        { 
+          status: response.status,
+          headers: { 'Content-Type': 'application/json' }
+        }
       );
     }
     
@@ -41,12 +43,21 @@ export async function POST(request) {
       sameSite: 'lax'
     });
     
-    return NextResponse.json({ success: true });
+    return new Response(
+      JSON.stringify({ success: true }),
+      { 
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    );
   } catch (error) {
     console.error('Sign out error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: 'Internal server error' }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
     );
   }
 }

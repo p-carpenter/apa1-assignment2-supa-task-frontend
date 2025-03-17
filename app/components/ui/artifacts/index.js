@@ -1,1 +1,1 @@
-export { default as ArtifactRenderer } from './ArtifactRenderer';
+export { default as ArtifactRenderer } from "./ArtifactRenderer";

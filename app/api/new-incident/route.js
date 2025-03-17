@@ -3,7 +3,6 @@ export async function POST(req) {
 
   try {
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // testing
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Authorization, Content-Type",
     };
@@ -28,9 +27,9 @@ export async function POST(req) {
     };
 
     if (incidentData.artifactType === "image" && incidentData.fileData) {
-      payload.fileData = body.fileData;
-      payload.fileName = body.fileName;
-      payload.fileType = body.fileType;
+      payload.fileData = incidentData.fileData;
+      payload.fileName = incidentData.fileName;
+      payload.fileType = incidentData.fileType;
     }
 
     console.log(
@@ -58,29 +57,16 @@ export async function POST(req) {
           error: `Supabase error: ${response.status}`,
           details: errorText,
         }),
-        { 
-          status: 500,
-          headers: corsHeaders 
-        }
+        { status: 500 }
       );
     }
 
     const data = await response.json();
-    return new Response(JSON.stringify(data), { 
-      status: 200,
-      headers: corsHeaders 
-    });
+    return new Response(JSON.stringify(data), { status: 200 });
   } catch (error) {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // testing
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
-    
     console.error("Error in new-incident route:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: corsHeaders
     });
   }
 }

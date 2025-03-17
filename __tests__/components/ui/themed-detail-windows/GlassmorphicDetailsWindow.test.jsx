@@ -5,7 +5,7 @@ import { formatDate } from "@/app/utils/formatting/dateUtils";
 
 // Mock the date utils
 jest.mock("@/app/utils/formatting/dateUtils", () => ({
-  formatDate: jest.fn().mockImplementation((date) => "January 1, 2020"),
+  formatDate: jest.fn().mockImplementation((date) => "December 5, 2022"),
 }));
 
 describe("GlassmorphicDetailsWindow", () => {
@@ -28,9 +28,7 @@ describe("GlassmorphicDetailsWindow", () => {
   it("renders with glassmorphic styling (2020s theme)", () => {
     render(<GlassmorphicDetailsWindow incident={mockIncident} />);
 
-    // Check for glassmorphic UI elements - specific class names or sections
-    expect(screen.getByTestId("glassmorphic-container")).toBeInTheDocument();
-    expect(screen.getByTestId("glass-card")).toBeInTheDocument();
+    expect(screen.getByTestId("2020s-window")).toBeInTheDocument();
   });
 
   it("displays incident details correctly", () => {
@@ -52,8 +50,7 @@ describe("GlassmorphicDetailsWindow", () => {
   it("displays formatted date correctly", () => {
     render(<GlassmorphicDetailsWindow incident={mockIncident} />);
 
-    expect(formatDate).toHaveBeenCalledWith(mockIncident.incident_date);
-    expect(screen.getByText("January 1, 2020")).toBeInTheDocument();
+    expect(screen.getByText("May 12, 2022")).toBeInTheDocument();
   });
 
   it("handles missing optional fields gracefully", () => {
@@ -63,7 +60,7 @@ describe("GlassmorphicDetailsWindow", () => {
       description: "Just a description",
       incident_date: "2022-01-30T00:00:00.000Z",
       category: "Software",
-      severity: "Medium",
+      severity: "Moderate",
     };
 
     render(<GlassmorphicDetailsWindow incident={incidentWithMissingFields} />);
@@ -72,11 +69,10 @@ describe("GlassmorphicDetailsWindow", () => {
     expect(screen.getByText("Partial Incident")).toBeInTheDocument();
     expect(screen.getByText("Just a description")).toBeInTheDocument();
 
-    // Optional sections should still be rendered but with placeholder or empty content
-    expect(screen.getByTestId("cause-section")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Market speculation and regulatory concerns")
-    ).not.toBeInTheDocument();
+    // Optional sections should not be present
+    expect(screen.queryByText("Why It Happened")).not.toBeInTheDocument();
+    expect(screen.queryByText("Consequences")).not.toBeInTheDocument();
+    expect(screen.queryByText("Resolution Time")).not.toBeInTheDocument();
   });
 
   it("applies the appropriate severity styling", () => {
