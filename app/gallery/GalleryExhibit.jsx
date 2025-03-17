@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useEffect } from "react";
+import React, { useMemo, useRef } from "react";
 import ArtifactRenderer from "@/app/components/ui/artifacts/ArtifactRenderer";
 import GalleryExhibitSkeleton from "./GalleryExhibitSkeleton";
 import { useTheme } from "@/app/contexts/ThemeContext";
@@ -11,27 +11,6 @@ const GalleryExhibit = ({ incident, isLoading }) => {
     return <GalleryExhibitSkeleton />;
   }
 
-  const [slideDirection, setSlideDirection] = useState("");
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [prevIncident, setPrevIncident] = useState(null);
-
-  useEffect(() => {
-    if (incident && prevIncident && incident.id !== prevIncident.id) {
-      // Determine slide direction based on incident IDs or other logic
-      const direction = incident.id > prevIncident.id ? "next" : "prev";
-      setSlideDirection(direction);
-      setIsTransitioning(true);
-
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-      }, 300); // Match this with your CSS transition duration
-
-      return () => clearTimeout(timer);
-    }
-
-    setPrevIncident(incident);
-  }, [incident, prevIncident]);
-
   if (!incident) return null;
 
   const { getPaddingSizeForArtifact, IncidentDetailsWindows } = useTheme();
@@ -41,10 +20,6 @@ const GalleryExhibit = ({ incident, isLoading }) => {
   const paddingSize = useMemo(() => {
     return getPaddingSizeForArtifact(incident);
   }, [incident, getPaddingSizeForArtifact]);
-
-  const hasArtifactContent = useMemo(() => {
-    return incident && incident.artifactType && incident.artifactContent;
-  }, [incident]);
 
   return (
     <div className={styles.container}>
