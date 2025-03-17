@@ -20,40 +20,10 @@ const IncidentDetailsWindows = {
 
 const StandardArtifactWidth = 863;
 
-// const DecadeConfigurations = {
-//   1980: {
-//     maxHeight: 600,
-//     frameType: "dos",
-//     contentPadding: "medium",
-//   },
-//   1990: {
-//     maxHeight: 640,
-//     frameType: "win95",
-//     contentPadding: "small",
-//   },
-//   2000: {
-//     maxHeight: 680,
-//     frameType: "geocities",
-//     contentPadding: "medium",
-//   },
-//   2010: {
-//     maxHeight: 690,
-//     frameType: "android",
-//     contentPadding: "small",
-//   },
-//   2020: {
-//     maxHeight: 700,
-//     frameType: "zoom",
-//     contentPadding: "small",
-//   },
-// };
-
-// Theme context structure
 const ThemeContext = createContext({
   decade: 1990,
   getPaddingSizeForArtifact: getPaddingSizeForArtifact,
   artifactWidth: StandardArtifactWidth,
-  // decadeConfig: DecadeConfigurations[1990],
   IncidentDetailsWindows: IncidentDetailsWindows[1990],
 });
 
@@ -62,7 +32,6 @@ export const useTheme = () => useContext(ThemeContext);
 export const ThemeProvider = ({ children }) => {
   const { currentDecade } = useIncidents();
 
-  // Determine the correct decade to use
   const decadeKey = Object.keys(IncidentDetailsWindows).includes(
     String(currentDecade)
   )
@@ -74,7 +43,6 @@ export const ThemeProvider = ({ children }) => {
     IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
     getPaddingSizeForArtifact: getPaddingSizeForArtifact,
     artifactWidth: StandardArtifactWidth,
-    // decadeConfig: DecadeConfigurations[decadeKey] || DecadeConfigurations[1990],
   };
 
   return (

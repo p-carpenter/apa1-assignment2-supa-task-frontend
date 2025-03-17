@@ -13,6 +13,7 @@ import React, { useState, useRef, useEffect } from 'react';
  * @param {Function} props.getDisplayValue - Function to get display value from item (default: item => item)
  * @param {Function} props.renderItem - Custom renderer for each item (optional)
  * @param {string} props.className - Additional CSS class (optional)
+ * @param {number} props.width - Fixed width for the dropdown (default: 150px)
  */
 const MultiSelectDropdown = ({
   label,
@@ -24,9 +25,11 @@ const MultiSelectDropdown = ({
   getDisplayValue = (item) => item,
   renderItem = null,
   className = "",
+  width = 150
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
+
   
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -47,20 +50,25 @@ const MultiSelectDropdown = ({
 
   const handleItemSelect = (item) => {
     if (item === allItemsKey) {
+      
       onSelectionChange([allItemsKey]);
     } else {
       let updatedSelection;
       
       if (selectedItems.includes(item)) {
+        
         updatedSelection = selectedItems.filter(i => i !== item);
         
         if (updatedSelection.length === 0) {
           updatedSelection = [allItemsKey];
         }
+        
         else if (updatedSelection.includes(allItemsKey)) {
           updatedSelection = updatedSelection.filter(i => i !== allItemsKey);
         }
       } else {
+        
+        
         if (selectedItems.includes(allItemsKey)) {
           updatedSelection = [item];
         } else {
@@ -77,10 +85,17 @@ const MultiSelectDropdown = ({
     : `${selectedItems.length} selected`;
 
   return (
-    <div className={`multi-select-dropdown ${className}`} ref={dropdownRef}>
+    <div 
+      className={`multi-select-dropdown ${className}`} 
+      ref={dropdownRef}
+      style={{ width: `${width}px` }}
+    >
       {label && <div className="dropdown-label">{label}</div>}
       
-      <div className="dropdown-header" onClick={toggleDropdown}>
+      <div 
+        className="dropdown-header" 
+        onClick={toggleDropdown}
+      >
         <span className="selected-text">{selectedCount}</span>
         <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
       </div>

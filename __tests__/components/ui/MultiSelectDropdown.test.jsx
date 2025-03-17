@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import MultiSelectDropdown from "@/app/components/ui/shared/MultiSelectDropdown";
+import MultiSelectDropdown from "@/app/components/ui/filters/MultiSelectDropdown";
 
 describe("MSW Handlers", () => {
   it("defines API handlers", () => {

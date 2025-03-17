@@ -13,9 +13,6 @@ describe("GlassmorphicDetailsWindow", () => {
     id: "1",
     name: "Cryptocurrency Crash",
     description: "Major cryptocurrency value collapse",
-    cause: "Market speculation and regulatory concerns",
-    consequences: "Billions in lost value",
-    time_to_resolve: "Ongoing",
     incident_date: "2022-05-12T00:00:00.000Z",
     category: "Crypto",
     severity: "High",
@@ -38,11 +35,6 @@ describe("GlassmorphicDetailsWindow", () => {
     expect(
       screen.getByText("Major cryptocurrency value collapse")
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Market speculation and regulatory concerns")
-    ).toBeInTheDocument();
-    expect(screen.getByText("Billions in lost value")).toBeInTheDocument();
-    expect(screen.getByText("Ongoing")).toBeInTheDocument();
     expect(screen.getByText("Crypto")).toBeInTheDocument();
     expect(screen.getByText("High")).toBeInTheDocument();
   });
@@ -68,11 +60,6 @@ describe("GlassmorphicDetailsWindow", () => {
     // Required fields should be present
     expect(screen.getByText("Partial Incident")).toBeInTheDocument();
     expect(screen.getByText("Just a description")).toBeInTheDocument();
-
-    // Optional sections should not be present
-    expect(screen.queryByText("Why It Happened")).not.toBeInTheDocument();
-    expect(screen.queryByText("Consequences")).not.toBeInTheDocument();
-    expect(screen.queryByText("Resolution Time")).not.toBeInTheDocument();
   });
 
   it("applies the appropriate severity styling", () => {

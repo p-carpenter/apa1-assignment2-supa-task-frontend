@@ -82,7 +82,7 @@ const mockIncidents = [
     name: "Test Incident 2",
     description: "This is another test incident",
     category: "Hardware",
-    severity: "Medium",
+    severity: "Moderate",
     incident_date: "2021-02-15",
   },
   {

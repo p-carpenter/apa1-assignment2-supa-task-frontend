@@ -1,6 +1,12 @@
 // __tests__/contexts/IncidentContext.test.jsx
 import React from "react";
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { IncidentProvider, useIncidents } from "@/app/contexts/IncidentContext";
 import "jest-extended";
 
@@ -28,7 +34,7 @@ const mockIncidents = [
     description: "Windows Vista had significant issues...",
     incident_date: "2007-01-30T00:00:00.000Z",
     category: "software",
-    severity: "medium",
+    severity: "moderate",
   },
   {
     id: "4",
@@ -366,7 +372,7 @@ describe("IncidentContext", () => {
 
     // Set decade for expected behavior
     fireEvent.click(screen.getByTestId("set-decade"));
-    
+
     // Now trigger the double-click behavior
     fireEvent.click(screen.getByTestId("double-click-incident"));
 

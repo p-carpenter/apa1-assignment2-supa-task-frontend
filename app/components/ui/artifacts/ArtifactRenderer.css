@@ -12,23 +12,6 @@
   box-sizing: border-box;
 }
 
-.artifact-clickable {
-  cursor: pointer;
-}
-
-.artifact-clickable::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: transparent;
-  transition: background-color 0.2s ease;
-  pointer-events: none;
-  z-index: 5;
-}
-
 .artifact-content {
   max-width: 863px;
   height: 100%;
@@ -151,65 +134,6 @@
 
 .artifact-padding-xl {
   padding: 70px;
-}
-
-/* Dark overlay when expanded - positioned BEHIND the artifact content */
-.artifact-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
-  z-index: 99;
-}
-
-/* Expanded state */
-.artifact-expanded {
-  z-index: 100;
-  position: fixed !important;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  /* width: 90vw !important; */
-  max-width: 863px;
-  width: auto;
-  height: auto;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-  cursor: default; /* Reset cursor when expanded */
-}
-
-.artifact-expanded::after {
-  display: none;
-}
-
-/* Close button for expanded artifacts */
-.artifact-close-btn {
-  position: absolute;
-  top: -15px;
-  right: -15px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  font-size: 24px;
-  line-height: 24px;
-  text-align: center;
-  border: none;
-  cursor: pointer;
-  z-index: 101;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-  transition: background-color 0.2s ease;
-}
-
-.artifact-close-btn:hover {
-  background: rgba(0, 0, 0, 1);
-}
-
-/* Disable body scrolling when artifact is expanded */
-body.artifact-modal-open {
-  overflow: hidden;
 }
 
 /* Responsive styling */

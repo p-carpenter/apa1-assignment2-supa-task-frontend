@@ -22,7 +22,7 @@ describe("update-incident API route", () => {
               name: "Updated Incident",
               description: "This is an updated incident",
               category: "software",
-              severity: "medium",
+              severity: "moderate",
             },
           });
         }
@@ -35,7 +35,7 @@ describe("update-incident API route", () => {
         name: "Updated Incident",
         description: "This is an updated incident",
         category: "software",
-        severity: "medium",
+        severity: "moderate",
       },
     };
 

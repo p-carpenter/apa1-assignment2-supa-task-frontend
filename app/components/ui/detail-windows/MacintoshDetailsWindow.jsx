@@ -1,7 +1,6 @@
 import React from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./MacintoshDetailsWindow.module.css";
-import ExpandableSection from "../shared/ExpandableSection";
 
 const MacintoshDetailsWindow = ({ incident }) => {
   if (!incident) return null;
@@ -35,16 +34,11 @@ const MacintoshDetailsWindow = ({ incident }) => {
               <div className={styles.sectionContainer}>
                 <div className={`outer-border ${styles.outerBorder}`}>
                   <div className={`inner-border ${styles.innerBorder}`}>
-                    <ExpandableSection
-                      titleClassName={`heading ${styles.heading}`}
-                      expandedByDefault={true}
-                      maxLines={10}
-                      minLinesForExpansion={10}
-                    >
+                    <div className={`heading ${styles.heading}`}>
                       <p className={styles.compactText}>
                         {incident.description}
                       </p>
-                    </ExpandableSection>
+                    </div>
                   </div>
                 </div>
               </div>

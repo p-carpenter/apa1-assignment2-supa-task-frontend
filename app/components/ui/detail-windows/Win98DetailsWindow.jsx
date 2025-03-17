@@ -1,13 +1,11 @@
 import React from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./Win98DetailsWindow.module.css";
-import ExpandableSection from "../shared/ExpandableSection";
 
 /**
  * Windows 98 Styled Details Window (1990s)
  *
- * This component uses 98.css to recreate the iconic Windows 98 UI
- * with a compact, space-efficient layout and expandable sections.
+ * This component uses 98.css to recreate the iconic Windows 98 UI.
  */
 const Win98DetailsWindow = ({ incident }) => {
   if (!incident) return null;
@@ -42,15 +40,9 @@ const Win98DetailsWindow = ({ incident }) => {
 
           {/* Content section */}
           <div className={styles.contentSections}>
-            <ExpandableSection
-              sectionClassName={styles.contentSection}
-              contentClassName={styles.sectionText}
-              expandedByDefault={true}
-              maxLines={10}
-              minLinesForExpansion={10}
-            >
-              {incident.description}
-            </ExpandableSection>
+            <div className={styles.contentSection}>
+              <div className={styles.sectionText}>{incident.description}</div>
+            </div>
           </div>
         </div>
 

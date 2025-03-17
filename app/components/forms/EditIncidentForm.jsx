@@ -51,11 +51,10 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
   const categories = [
     "Software",
     "Hardware",
-    "Network",
+    "Infrastructure",
     "Security",
     "Human Error",
     "External Factor",
-    "Design Flaw",
   ];
 
   const severityOptions = ["Low", "Moderate", "High", "Critical"];

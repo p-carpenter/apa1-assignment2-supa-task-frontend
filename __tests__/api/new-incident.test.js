@@ -23,7 +23,7 @@ describe("new-incident API route", () => {
               name: "New Test Incident",
               description: "This is a new test incident",
               category: "software",
-              severity: "medium",
+              severity: "moderate",
             },
           });
         }

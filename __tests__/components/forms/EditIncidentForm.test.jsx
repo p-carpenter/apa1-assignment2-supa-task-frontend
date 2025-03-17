@@ -84,9 +84,6 @@ describe("EditIncidentForm", () => {
     category: "Hardware",
     severity: "Moderate",
     description: "Original description",
-    cause: "Original cause",
-    consequences: "Original impact",
-    time_to_resolve: "2 weeks",
     artifactType: "code",
     artifactContent: "<html><body>Test code</body></html>",
   };
@@ -110,13 +107,6 @@ describe("EditIncidentForm", () => {
 
     expect(screen.getByLabelText(/description \*/i)).toHaveValue(
       mockIncident.description
-    );
-    expect(screen.getByLabelText(/cause/i)).toHaveValue(mockIncident.cause);
-    expect(screen.getByLabelText(/impact/i)).toHaveValue(
-      mockIncident.consequences
-    );
-    expect(screen.getByLabelText(/time to resolve/i)).toHaveValue(
-      mockIncident.time_to_resolve
     );
 
     expect(screen.getByLabelText(/html code/i)).toHaveValue(

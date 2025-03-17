@@ -1,7 +1,6 @@
 import React from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./MaterialDetailsWindow.module.css";
-import ExpandableSection from "../shared/ExpandableSection";
 
 const MaterialDetailsWindow = ({ incident }) => {
   if (!incident) return null;
@@ -45,14 +44,9 @@ const MaterialDetailsWindow = ({ incident }) => {
       {/* Content area */}
       <div className={styles.content_area_compact}>
         <div className={styles.section_row}>
-          <ExpandableSection
-            expandedByDefault={true}
-            maxLines={10}
-            contentClassName={styles.section_content}
-            minLinesForExpansion={10}
-          >
+          <div className={styles.section_content}>
             <p>{incident.description}</p>
-          </ExpandableSection>
+          </div>
         </div>
       </div>
     </div>

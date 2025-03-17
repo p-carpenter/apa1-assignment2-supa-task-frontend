@@ -20,12 +20,9 @@ describe("AeroDetailsWindow", () => {
     id: "1",
     name: "Windows Vista Launch",
     description: "Description of the Vista launch issues",
-    cause: "Rushed development and high resource requirements",
-    consequences: "Poor user adoption and negative reception",
-    time_to_resolve: "Several service packs over 2 years",
     incident_date: "2007-01-30T00:00:00.000Z",
     category: "Software",
-    severity: "Medium",
+    severity: "moderate",
   };
 
   beforeEach(() => {

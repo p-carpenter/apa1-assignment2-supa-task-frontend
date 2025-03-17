@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./GlassmorphicDetailsWindow.module.css";
-import ExpandableSection from "../shared/ExpandableSection";
 
 const GlassmorphicDetailsWindow = ({ incident }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -104,14 +103,9 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
       {/* Content Area */}
       <div className={styles.window_content}>
         <div className={styles.content_section}>
-          <ExpandableSection
-            expandedByDefault={true}
-            maxLines={10}
-            contentClassName={styles.section_content}
-            minLinesForExpansion={10}
-          >
+          <div className={styles.section_content}>
             <p>{incident.description}</p>
-          </ExpandableSection>
+          </div>
         </div>
       </div>
     </div>

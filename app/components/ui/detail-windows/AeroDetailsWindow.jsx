@@ -1,6 +1,5 @@
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./AeroDetailsWindow.module.css";
-import ExpandableSection from "../shared/ExpandableSection";
 import { Shield, Cpu, Code, Cloud, Users, Building2, Info } from "lucide-react";
 
 const AeroDetailsWindow = ({ incident }) => {
@@ -92,15 +91,9 @@ const AeroDetailsWindow = ({ incident }) => {
           {/* content sections */}
           <div className={styles.contentSections}>
             {/* Description section - Always expanded by default */}
-            <ExpandableSection
-              sectionClassName={styles.contentSection}
-              contentClassName={styles.sectionText}
-              expandedByDefault={true}
-              maxLines={10}
-              minLinesForExpansion={10}
-            >
-              {incident.description}
-            </ExpandableSection>
+            <div className={styles.contentSection}>
+              <div className={styles.sectionText}>{incident.description}</div>
+            </div>
           </div>
         </div>
       </div>

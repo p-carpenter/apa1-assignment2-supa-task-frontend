@@ -106,7 +106,7 @@ describe("GalleryDisplay", () => {
         description: "Code description",
         incident_date: "2010-05-15",
         category: "Security",
-        severity: "Medium",
+        severity: "moderate",
         artifactType: "code",
         artifactContent: "<html><body>Test code</body></html>",
       },

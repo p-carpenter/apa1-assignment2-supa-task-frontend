@@ -122,6 +122,22 @@ const Catalog = () => {
   const sortedIncidents = useMemo(() => {
     if (!filteredIncidents.length) return [];
 
+    // Helper function to convert severity text to numeric value for sorting
+    const getSeverityValue = (severity) => {
+      switch (severity) {
+        case "Low":
+          return 1;
+        case "Moderate":
+          return 2;
+        case "High":
+          return 3;
+        case "Critical":
+          return 4;
+        default:
+          return 0; // For unknown or undefined values
+      }
+    };
+
     return [...filteredIncidents].sort((a, b) => {
       const yearA = getIncidentYear(a) || 0;
       const yearB = getIncidentYear(b) || 0;
@@ -136,9 +152,9 @@ const Catalog = () => {
         case "name-desc":
           return b.name.localeCompare(a.name);
         case "severity-asc":
-          return (a.severity || 0) - (b.severity || 0);
+          return getSeverityValue(a.severity) - getSeverityValue(b.severity);
         case "severity-desc":
-          return (b.severity || 0) - (a.severity || 0);
+          return getSeverityValue(b.severity) - getSeverityValue(a.severity);
         default:
           return yearB - yearA;
       }
@@ -203,16 +219,14 @@ const Catalog = () => {
     setIsDeleting(true);
 
     try {
-      // Call the delete handler from crudHandlers.js
       const result = await handleDeleteIncidents(selectedIncidents);
 
-      // Check if the result is an error message string
       if (typeof result === "string") {
         alert(result);
         return;
       }
 
-      // Ensure we have a valid array of incidents
+      // Ensure a valid array of incidents
       if (Array.isArray(result)) {
         // Update the incidents state with the updated data
         setIncidents(result);

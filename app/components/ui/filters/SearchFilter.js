@@ -7,6 +7,7 @@ const SearchFilter = ({
 }) => {
   return (
     <div className="search-container">
+      <div className="dropdown-label">SEARCH</div>
       <input
         type="text"
         placeholder={placeholder}
