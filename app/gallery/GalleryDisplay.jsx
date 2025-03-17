@@ -1,14 +1,14 @@
 import React, { useMemo, useRef } from "react";
 import ArtifactRenderer from "@/app/components/ui/artifacts/ArtifactRenderer";
-import GalleryExhibitSkeleton from "./GalleryExhibitSkeleton";
+import GalleryDisplaySkeleton from "./GalleryDisplaySkeleton";
 import { useTheme } from "@/app/contexts/ThemeContext";
-import styles from "./GalleryExhibit.module.css";
+import styles from "./GalleryDisplay.module.css";
 import "/public/css-reskins/systemcss/systemcss.css";
 import "/public/css-reskins/98css/style.css";
 
-const GalleryExhibit = ({ incident, isLoading }) => {
+const GalleryDisplay = ({ incident, isLoading }) => {
   if (isLoading) {
-    return <GalleryExhibitSkeleton />;
+    return <GalleryDisplaySkeleton />;
   }
 
   if (!incident) return null;
@@ -55,4 +55,4 @@ const GalleryExhibit = ({ incident, isLoading }) => {
   );
 };
 
-export default GalleryExhibit;
+export default GalleryDisplay;

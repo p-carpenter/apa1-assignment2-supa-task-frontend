@@ -1,6 +1,6 @@
-import styles from "./GalleryExhibit.module.css";
+import styles from "./GalleryDisplay.module.css";
 
-const GalleryExhibitSkeleton = () => {
+const GalleryDisplaySkeleton = () => {
   return (
     <div className={styles.container}>
       <div className={styles.window}>
@@ -65,4 +65,4 @@ const GalleryExhibitSkeleton = () => {
   );
 };
 
-export default GalleryExhibitSkeleton;
+export default GalleryDisplaySkeleton;

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import GalleryExhibit from "@/app/gallery/GalleryExhibit";
+import GalleryDisplay from "@/app/gallery/GalleryDisplay";
 import { ThemeProvider } from "@/app/contexts/ThemeContext";
 import { IncidentProvider } from "@/app/contexts/IncidentContext";
 
@@ -64,7 +64,7 @@ afterAll(() => {
 
 const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
 
-describe("GalleryExhibit", () => {
+describe("GalleryDisplay", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -128,7 +128,7 @@ describe("GalleryExhibit", () => {
     it(`renders correctly ${name}`, () => {
       render(
         <IncidentProvider>
-          <GalleryExhibit incident={incident} />
+          <GalleryDisplay incident={incident} />
         </IncidentProvider>
       );
 
@@ -155,7 +155,7 @@ describe("GalleryExhibit", () => {
   it("returns null when incident is null", () => {
     const { container } = render(
       <IncidentProvider>
-        <GalleryExhibit incident={null} />
+        <GalleryDisplay incident={null} />
       </IncidentProvider>
     );
     expect(container).toBeEmptyDOMElement();
@@ -171,7 +171,7 @@ describe("GalleryExhibit", () => {
 
     render(
       <IncidentProvider>
-        <GalleryExhibit incident={incident} />
+        <GalleryDisplay incident={incident} />
       </IncidentProvider>
     );
 
