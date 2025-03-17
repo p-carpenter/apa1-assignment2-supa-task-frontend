@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useIncidents } from "./contexts/IncidentContext";
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from "./contexts/AuthContext";
 import "./homepage.styles.css";
 
 import {
@@ -19,7 +19,6 @@ import {
 export default function Home() {
   const { incidents } = useIncidents();
   const { isAuthenticated } = useAuth();
-
 
   const [infoModalOpen, setInfoModalOpen] = useState(false);
   const [dismissButtonText, setDismissButtonText] = useState("Maybe Later");
@@ -45,32 +44,40 @@ export default function Home() {
         <ConsoleWindow title="tech-incidents-archive" statusItems={statusItems}>
           <div className="console-main-layout">
             <div className="console-left">
-            <ConsoleSection 
-              command="load tech_incidents.db"
-              commandParts={{
-                baseCommand: "load",
-                args: ["tech_incidents.db"],
-              }}
-            >
-
-                <CommandOutput title="TECH INCIDENTS" showGlitch={true} showLoadingBar={true}>
+              <ConsoleSection
+                command="load tech_incidents.db"
+                commandParts={{
+                  baseCommand: "load",
+                  args: ["tech_incidents.db"],
+                }}
+              >
+                <CommandOutput
+                  title="TECH INCIDENTS"
+                  showGlitch={true}
+                  showLoadingBar={true}
+                >
                   Database loaded successfully.
                 </CommandOutput>
               </ConsoleSection>
 
-              <ConsoleSection command="access_level --check" commandParts={
-                {
+              <ConsoleSection
+                command="access_level --check"
+                commandParts={{
                   baseCommand: "access_level",
-                  flags: ["--check"]
-                }
-              }>
+                  flags: ["--check"],
+                }}
+              >
                 <CommandOutput>
                   <div className="output-text blink-once">
                     Verifying credentials...
                   </div>
-                  <div className="output-text">Access level: {isAuthenticated ? 'MEMBER' : 'PUBLIC'}</div>
+                  <div className="output-text">
+                    Access level: {isAuthenticated ? "MEMBER" : "PUBLIC"}
+                  </div>
                   <div className="output-text highlight">
-                    YOU MAY {isAuthenticated ? 'EXAMINE AND CONTRIBUTE TO' : 'EXAMINE'} THE ARTIFACTS
+                    YOU MAY{" "}
+                    {isAuthenticated ? "EXAMINE AND CONTRIBUTE TO" : "EXAMINE"}{" "}
+                    THE ARTIFACTS
                   </div>
                 </CommandOutput>
               </ConsoleSection>
@@ -87,13 +94,20 @@ export default function Home() {
             </div>
           </div>
 
-          <ConsoleSection className="action-section" command="open gallery.exe" commandParts={
-                {
-                  baseCommand: "open",
-                  args: ["gallery.exe"]
-                }
-              }>
+          <ConsoleSection
+            className="action-section"
+            command="open gallery.exe"
+            commandParts={{
+              baseCommand: "open",
+              args: ["gallery.exe"],
+            }}
+          >
             <CTAButton href="/gallery" text="EXPLORE ARCHIVE" />
+            <CTAButton
+              href="/catalog"
+              text="CATALOG"
+              className="browse-catalog-button"
+            />
 
             <button
               className="learn-more-link"

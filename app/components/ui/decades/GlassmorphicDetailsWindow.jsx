@@ -105,70 +105,14 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
       <div className={styles.window_content}>
         <div className={styles.content_section}>
           <ExpandableSection
-            title={
-              <div className={styles.section_header}>
-                <span className={styles.section_title}>What Happened</span>
-              </div>
-            }
             expandedByDefault={true}
-            maxLines={3}
+            maxLines={10}
             contentClassName={styles.section_content}
-            minLinesForExpansion={3}
+            minLinesForExpansion={10}
           >
             <p>{incident.description}</p>
           </ExpandableSection>
         </div>
-
-        {incident.cause && (
-          <div className={styles.content_section} data-testid="cause-section">
-            <ExpandableSection
-              title={
-                <div className={styles.section_header}>
-                  <span className={styles.section_title}>Why It Happened</span>
-                </div>
-              }
-              maxLines={2}
-              contentClassName={styles.section_content}
-              minLinesForExpansion={3}
-            >
-              <p>{incident.cause}</p>
-            </ExpandableSection>
-          </div>
-        )}
-
-        {incident.consequences && (
-          <div className={styles.content_section}>
-            <ExpandableSection
-              title={
-                <div className={styles.section_header}>
-                  <span className={styles.section_title}>Consequences</span>
-                </div>
-              }
-              maxLines={2}
-              contentClassName={styles.section_content}
-              minLinesForExpansion={3}
-            >
-              <p>{incident.consequences}</p>
-            </ExpandableSection>
-          </div>
-        )}
-
-        {incident.time_to_resolve && (
-          <div className={styles.content_section}>
-            <ExpandableSection
-              title={
-                <div className={styles.section_header}>
-                  <span className={styles.section_title}>Resolution Time</span>
-                </div>
-              }
-              maxLines={1}
-              contentClassName={styles.section_content}
-              minLinesForExpansion={3}
-            >
-              <p>{incident.time_to_resolve}</p>
-            </ExpandableSection>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -53,94 +53,14 @@ const MaterialDetailsWindow = ({ incident }) => {
       <div className={styles.content_area_compact}>
         <div className={styles.section_row}>
           <ExpandableSection
-            title={
-              <div className={styles.section_header}>
-                <span
-                  className={styles.icon_badge}
-                  style={{ backgroundColor: severityColor }}
-                >
-                  !
-                </span>
-                <span className={styles.section_title}>What Happened</span>
-              </div>
-            }
             expandedByDefault={true}
-            maxLines={3}
+            maxLines={10}
             contentClassName={styles.section_content}
-            minLinesForExpansion={3}
+            minLinesForExpansion={10}
           >
             <p>{incident.description}</p>
           </ExpandableSection>
         </div>
-
-        {incident.cause && (
-          <div className={styles.section_row}>
-            <ExpandableSection
-              title={
-                <div className={styles.section_header}>
-                  <span
-                    className={styles.icon_badge}
-                    style={{ backgroundColor: "#3498db" }}
-                  >
-                    ?
-                  </span>
-                  <span className={styles.section_title}>Why It Happened</span>
-                </div>
-              }
-              maxLines={2}
-              contentClassName={styles.section_content}
-              minLinesForExpansion={3}
-            >
-              <p>{incident.cause}</p>
-            </ExpandableSection>
-          </div>
-        )}
-
-        {incident.consequences && (
-          <div className={styles.section_row}>
-            <ExpandableSection
-              title={
-                <div className={styles.section_header}>
-                  <span
-                    className={styles.icon_badge}
-                    style={{ backgroundColor: "#e67e22" }}
-                  >
-                    ⚠
-                  </span>
-                  <span className={styles.section_title}>Consequences</span>
-                </div>
-              }
-              maxLines={2}
-              contentClassName={styles.section_content}
-              minLinesForExpansion={3}
-            >
-              <p>{incident.consequences}</p>
-            </ExpandableSection>
-          </div>
-        )}
-
-        {incident.time_to_resolve && (
-          <div className={styles.section_row}>
-            <ExpandableSection
-              title={
-                <div className={styles.section_header}>
-                  <span
-                    className={styles.icon_badge}
-                    style={{ backgroundColor: "#29a35a" }}
-                  >
-                    ⏱
-                  </span>
-                  <span className={styles.section_title}>Resolution Time</span>
-                </div>
-              }
-              maxLines={1}
-              contentClassName={styles.section_content}
-              minLinesForExpansion={3}
-            >
-              <p>{incident.time_to_resolve}</p>
-            </ExpandableSection>
-          </div>
-        )}
       </div>
     </div>
   );

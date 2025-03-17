@@ -18,7 +18,7 @@ const MacintoshDetailsWindow = ({ incident }) => {
             <div className={styles.fieldLabel}>
               {formatDate(incident.incident_date)}
             </div>
-                        <div className={styles.fieldLabel}>
+            <div className={styles.fieldLabel}>
               {incident.category || "Unknown"}
             </div>
             <div className={styles.fieldLabel}>
@@ -36,71 +36,18 @@ const MacintoshDetailsWindow = ({ incident }) => {
                 <div className={`outer-border ${styles.outerBorder}`}>
                   <div className={`inner-border ${styles.innerBorder}`}>
                     <ExpandableSection
-                      title="What Happened"
                       titleClassName={`heading ${styles.heading}`}
                       expandedByDefault={true}
-                      maxLines={3}
-                      minLinesForExpansion={3}
+                      maxLines={10}
+                      minLinesForExpansion={10}
                     >
-                      <p className={styles.compactText}>{incident.description}</p>
+                      <p className={styles.compactText}>
+                        {incident.description}
+                      </p>
                     </ExpandableSection>
                   </div>
                 </div>
               </div>
-
-              {/* Root cause section */}
-              {incident.cause && (
-                <div className={styles.sectionContainer}>
-                  <div className={`outer-border ${styles.outerBorder}`}>
-                    <div className={`inner-border ${styles.innerBorder}`}>
-                      <ExpandableSection
-                        title="Why It Happened"
-                        titleClassName={`heading ${styles.heading}`}
-                        maxLines={2}
-                        minLinesForExpansion={3}
-                      >
-                        <p className={styles.compactText}>{incident.cause}</p>
-                      </ExpandableSection>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Consequences section */}
-              {incident.consequences && (
-                <div className={styles.sectionContainer}>
-                  <div className={`outer-border ${styles.outerBorder}`}>
-                    <div className={`inner-border ${styles.innerBorder}`}>
-                      <ExpandableSection
-                        title="Consequences"
-                        titleClassName={`heading ${styles.heading}`}
-                        maxLines={2}
-                        minLinesForExpansion={3}
-                      >
-                        <p className={styles.compactText}>{incident.consequences}</p>
-                      </ExpandableSection>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Resolution time section */}
-              {incident.time_to_resolve && (
-                <div className={styles.sectionContainer}>
-                  <div className={`outer-border ${styles.outerBorder}`}>
-                    <div className={`inner-border ${styles.innerBorder}`}>
-                      <ExpandableSection
-                        title="Resolution Time"
-                        titleClassName={`heading ${styles.heading}`}
-                        maxLines={1}
-                        minLinesForExpansion={3}
-                      >
-                        <p className={styles.compactText}>{incident.time_to_resolve}</p>
-                      </ExpandableSection>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
