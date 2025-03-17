@@ -4,7 +4,7 @@ import "./ArtifactRenderer.css";
 const ArtifactRenderer = ({
   artifact,
   maxWidth = 863,
-  maxHeight = 2000,
+  maxHeight = 768,
   minHeight = 0,
   title,
   className = "",
@@ -26,7 +26,6 @@ const ArtifactRenderer = ({
   const iframeRef = useRef(null);
   const expandTimerRef = useRef(null);
 
-  // Function to handle expanding/collapsing the artifact
   const toggleExpand = () => {
     const newExpandedState = !expanded;
     setExpanded(newExpandedState);
@@ -43,7 +42,6 @@ const ArtifactRenderer = ({
     }
   };
 
-  // Close on escape key - improved for working with iframes and content interaction
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === "Escape" && expanded) {
@@ -51,10 +49,9 @@ const ArtifactRenderer = ({
       }
     };
 
-    // Add event listener to the document
     document.addEventListener("keydown", handleEscape);
 
-    // Also add the event listener to iframe documents if they exist
+    // Add the event listener to iframe documents if they exist
     if (iframeRef.current) {
       try {
         const iframeDoc =
@@ -71,7 +68,6 @@ const ArtifactRenderer = ({
     }
 
     return () => {
-      // Clean up event listeners
       document.removeEventListener("keydown", handleEscape);
 
       // Clean up iframe event listeners
@@ -100,7 +96,7 @@ const ArtifactRenderer = ({
       if (iframeRef.current) {
         try {
           const iframe = iframeRef.current;
-          iframe.setAttribute("scrolling", "auto"); // Always allow scrolling
+          iframe.setAttribute("scrolling", "auto");
 
           iframe.onload = () => {
             try {
@@ -111,17 +107,14 @@ const ArtifactRenderer = ({
               // Add smart click handling to the iframe
               setupSmartClickHandler(iframeDoc);
 
-              // Add ESC key handler to iframe document
               const handleIframeEscape = (e) => {
                 if (e.key === "Escape" && expanded) {
                   toggleExpand();
                 }
               };
 
-              // Clean up previous event listeners
               iframeDoc.removeEventListener("keydown", handleIframeEscape);
 
-              // Add new one
               iframeDoc.addEventListener("keydown", handleIframeEscape);
 
               const contentHeight = Math.max(
@@ -158,7 +151,6 @@ const ArtifactRenderer = ({
     adjustIfScrollbarsAppear();
   }, [artifact, expanded]);
 
-  // Setup smart click handling for iframe content
   const setupSmartClickHandler = (doc) => {
     if (!doc) return;
 
@@ -187,7 +179,7 @@ const ArtifactRenderer = ({
           clearTimeout(expandTimerRef.current);
           expandTimerRef.current = null;
         }
-        return; // Allow the click to proceed normally
+        return;
       }
 
       // For non-interactive elements, set up an expand timer
@@ -220,7 +212,6 @@ const ArtifactRenderer = ({
   };
 
   useEffect(() => {
-    // Setup smart click handling for image containers
     const setupImageClickHandler = () => {
       if (!contentRef.current) return;
 
@@ -388,7 +379,7 @@ const ArtifactRenderer = ({
               title={artifact.name || title || "Code artifact"}
               sandbox="allow-scripts allow-same-origin"
               frameBorder="0"
-              scrolling="auto" // Always allow scrolling
+              scrolling="auto"
             />
           </div>
         );
@@ -429,7 +420,6 @@ const ArtifactRenderer = ({
     .filter(Boolean)
     .join(" ");
 
-  // Handle special key events for entire artifact container
   const handleKeyDown = (e) => {
     if (e.key === "Escape" && expanded) {
       toggleExpand();
@@ -438,7 +428,6 @@ const ArtifactRenderer = ({
 
   return (
     <>
-      {/* Render dark overlay behind the artifact when expanded */}
       {expanded && (
         <div className="artifact-overlay" onClick={toggleExpand}></div>
       )}
@@ -447,14 +436,13 @@ const ArtifactRenderer = ({
         id={containerId}
         ref={containerRef}
         className={containerClasses}
-        tabIndex={expanded ? 0 : -1} // Make container focusable when expanded
-        onKeyDown={handleKeyDown} // Listen for ESC on the container too
+        tabIndex={expanded ? 0 : -1}
+        onKeyDown={handleKeyDown}
       >
         <div ref={contentRef} className="artifact-content">
           {renderArtifactContent()}
         </div>
 
-        {/* Close button only visible when expanded */}
         {expanded && (
           <button
             className="artifact-close-btn"

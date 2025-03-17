@@ -302,11 +302,11 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
 
       const img = new Image();
       img.onload = function () {
-        if (this.width > 1024 || this.height > 768) {
-          setFileError("Image dimensions should not exceed 1024x768 pixels.");
+        if (this.width > 863 || this.height > 768) {
+          setFileError("Image dimensions should not exceed 863x768 pixels.");
           setFormErrors((prev) => ({
             ...prev,
-            file: "Image dimensions should not exceed 1024x768 pixels.",
+            file: "Image dimensions should not exceed 863x768 pixels.",
           }));
         } else {
           setFormErrors((prev) => {
@@ -665,6 +665,10 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
             onChange={handleChange}
             placeholder="Enter HTML code here..."
           />
+          <small style={{ fontSize: "0.7rem", color: "#666" }}>
+            HTML max dimensions: 863x768. Anything larger and the page layout
+            may break.
+          </small>
           {formErrors.artifactContent && (
             <div className="form-error">{formErrors.artifactContent}</div>
           )}
@@ -693,7 +697,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
               onChange={handleFileChange}
             />
             <small style={{ fontSize: "0.7rem", color: "#666" }}>
-              Max: 1024x768, 2MB
+              Max: 863x768, 2MB
             </small>
             {(formErrors.file || fileError) && (
               <div className="form-error">{formErrors.file || fileError}</div>

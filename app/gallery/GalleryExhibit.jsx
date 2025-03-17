@@ -111,8 +111,7 @@ const GalleryExhibit = ({ incident, isLoading }) => {
                 artifact={incident}
                 className={styles.artifact_transparent}
                 paddingSize={paddingSize}
-                maxWidth={hasArtifactContent ? undefined : 400}
-                maxHeight={350}
+
               />
             </div>
             <div className={styles.pedestal}>

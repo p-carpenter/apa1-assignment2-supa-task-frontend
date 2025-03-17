@@ -12,7 +12,6 @@
   box-sizing: border-box;
 }
 
-
 .artifact-clickable {
   cursor: pointer;
 }
@@ -20,7 +19,6 @@
 .artifact-clickable iframe {
   pointer-events: auto;
 }
-
 
 .artifact-clickable::after {
   content: "";
@@ -33,10 +31,6 @@
   transition: background-color 0.2s ease;
   pointer-events: none;
   z-index: 5;
-}
-
-.artifact-clickable:hover::after {
-  background-color: rgba(0, 0, 0, 0.03);
 }
 
 .artifact-content {

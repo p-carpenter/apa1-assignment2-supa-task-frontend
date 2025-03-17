@@ -3,7 +3,6 @@
 /* Base Window */
 .macos_window {
   width: 100%;
-  max-width: 380px;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -27,7 +26,6 @@
   display: flex;
   flex-direction: column;
   height: auto;
-  max-height: 70vh;
   transition: all 0.3s ease;
 }
 

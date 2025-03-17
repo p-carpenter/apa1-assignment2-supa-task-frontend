@@ -1,11 +1,8 @@
 .mainWindow {
   width: 100%;
-  max-width: 380px;
   position: relative;
   overflow: hidden;
   height: auto;
-  max-height: 75vh; /* Increased from 60vh */
-  min-height: 450px; /* Added minimum height */
 }
 
 .windowBodyCompact {
@@ -85,7 +82,7 @@
 }
 
 .sectionText {
-  padding: 4px 8px;  /* Increased horizontal padding */
-  font-size: 16px;   /* Increased from 13px */
-  line-height: 1.5;  /* Increased from 1.4 */
+  padding: 4px 8px;
+  font-size: 16px;
+  line-height: 1.5;
 }
