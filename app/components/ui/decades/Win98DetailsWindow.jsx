@@ -40,74 +40,17 @@ const Win98DetailsWindow = ({ incident }) => {
 
           <hr className={styles.divider} />
 
-          {/* Content sections - now expandable */}
+          {/* Content section */}
           <div className={styles.contentSections}>
-            {/* What Happened Section - Always expanded by default */}
             <ExpandableSection
-              title={
-                <div className={styles.sectionTitleWrapper}>
-                  <span className={styles.sectionTitleText}>What Happened</span>
-                </div>
-              }
               sectionClassName={styles.contentSection}
               contentClassName={styles.sectionText}
               expandedByDefault={true}
-              maxLines={3}
-              minLinesForExpansion={3}
+              maxLines={10}
+              minLinesForExpansion={10}
             >
               {incident.description}
             </ExpandableSection>
-
-            {/* Why It Happened Section */}
-            {incident.cause && (
-              <ExpandableSection
-                title={
-                  <div className={styles.sectionTitleWrapper}>
-                    <span className={styles.sectionTitleText}>Why It Happened</span>
-                  </div>
-                }
-                sectionClassName={styles.contentSection}
-                contentClassName={styles.sectionText}
-                maxLines={2}
-                minLinesForExpansion={3}
-              >
-                {incident.cause}
-              </ExpandableSection>
-            )}
-
-            {/* Consequences Section */}
-            {incident.consequences && (
-              <ExpandableSection
-                title={
-                  <div className={styles.sectionTitleWrapper}>
-                    <span className={styles.sectionTitleText}>Consequences</span>
-                  </div>
-                }
-                sectionClassName={styles.contentSection}
-                contentClassName={styles.sectionText}
-                maxLines={2}
-                minLinesForExpansion={3}
-              >
-                {incident.consequences}
-              </ExpandableSection>
-            )}
-
-            {/* Resolution Time Section */}
-            {incident.time_to_resolve && (
-              <ExpandableSection
-                title={
-                  <div className={styles.sectionTitleWrapper}>
-                    <span className={styles.sectionTitleText}>Resolution Time</span>
-                  </div>
-                }
-                sectionClassName={styles.contentSection}
-                contentClassName={styles.sectionText}
-                maxLines={1}
-                minLinesForExpansion={3}
-              >
-                {incident.time_to_resolve}
-              </ExpandableSection>
-            )}
           </div>
         </div>
 

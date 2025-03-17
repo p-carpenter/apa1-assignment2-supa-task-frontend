@@ -158,30 +158,6 @@ const ArtifactRenderer = ({
       // If already expanded, no need for special handling
       if (expanded) return;
 
-      // Check if the click target is an interactive element
-      const target = e.target;
-      const isInteractive =
-        target.tagName === "BUTTON" ||
-        target.tagName === "A" ||
-        target.tagName === "INPUT" ||
-        target.tagName === "SELECT" ||
-        target.tagName === "TEXTAREA" ||
-        target.tagName === "OPTION" ||
-        target.tagName === "LABEL" ||
-        target.hasAttribute("onclick") ||
-        (target.parentElement &&
-          (target.parentElement.tagName === "BUTTON" ||
-            target.parentElement.tagName === "A"));
-
-      if (isInteractive) {
-        // For interactive elements, clear any pending expand timer
-        if (expandTimerRef.current) {
-          clearTimeout(expandTimerRef.current);
-          expandTimerRef.current = null;
-        }
-        return;
-      }
-
       // For non-interactive elements, set up an expand timer
       if (expandTimerRef.current) {
         clearTimeout(expandTimerRef.current);
@@ -415,7 +391,7 @@ const ArtifactRenderer = ({
     className,
     `artifact-type-${artifact?.artifactType || "none"}`,
     getPaddingClass(),
-    expanded ? "artifact-expanded" : "",
+    expanded ? "artifact-expanded" : "artifact-clickable",
   ]
     .filter(Boolean)
     .join(" ");

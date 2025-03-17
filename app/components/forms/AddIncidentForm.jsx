@@ -14,9 +14,6 @@ const AddIncidentForm = ({ onClose }) => {
     category: "Software",
     severity: "Moderate",
     description: "",
-    cause: "",
-    consequences: "",
-    time_to_resolve: "",
     artifactType: "none",
     artifactContent: "",
   });
@@ -36,20 +33,6 @@ const AddIncidentForm = ({ onClose }) => {
 
   const severityOptions = ["Low", "Moderate", "High", "Critical"];
 
-  // // Function to convert YYYY-MM-DD to DD-MM-YYYY for display
-  // const formatDateForDisplay = (isoDate) => {
-  //   if (!isoDate) return "";
-  //   const [year, month, day] = isoDate.split("-");
-  //   return `${day}-${month}-${year}`;
-  // };
-
-  // // Function to convert DD-MM-YYYY to YYYY-MM-DD for internal use
-  // const formatDateForStorage = (displayDate) => {
-  //   if (!displayDate) return "";
-  //   const [day, month, year] = displayDate.split("-");
-  //   return `${year}-${month}-${day}`;
-  // };
-
   const validateFields = () => {
     let errors = {};
 
@@ -64,20 +47,17 @@ const AddIncidentForm = ({ onClose }) => {
     if (!formData.incident_date.trim()) {
       errors.incident_date = "Date is required.";
     } else {
-      // Enhanced date validation for DD-MM-YYYY format
       const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
       if (!dateRegex.test(formData.incident_date)) {
         errors.incident_date =
           "Please enter a valid date in DD-MM-YYYY format.";
       } else {
-        // Parse the date string
         const match = formData.incident_date.match(dateRegex);
         const day = parseInt(match[1], 10);
-        const month = parseInt(match[2], 10) - 1; // Months are 0-indexed in JS Date
+        const month = parseInt(match[2], 10) - 1;
         const year = parseInt(match[3], 10);
         const inputDate = new Date(year, month, day);
 
-        // Check if date is valid (e.g., not Feb 30)
         if (
           inputDate.getFullYear() !== year ||
           inputDate.getMonth() !== month ||
@@ -85,10 +65,9 @@ const AddIncidentForm = ({ onClose }) => {
         ) {
           errors.incident_date = "This date doesn't exist in the calendar.";
         }
-        // Check date range (1980-01-01 to 2029-12-31)
         else {
-          const minDate = new Date(1980, 0, 1); // Jan 1, 1980
-          const maxDate = new Date(2029, 11, 31); // Dec 31, 2029
+          const minDate = new Date(1980, 0, 1);
+          const maxDate = new Date(2029, 11, 31);
 
           if (inputDate < minDate) {
             errors.incident_date = "Date must be on or after 01-01-1980.";
@@ -99,14 +78,12 @@ const AddIncidentForm = ({ onClose }) => {
       }
     }
 
-    // Description validation
     if (!formData.description.trim()) {
       errors.description = "Description is required.";
     } else if (formData.description.trim().length < 10) {
       errors.description = "Description must be at least 10 characters.";
     }
 
-    // Artifact validation
     if (formData.artifactType === "code" && !formData.artifactContent.trim()) {
       errors.artifactContent =
         "HTML Code is required when Artifact Type is set to Code.";
@@ -121,7 +98,6 @@ const AddIncidentForm = ({ onClose }) => {
     return Object.keys(errors).length === 0;
   };
 
-  // Validate a single field
   const validateField = (name, value) => {
     let error = null;
 
@@ -208,9 +184,8 @@ const AddIncidentForm = ({ onClose }) => {
       }));
     }
 
-    // Handle special case for artifactType
+    // Clear errors when switching artifact types
     if (name === "artifactType") {
-      // Clear file error when switching away from image type
       if (value !== "image") {
         setFileError("");
         setFormErrors((prev) => {
@@ -220,7 +195,6 @@ const AddIncidentForm = ({ onClose }) => {
         });
       }
 
-      // Clear code error when switching away from code type
       if (value !== "code") {
         setFormErrors((prev) => {
           const newErrors = { ...prev };
@@ -231,14 +205,12 @@ const AddIncidentForm = ({ onClose }) => {
     }
   };
 
-  // Special handler for the date field to enforce DD-MM-YYYY format
   const handleDateChange = (e) => {
     const input = e.target.value;
 
     // Allow typing with hyphens automatically added
     let formattedDate = input;
 
-    // Remove any non-digit characters
     const digits = input.replace(/\D/g, "");
 
     if (digits.length <= 2) {
@@ -277,7 +249,6 @@ const AddIncidentForm = ({ onClose }) => {
       return;
     }
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       setFileError("Selected file is not an image.");
       setFileData(null);
@@ -290,7 +261,6 @@ const AddIncidentForm = ({ onClose }) => {
       return;
     }
 
-    // Validate file size (e.g., max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       setFileError("Image size must be less than 2MB.");
       setFileData(null);
@@ -308,7 +278,7 @@ const AddIncidentForm = ({ onClose }) => {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      setFileData(event.target.result); // Base64 string
+      setFileData(event.target.result);
 
       // Check image dimensions
       const img = new Image();
@@ -320,7 +290,6 @@ const AddIncidentForm = ({ onClose }) => {
             file: "Image dimensions should not exceed 863x768 pixels.",
           }));
         } else {
-          // Clear error if validation passes
           setFormErrors((prev) => {
             const newErrors = { ...prev };
             delete newErrors.file;
@@ -347,7 +316,6 @@ const AddIncidentForm = ({ onClose }) => {
     setIsSubmitting(true);
     setErrorMessage("");
 
-    // Validate all fields before submission
     if (!validateFields()) {
       setIsSubmitting(false);
       return;
@@ -384,7 +352,7 @@ const AddIncidentForm = ({ onClose }) => {
       const errorMsg =
         error.message || "Failed to add incident. Please try again.";
 
-      // Check for file/artifact specific errors
+
       if (
         errorMsg.includes("file") ||
         errorMsg.includes("image") ||

@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Button from "../buttons/Button";
 import "./gallery-variables.css";
 import "./GalleryNavButtons.styles.css";
-import "./slide-transitions.css";
 
 const GalleryNavButtons = ({
   onPreviousClick,
@@ -13,7 +12,6 @@ const GalleryNavButtons = ({
   currentIncidentYear,
   onYearClick,
   incidentCounts = {},
-
   currentIncidentIndexInYear = 0,
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
@@ -129,7 +127,7 @@ const GalleryNavButtons = ({
                     title={count > 1 ? `${count} incidents in ${year}` : ""}
                   >
                     {year}
-                    {/* Show indicator for multiple incidents - now using the prop from parent */}
+                    {/* Show indicator for multiple incidents */}
                     {count > 1 && (
                       <span className="incident-count">
                         {isCurrentYear

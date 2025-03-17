@@ -1,4 +1,3 @@
-
 @import "./styles/components.global.css";
 
 /* Museum info section */
@@ -9,7 +8,12 @@
   display: none;
 }
 
-/* Wikipedia-style donation appeal styling */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+}
 
 /* Wiki appeal panel */
 .wiki-appeal {

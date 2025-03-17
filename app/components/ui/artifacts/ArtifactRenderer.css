@@ -16,10 +16,6 @@
   cursor: pointer;
 }
 
-.artifact-clickable iframe {
-  pointer-events: auto;
-}
-
 .artifact-clickable::after {
   content: "";
   position: absolute;
@@ -34,7 +30,7 @@
 }
 
 .artifact-content {
-  width: 100%;
+  max-width: 863px;
   height: 100%;
   display: flex;
   justify-content: center;
@@ -47,6 +43,21 @@
 .artifact-type-image {
   background-color: #f5f5f5;
   border: 1px solid #e0e0e0;
+}
+
+.artifact-renderer.artifact_transparent,
+.artifact-renderer.artifact-transparent {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  max-width: 863px;
+}
+
+.artifact-renderer.artifact_transparent.artifact-type-image,
+.artifact-renderer.artifact-transparent.artifact-type-image {
+  background-color: transparent !important;
+  border: none !important;
+  max-width: 863px;
 }
 
 .artifact-image-container {
@@ -151,7 +162,6 @@
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.8);
   z-index: 99;
-  cursor: pointer;
 }
 
 /* Expanded state */
@@ -161,44 +171,16 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 90vw !important;
-  max-width: 1200px !important;
-  height: 80vh !important;
+  /* width: 90vw !important; */
+  max-width: 863px;
+  width: auto;
+  height: auto;
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
   cursor: default; /* Reset cursor when expanded */
 }
 
 .artifact-expanded::after {
   display: none;
-}
-
-/* Expand button */
-.artifact-expand-btn {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: #555;
-  font-size: 16px;
-  line-height: 32px;
-  text-align: center;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  cursor: pointer;
-  z-index: 20;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-}
-
-.artifact-expand-btn:hover {
-  opacity: 1;
-  background: white;
 }
 
 /* Close button for expanded artifacts */
@@ -230,7 +212,7 @@ body.artifact-modal-open {
   overflow: hidden;
 }
 
-/* Responsive styling for smaller screens */
+/* Responsive styling */
 @media (max-width: 768px) {
   .artifact-renderer {
     width: 100% !important;

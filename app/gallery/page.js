@@ -32,10 +32,7 @@ export default function GalleryPage() {
 
   const [currentIncident, setCurrentIncident] = useState(null);
   const [incidentCountByYear, setIncidentCountByYear] = useState({});
-
-  const [currentIncidentIndexByYear, setCurrentIncidentIndexByYear] = useState(
-    {}
-  );
+  const [currentIncidentIndexByYear, setCurrentIncidentIndexByYear] = useState({});
 
   const hasIncidents = useMemo(
     () => Array.isArray(incidents) && incidents.length > 0,

@@ -62,6 +62,7 @@
   margin-bottom: 4px;
   border-radius: 0;
   background: white;
+  border: 2px inset #808080;
 }
 
 .contentSection:last-child {
@@ -83,6 +84,6 @@
 
 .sectionText {
   padding: 4px 8px;
-  font-size: 16px;
+  font-size: 14.5px;
   line-height: 1.5;
 }

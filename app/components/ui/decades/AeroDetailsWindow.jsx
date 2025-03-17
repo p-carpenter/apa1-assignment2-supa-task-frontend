@@ -69,7 +69,7 @@ const AeroDetailsWindow = ({ incident }) => {
           </h2>
         </div>
 
-        {/* Content area with glass panels */}
+        {/* Content area */}
         <div className={styles.contentArea}>
           {/* Metadata row */}
           <div className={styles.metadataRow}>
@@ -89,60 +89,18 @@ const AeroDetailsWindow = ({ incident }) => {
             </div>
           </div>
 
-          {/* Glass panel content sections */}
+          {/* content sections */}
           <div className={styles.contentSections}>
-            {/* What Happened Section - Always expanded by default */}
+            {/* Description section - Always expanded by default */}
             <ExpandableSection
-              title={<h3 className={styles.sectionTitle}>What Happened</h3>}
               sectionClassName={styles.contentSection}
               contentClassName={styles.sectionText}
               expandedByDefault={true}
-              maxLines={3}
-              minLinesForExpansion={3}
+              maxLines={10}
+              minLinesForExpansion={10}
             >
               {incident.description}
             </ExpandableSection>
-
-            {/* Why It Happened Section */}
-            {incident.cause && (
-              <ExpandableSection
-                title={<h3 className={styles.sectionTitle}>Why It Happened</h3>}
-                sectionClassName={styles.contentSection}
-                contentClassName={styles.sectionText}
-                maxLines={2}
-                minLinesForExpansion={3}
-              >
-                {incident.cause}
-              </ExpandableSection>
-            )}
-
-            {/* Consequences Section */}
-            {incident.consequences && (
-              <ExpandableSection
-                title={<h3 className={styles.sectionTitle}>Consequences</h3>}
-                sectionClassName={styles.contentSection}
-                contentClassName={styles.sectionText}
-                maxLines={2}
-                minLinesForExpansion={3}
-              >
-                {incident.consequences}
-              </ExpandableSection>
-            )}
-
-            {/* Resolution Time Section */}
-            {incident.time_to_resolve && (
-              <ExpandableSection
-                title={<h3 className={styles.sectionTitle}>Resolution Time</h3>}
-                sectionClassName={styles.contentSection}
-                contentClassName={styles.sectionText}
-                maxLines={1}
-                minLinesForExpansion={3}
-              >
-                <div className={styles.resolutionTime}>
-                  {incident.time_to_resolve}
-                </div>
-              </ExpandableSection>
-            )}
           </div>
         </div>
       </div>

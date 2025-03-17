@@ -14,9 +14,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     category: "Software",
     severity: "Low",
     description: "",
-    cause: "",
-    consequences: "",
-    time_to_resolve: "",
     artifactType: "none",
     artifactContent: "",
   });
@@ -42,9 +39,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         category: incident.category || "Software",
         severity: incident.severity || "Low",
         description: incident.description || "",
-        cause: incident.cause || "",
-        consequences: incident.consequences || "",
-        time_to_resolve: incident.time_to_resolve || "",
         artifactType: incident.artifactType || "none",
         artifactContent: incident.artifactContent || "",
       });
