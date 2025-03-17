@@ -3,24 +3,17 @@ import { formatDate } from "@/app/utils/formatting/dateUtils";
 import styles from "./MaterialDetailsWindow.module.css";
 import ExpandableSection from "../shared/ExpandableSection";
 
-/**
- * Material Design styled window (2010s)
- *
- * Redesigned with a compact layout without cards
- */
 const MaterialDetailsWindow = ({ incident }) => {
   if (!incident) return null;
 
   const getSeverityColor = (severity) => {
-    if (!severity) return "#5a6a8a"; // Default slate
+    if (!severity) return "#3498db"; // Default slate
 
     const lowerSeverity = severity.toLowerCase();
     if (lowerSeverity.includes("critical")) return "#d84a4a"; // Red
     if (lowerSeverity.includes("high")) return "#e67e22"; // Orange
-    if (lowerSeverity.includes("medium")) return "#f3c32c"; // Amber
+    if (lowerSeverity.includes("moderate")) return "#f3c32c"; // Amber
     if (lowerSeverity.includes("low")) return "#29a35a"; // Green
-
-    return "#3498db"; // Default blue
   };
 
   const severityColor = getSeverityColor(incident.severity);

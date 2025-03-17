@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import Win98DetailsWindow from "@/app/components/ui/decades/Win98DetailsWindow";
+import Win98DetailsWindow from "@/app/components/ui/detail-windows/Win98DetailsWindow";
 
 describe("MSW Handlers", () => {
   it("defines API handlers", () => {

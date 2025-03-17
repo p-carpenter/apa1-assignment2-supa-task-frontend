@@ -4,11 +4,11 @@ import React, { createContext, useContext } from "react";
 import { useIncidents } from "./IncidentContext";
 import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
-import MacintoshDetailsWindow from "@/app/components/ui/decades/MacintoshDetailsWindow";
-import AeroDetailsWindow from "@/app/components/ui/decades/AeroDetailsWindow";
-import MaterialDetailsWindow from "@/app/components/ui/decades/MaterialDetailsWindow";
-import GlassmorphicDetailsWindow from "@/app/components/ui/decades/GlassmorphicDetailsWindow";
-import Win98DetailsWindow from "@/app/components/ui/decades/Win98DetailsWindow";
+import MacintoshDetailsWindow from "@/app/components/ui/detail-windows/MacintoshDetailsWindow";
+import AeroDetailsWindow from "@/app/components/ui/detail-windows/AeroDetailsWindow";
+import MaterialDetailsWindow from "@/app/components/ui/detail-windows/MaterialDetailsWindow";
+import GlassmorphicDetailsWindow from "@/app/components/ui/detail-windows/GlassmorphicDetailsWindow";
+import Win98DetailsWindow from "@/app/components/ui/detail-windows/Win98DetailsWindow";
 
 const IncidentDetailsWindows = {
   1980: MacintoshDetailsWindow,

@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import AeroDetailsWindow from "@/app/components/ui/decades/AeroDetailsWindow";
+import AeroDetailsWindow from "@/app/components/ui/detail-windows/AeroDetailsWindow";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 
 // Mock the date utils

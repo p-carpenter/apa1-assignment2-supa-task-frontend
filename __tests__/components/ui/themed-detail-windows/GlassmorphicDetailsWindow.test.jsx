@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import GlassmorphicDetailsWindow from "@/app/components/ui/decades/GlassmorphicDetailsWindow";
+import GlassmorphicDetailsWindow from "@/app/components/ui/detail-windows/GlassmorphicDetailsWindow";
 import { formatDate } from "@/app/utils/formatting/dateUtils";
 
 // Mock the date utils

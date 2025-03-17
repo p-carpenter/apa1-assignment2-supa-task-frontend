@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import MaterialDetailsWindow from "@/app/components/ui/decades/MaterialDetailsWindow";
+import MaterialDetailsWindow from "@/app/components/ui/detail-windows/MaterialDetailsWindow";
 
 describe("MaterialDetailsWindow", () => {
   const mockIncident = {
