@@ -576,16 +576,16 @@ const AddIncidentForm = ({ onClose }) => {
 
       <div className="form-group" style={{ marginBottom: "10px" }}>
         <label className="form-label" htmlFor="description">
-          Description *
+          Description
         </label>
         <textarea
           id="description"
           name="description"
           className={`form-textarea ${hasError("description") ? "input-error" : ""}`}
-          style={{ height: "50px" }}
+          style={{ height: "70px" }}
           value={formData.description}
           onChange={handleChange}
-          placeholder="Provide a brief description of the incident..."
+          placeholder="Provide a description of the incident..."
         />
         {formErrors.description && (
           <div className="form-error">{formErrors.description}</div>
@@ -593,53 +593,6 @@ const AddIncidentForm = ({ onClose }) => {
       </div>
 
       <div className="form-row">
-        <div className="form-group" style={{ marginBottom: "10px" }}>
-          <label className="form-label" htmlFor="cause">
-            Cause
-          </label>
-          <input
-            id="cause"
-            name="cause"
-            type="text"
-            className="form-input"
-            value={formData.cause}
-            onChange={handleChange}
-            placeholder="What caused this incident?"
-          />
-        </div>
-
-        <div className="form-group" style={{ marginBottom: "10px" }}>
-          <label className="form-label" htmlFor="consequences">
-            Impact
-          </label>
-          <input
-            id="consequences"
-            name="consequences"
-            type="text"
-            className="form-input"
-            value={formData.consequences}
-            onChange={handleChange}
-            placeholder="What were the consequences?"
-          />
-        </div>
-      </div>
-
-      <div className="form-row">
-        <div className="form-group" style={{ marginBottom: "10px" }}>
-          <label className="form-label" htmlFor="time_to_resolve">
-            Time to Resolve
-          </label>
-          <input
-            id="time_to_resolve"
-            name="time_to_resolve"
-            type="text"
-            className="form-input"
-            value={formData.time_to_resolve}
-            onChange={handleChange}
-            placeholder="e.g., 2 days"
-          />
-        </div>
-
         <div className="form-group" style={{ marginBottom: "10px" }}>
           <label className="form-label" htmlFor="artifactType">
             Artifact Type
@@ -673,7 +626,8 @@ const AddIncidentForm = ({ onClose }) => {
             placeholder="Enter HTML code here..."
           />
           <small style={{ fontSize: "0.7rem", color: "#666" }}>
-            HTML max dimensions: 863x768. Anything larger and the page layout may break.
+            HTML max dimensions: 863x768. Anything larger and the page layout
+            may break.
           </small>
           {formErrors.artifactContent && (
             <div className="form-error">{formErrors.artifactContent}</div>
