@@ -68,15 +68,12 @@ function LoginForm() {
     return error;
   };
 
-  // Validate all fields and return true if all are valid
   const validateFields = () => {
     const errors = {};
 
-    // Validate email
     const emailError = validateField("email", formData.email);
     if (emailError) errors.email = emailError;
 
-    // Validate password
     const passwordError = validateField("password", formData.password);
     if (passwordError) errors.password = passwordError;
 
@@ -104,7 +101,6 @@ function LoginForm() {
     e.preventDefault();
     setErrorMessage("");
 
-    // Validate all fields before submission
     if (!validateFields()) {
       return;
     }
@@ -124,7 +120,6 @@ function LoginForm() {
     }
   };
 
-  // Helper to determine if a field has an error
   const hasError = (fieldName) => {
     return !!formErrors[fieldName];
   };

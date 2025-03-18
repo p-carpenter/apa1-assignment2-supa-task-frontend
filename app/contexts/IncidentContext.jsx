@@ -127,14 +127,6 @@ export const IncidentProvider = ({
     );
   }, []);
 
-  const handleIncidentDoubleClick = (incident) => {
-    if (!Array.isArray(incidents)) return;
-
-    const index = incidents.findIndex((inc) => inc.id === incident.id);
-    setCurrentIncidentIndex(index);
-    setDisplayedIncident(incident);
-  };
-
   const handleIncidentNavigation = (newIndex) => {
     if (!Array.isArray(incidents)) return;
 
@@ -155,12 +147,6 @@ export const IncidentProvider = ({
         );
       }
     }
-  };
-
-  const handleFolderDoubleClick = (decade) => {
-    setCurrentYear(decade);
-    setSelectedIncidents([]);
-    setCurrentDecade(decade);
   };
 
   const navigateToRoot = () => {
@@ -199,9 +185,7 @@ export const IncidentProvider = ({
     clearFilters,
     handleFilterClick,
     // Action handlers
-    handleIncidentDoubleClick,
     handleIncidentNavigation,
-    handleFolderDoubleClick,
     navigateToRoot,
   };
 

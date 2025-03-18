@@ -24,7 +24,6 @@ const categories = [
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
 
-// Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
 const formatDateForDisplay = (dateString) => {
   if (!dateString) return "";
 
@@ -46,7 +45,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
   const { setIncidents } = useIncidents();
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
 
-  // Initial form values
   const getInitialFormValues = useCallback(() => {
     if (!incident) {
       return {
@@ -71,11 +69,9 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     };
   }, [incident]);
 
-  // Form validation function
   const validateForm = useCallback((data, fieldName = null) => {
     let errors = {};
 
-    // If a specific field is provided, only validate that field
     if (fieldName) {
       switch (fieldName) {
         case "name":
@@ -114,17 +110,13 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
       return errors;
     }
 
-    // Otherwise, validate all fields
-    // Name validation
     const nameValidation = validateMinLength(data.name, 3, "Incident Name");
     if (!nameValidation.isValid) errors.name = nameValidation.errorMessage;
 
-    // Date validation
     const dateValidation = validateDateString(data.incident_date);
     if (!dateValidation.isValid)
       errors.incident_date = dateValidation.errorMessage;
 
-    // Description validation
     const descValidation = validateMinLength(
       data.description,
       10,
@@ -133,7 +125,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     if (!descValidation.isValid)
       errors.description = descValidation.errorMessage;
 
-    // Artifact validation
     if (data.artifactType === "code" && !data.artifactContent?.trim()) {
       errors.artifactContent =
         "HTML Code is required when Artifact Type is set to Code.";
@@ -142,7 +133,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     return errors;
   }, []);
 
-  // Initialize the form using our custom hook
   const {
     formData,
     formErrors,
@@ -152,9 +142,9 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     handleSubmit: submitForm,
     setErrors,
     setValues,
+    setFieldValue,
   } = useForm(getInitialFormValues(), validateForm, handleSubmit);
 
-  // Initialize file upload hook
   const { fileState, handleFileChange, clearFile } = useFileUpload({
     validationOptions: {
       maxSizeInMB: 2,
@@ -164,7 +154,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     setFormErrors: setErrors,
   });
 
-  // Update form values when incident changes
   useEffect(() => {
     setValues(getInitialFormValues());
     clearFile();
@@ -175,14 +164,11 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     setFieldValue("incident_date", formattedDate);
   };
 
-  // Custom handler for artifactType changes
   const handleArtifactTypeChange = (e) => {
     const { value } = e.target;
 
-    // First handle the normal field change
     handleChange(e);
 
-    // Clear errors based on the new artifact type
     if (value !== "image") {
       clearFile();
       setErrors((prev) => {
@@ -201,16 +187,13 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     }
   };
 
-  // Toggle severity info panel
   const toggleSeverityInfo = (e) => {
     e.preventDefault();
     setShowSeverityInfo(!showSeverityInfo);
   };
 
-  // Handler for the form submission
   async function handleSubmit(data) {
     try {
-      // Convert the date format from DD-MM-YYYY to YYYY-MM-DD for storage
       const storageFormattedData = {
         ...data,
         incident_date: data.incident_date
@@ -223,7 +206,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         update: storageFormattedData,
       };
 
-      // Add file data if present
       if (data.artifactType === "image" && fileState.data) {
         payload.fileData = fileState.data;
         payload.fileName = fileState.name;
@@ -236,7 +218,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         throw new Error(result);
       }
 
-      // Update incidents and close or continue
       setIncidents(result);
 
       if (onNext) {
@@ -249,7 +230,6 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
       const errorMsg =
         error.message || "Failed to update incident. Please try again.";
 
-      // Handle file-specific errors
       if (
         errorMsg.includes("file") ||
         errorMsg.includes("image") ||

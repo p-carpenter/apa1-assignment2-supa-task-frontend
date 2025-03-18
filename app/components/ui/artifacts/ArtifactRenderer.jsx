@@ -122,7 +122,6 @@ const ArtifactRenderer = ({
     }
   };
 
-  // Get the CSS class for artifact type
   const getArtifactTypeClass = () => {
     if (!artifact?.artifactType) return "";
 
@@ -136,12 +135,10 @@ const ArtifactRenderer = ({
     }
   };
 
-  // Check for transparent style in className string
   const isTransparent =
     className.includes("artifact_transparent") ||
     className.includes("artifact-transparent");
 
-  // Build CSS classes string
   const containerClasses = [
     styles.renderer,
     getArtifactTypeClass(),
@@ -166,7 +163,6 @@ const ArtifactRenderer = ({
 };
 
 export default React.memo(ArtifactRenderer, (prevProps, nextProps) => {
-  // Custom comparison function to determine if a re-render is needed
   // Only re-render if these props change
   return (
     prevProps.artifact?.id === nextProps.artifact?.id &&

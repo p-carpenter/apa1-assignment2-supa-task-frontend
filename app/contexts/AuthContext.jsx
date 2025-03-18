@@ -63,9 +63,6 @@ export function AuthProvider({ children }) {
           }
         } else if (storedAuth) {
           // No cookie auth but localStorage exists
-          // We need to handle this case where cookies expired but localStorage still has data
-          // This would allow us to show the user as logged in but handle re-authentication
-          // when they access protected resources
 
           setUser(storedAuth.user);
 

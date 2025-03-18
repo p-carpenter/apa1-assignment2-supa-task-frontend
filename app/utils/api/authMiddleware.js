@@ -2,21 +2,21 @@ import { cookies } from "next/headers";
 
 /**
  * Authentication middleware for API routes
- * 
+ *
  * @param {Function} handler - The API route handler
  * @returns {Function} - The protected handler
  */
 export const withAuth = (handler) => async (req) => {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const accessToken = cookieStore.get("sb-access-token")?.value;
     const refreshToken = cookieStore.get("sb-refresh-token")?.value;
 
     if (!accessToken || !refreshToken) {
       return new Response(
-        JSON.stringify({ 
-          error: "Unauthorized", 
-          message: "Authentication required" 
+        JSON.stringify({
+          error: "Unauthorized",
+          message: "Authentication required",
         }),
         {
           status: 401,
@@ -25,20 +25,20 @@ export const withAuth = (handler) => async (req) => {
       );
     }
 
-    // Add auth info to request context
-    req.auth = { 
-      accessToken, 
+    // Attach authentication details to request
+    req.auth = {
+      accessToken,
       refreshToken,
-      cookies: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`
+      cookies: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
     };
-    
+
     return handler(req);
   } catch (error) {
-    console.error("Auth middleware error:", error);
+    console.error("❌ Auth middleware error:", error);
     return new Response(
-      JSON.stringify({ 
-        error: "Authentication Error", 
-        message: error.message || "Failed to authenticate request" 
+      JSON.stringify({
+        error: "Authentication Error",
+        message: error.message || "Failed to authenticate request",
       }),
       {
         status: 500,
@@ -50,16 +50,16 @@ export const withAuth = (handler) => async (req) => {
 
 /**
  * Helper to add auth headers to Supabase requests
- * 
+ *
  * @param {Object} req - Request with auth data
  * @returns {Object} - Headers with auth information
  */
 export const getSupabaseAuthHeaders = (req) => {
-  const { accessToken, refreshToken } = req.auth;
-  
+  const { accessToken } = req.auth;
+
   return {
     "Content-Type": "application/json",
-    "Cookie": `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
-    "Authorization": `Bearer ${process.env.SUPABASE_ANON_KEY}`
+    Authorization: `Bearer ${accessToken}`,
+    Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${req.auth.refreshToken}`,
   };
 };

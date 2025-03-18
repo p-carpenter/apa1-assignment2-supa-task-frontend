@@ -28,11 +28,9 @@ const AddIncidentForm = ({ onClose }) => {
   const { setIncidents } = useIncidents();
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
 
-  // Form validation function
   const validateForm = (data, fieldName = null) => {
     let errors = {};
 
-    // If a specific field is provided, only validate that field
     if (fieldName) {
       switch (fieldName) {
         case "name":
@@ -71,17 +69,13 @@ const AddIncidentForm = ({ onClose }) => {
       return errors;
     }
 
-    // Otherwise, validate all fields
-    // Name validation
     const nameValidation = validateMinLength(data.name, 3, "Incident Name");
     if (!nameValidation.isValid) errors.name = nameValidation.errorMessage;
 
-    // Date validation
     const dateValidation = validateDateString(data.incident_date);
     if (!dateValidation.isValid)
       errors.incident_date = dateValidation.errorMessage;
 
-    // Description validation
     const descValidation = validateMinLength(
       data.description,
       10,
@@ -90,7 +84,6 @@ const AddIncidentForm = ({ onClose }) => {
     if (!descValidation.isValid)
       errors.description = descValidation.errorMessage;
 
-    // Artifact validation
     if (data.artifactType === "code" && !data.artifactContent?.trim()) {
       errors.artifactContent =
         "HTML Code is required when Artifact Type is set to Code.";
@@ -104,7 +97,6 @@ const AddIncidentForm = ({ onClose }) => {
     return errors;
   };
 
-  // Initialize the form using our custom hook
   const {
     formData,
     formErrors,
@@ -113,6 +105,7 @@ const AddIncidentForm = ({ onClose }) => {
     handleChange,
     handleSubmit: submitForm,
     setErrors,
+    setFieldValue,
   } = useForm(
     {
       name: "",
@@ -127,7 +120,6 @@ const AddIncidentForm = ({ onClose }) => {
     handleSubmit
   );
 
-  // Initialize file upload hook
   const { fileState, handleFileChange, clearFile } = useFileUpload({
     validationOptions: {
       maxSizeInMB: 2,
@@ -137,20 +129,16 @@ const AddIncidentForm = ({ onClose }) => {
     setFormErrors: setErrors,
   });
 
-  // Date change handler
   const handleDateChange = (e) => {
     const formattedDate = formatDateInput(e.target.value);
     setFieldValue("incident_date", formattedDate);
   };
 
-  // Custom handler for artifactType changes
   const handleArtifactTypeChange = (e) => {
     const { value } = e.target;
 
-    // First handle the normal field change
     handleChange(e);
 
-    // Clear errors based on the new artifact type
     if (value !== "image") {
       clearFile();
       setErrors((prev) => {
@@ -169,16 +157,13 @@ const AddIncidentForm = ({ onClose }) => {
     }
   };
 
-  // Toggle severity info panel
   const toggleSeverityInfo = (e) => {
     e.preventDefault();
     setShowSeverityInfo(!showSeverityInfo);
   };
 
-  // Handler for the form submission
   async function handleSubmit(data) {
     try {
-      // Convert the date format from DD-MM-YYYY to YYYY-MM-DD for storage
       const storageFormattedData = {
         ...data,
         incident_date: data.incident_date
@@ -190,7 +175,6 @@ const AddIncidentForm = ({ onClose }) => {
         addition: storageFormattedData,
       };
 
-      // Add file data if present
       if (data.artifactType === "image" && fileState.data) {
         payload.fileData = fileState.data;
         payload.fileName = fileState.name;
@@ -203,7 +187,6 @@ const AddIncidentForm = ({ onClose }) => {
         throw new Error(result);
       }
 
-      // Update incidents and close the form
       setIncidents(result);
       onClose();
     } catch (error) {
@@ -211,7 +194,6 @@ const AddIncidentForm = ({ onClose }) => {
       const errorMsg =
         error.message || "Failed to add incident. Please try again.";
 
-      // Handle file-specific errors
       if (
         errorMsg.includes("file") ||
         errorMsg.includes("image") ||

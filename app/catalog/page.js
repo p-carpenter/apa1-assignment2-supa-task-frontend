@@ -4,17 +4,21 @@ import { useIncidents } from "../contexts/IncidentContext";
 import { useState, useEffect, useMemo } from "react";
 import styles from "./Catalog.module.css";
 import layoutStyles from "../components/layouts/Layout.module.css";
-import modalStyles from "../components/ui/modals/Modal.module.css";
 
 import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
-
 import { CatalogFilters } from "../components/ui/filters";
-import IncidentGrid from "./IncidentGrid";
-import { Button } from "../components/ui/buttons";
+import IncidentGrid from "@/app/components/ui/catalog/IncidentGrid";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { handleDeleteIncidents } from "./crudHandlers";
-import AddIncidentForm from "../components/forms/AddIncidentForm";
-import EditIncidentForm from "../components/forms/EditIncidentForm";
+
+import AdminControls from "../components/ui/catalog/AdminControls";
+import IncidentModals from "../components/ui/catalog/IncidentModals";
+
+import {
+  getIncidentYear,
+  filterIncidents,
+  sortIncidents,
+} from "@/app/utils/incidents/incidentGridUtils";
 
 const Catalog = () => {
   const {
@@ -33,24 +37,12 @@ const Catalog = () => {
   const [realTimeSearch, setRealTimeSearch] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Selection mode and selected incidents
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
 
-  // State for modals
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEditIndex, setCurrentEditIndex] = useState(0);
-
-  const getIncidentYear = (incident) => {
-    if (!incident || !incident.incident_date) return null;
-    try {
-      return new Date(incident.incident_date).getFullYear();
-    } catch (error) {
-      console.error("Error extracting year:", error);
-      return null;
-    }
-  };
 
   useEffect(() => {
     if (!incidents || !incidents.length) return;
@@ -89,79 +81,16 @@ const Catalog = () => {
   }, [realTimeSearch]);
 
   const filteredIncidents = useMemo(() => {
-    if (!incidents || !incidents.length) return [];
-
-    return incidents.filter((incident) => {
-      if (!incident) return false;
-
-      const year = getIncidentYear(incident);
-
-      const matchesYear =
-        selectedYears.includes("all") ||
-        (year && selectedYears.includes(year.toString()));
-
-      const matchesCategory =
-        selectedCategories.includes("all") ||
-        (incident.category && selectedCategories.includes(incident.category));
-
-      const matchesSearch =
-        searchQuery === "" ||
-        (incident.name &&
-          incident.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (incident.category &&
-          incident.category
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())) ||
-        (incident.description &&
-          incident.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase())) ||
-        (year && year.toString().includes(searchQuery));
-
-      return matchesYear && matchesCategory && matchesSearch;
-    });
-  }, [incidents, selectedYears, selectedCategories, searchQuery]);
+    return filterIncidents(
+      incidents,
+      searchQuery,
+      selectedYears,
+      selectedCategories
+    );
+  }, [incidents, searchQuery, selectedYears, selectedCategories]);
 
   const sortedIncidents = useMemo(() => {
-    if (!filteredIncidents.length) return [];
-
-    // Helper function to convert severity text to numeric value for sorting
-    const getSeverityValue = (severity) => {
-      switch (severity) {
-        case "Low":
-          return 1;
-        case "Moderate":
-          return 2;
-        case "High":
-          return 3;
-        case "Critical":
-          return 4;
-        default:
-          return 0; // For unknown or undefined values
-      }
-    };
-
-    return [...filteredIncidents].sort((a, b) => {
-      const yearA = getIncidentYear(a) || 0;
-      const yearB = getIncidentYear(b) || 0;
-
-      switch (sortOrder) {
-        case "year-asc":
-          return yearA - yearB;
-        case "year-desc":
-          return yearB - yearA;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "name-desc":
-          return b.name.localeCompare(a.name);
-        case "severity-asc":
-          return getSeverityValue(a.severity) - getSeverityValue(b.severity);
-        case "severity-desc":
-          return getSeverityValue(b.severity) - getSeverityValue(a.severity);
-        default:
-          return yearB - yearA;
-      }
-    });
+    return sortIncidents(filteredIncidents, sortOrder);
   }, [filteredIncidents, sortOrder]);
 
   const statusItems = [
@@ -171,14 +100,12 @@ const Catalog = () => {
   ];
 
   const handleIncidentSelect = (incident, e) => {
-    // If in selection mode, handle selection instead of navigation
     if (selectionMode) {
       e.preventDefault();
       toggleIncidentSelection(incident);
       return;
     }
 
-    // Normal navigation behavior
     const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index >= 0 ? index : 0);
     setDisplayedIncident(incident);
@@ -197,7 +124,7 @@ const Catalog = () => {
 
   const toggleSelectionMode = () => {
     setSelectionMode(!selectionMode);
-    // Clear selections when exiting selection mode
+
     if (selectionMode) {
       setSelectedIncidents([]);
     }
@@ -209,7 +136,6 @@ const Catalog = () => {
       return;
     }
 
-    // Confirm deletion
     if (
       !window.confirm(
         `Are you sure you want to delete ${selectedIncidents.length} incident(s)?`
@@ -218,7 +144,6 @@ const Catalog = () => {
       return;
     }
 
-    // Set loading state
     setIsDeleting(true);
 
     try {
@@ -229,16 +154,13 @@ const Catalog = () => {
         return;
       }
 
-      // Ensure a valid array of incidents
       if (Array.isArray(result)) {
-        // Update the incidents state with the updated data
         setIncidents(result);
       } else {
         console.error("Invalid response from delete handler:", result);
         alert("An error occurred while deleting incidents");
       }
 
-      // After deletion, exit selection mode and clear selections
       setSelectionMode(false);
       setSelectedIncidents([]);
     } catch (error) {
@@ -255,7 +177,6 @@ const Catalog = () => {
       return;
     }
 
-    // Start editing the first selected incident
     setShowEditModal(true);
     setCurrentEditIndex(0);
   };
@@ -275,7 +196,6 @@ const Catalog = () => {
   };
 
   const { isAuthenticated } = useAuth();
-
   const hasFilteredIncidents =
     filteredIncidents && filteredIncidents.length > 0;
 
@@ -329,55 +249,19 @@ const Catalog = () => {
                 )}
               </CommandOutput>
 
+              {/* Admin Controls Component */}
               {isAuthenticated && (
-                <div className={styles.adminControls}>
-                  {!selectionMode ? (
-                    <>
-                      <button
-                        className={`${layoutStyles.homeButton} ${styles.adminButton}`}
-                        id="add-incident"
-                        onClick={handleAddNew}
-                        disabled={incidentsLoading}
-                      >
-                        Add New
-                      </button>
-                      <button
-                        className={`${layoutStyles.homeButton} ${styles.adminButton}`}
-                        id="select-incident"
-                        onClick={toggleSelectionMode}
-                        disabled={incidentsLoading || !hasFilteredIncidents}
-                      >
-                        Select
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className={`${layoutStyles.homeButton} ${styles.adminButton}`}
-                        id="cancel-selection"
-                        onClick={toggleSelectionMode}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        className={`${layoutStyles.homeButton} ${styles.adminButton} ${selectedIncidents.length === 0 ? styles.disabled : ""}`}
-                        onClick={handleDelete}
-                        disabled={isDeleting || selectedIncidents.length === 0}
-                        id="delete-incident"
-                      >
-                        {`Delete (${selectedIncidents.length})`}
-                      </button>
-                      <button
-                        className={`${layoutStyles.homeButton} ${styles.adminButton} ${selectedIncidents.length === 0 ? styles.disabled : ""}`}
-                        onClick={handleEdit}
-                        disabled={selectedIncidents.length === 0}
-                        id="edit-incident"
-                      >
-                        {`Edit (${selectedIncidents.length})`}
-                      </button>
-                    </>
-                  )}
-                </div>
+                <AdminControls
+                  selectionMode={selectionMode}
+                  toggleSelectionMode={toggleSelectionMode}
+                  handleAddNew={handleAddNew}
+                  handleDelete={handleDelete}
+                  handleEdit={handleEdit}
+                  isLoading={incidentsLoading}
+                  hasFilteredIncidents={hasFilteredIncidents}
+                  selectedIncidents={selectedIncidents}
+                  isDeleting={isDeleting}
+                />
               )}
             </div>
 
@@ -398,63 +282,16 @@ const Catalog = () => {
         </ConsoleWindow>
       </div>
 
-      {/* Add New Incident Modal */}
-      {showAddModal && (
-        <div
-          className={modalStyles.modalOverlay}
-          onClick={() => setShowAddModal(false)}
-        >
-          <div
-            className={`${modalStyles.modal} ${modalStyles.modalLg}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className={modalStyles.closeModal}
-              onClick={() => setShowAddModal(false)}
-              aria-label="Close modal"
-            >
-              ×
-            </button>
-            <h2 className={modalStyles.modalTitle}>
-              Add New Technical Incident
-            </h2>
-            <div className={modalStyles.modalContent}>
-              <AddIncidentForm onClose={() => setShowAddModal(false)} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Incident Modal */}
-      {showEditModal && selectedIncidents.length > 0 && (
-        <div
-          className={modalStyles.modalOverlay}
-          onClick={() => setShowEditModal(false)}
-        >
-          <div
-            className={`${modalStyles.modal} ${modalStyles.modalLg}`}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className={modalStyles.closeModal}
-              onClick={() => setShowEditModal(false)}
-              aria-label="Close modal"
-            >
-              ×
-            </button>
-            <h2 className={modalStyles.modalTitle}>
-              Edit Incident ({currentEditIndex + 1}/{selectedIncidents.length})
-            </h2>
-            <div className={modalStyles.modalContent}>
-              <EditIncidentForm
-                incident={selectedIncidents[currentEditIndex]}
-                onClose={() => setShowEditModal(false)}
-                onNext={moveToNextEdit}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Incident Modals Component */}
+      <IncidentModals
+        showAddModal={showAddModal}
+        closeAddModal={() => setShowAddModal(false)}
+        showEditModal={showEditModal}
+        closeEditModal={() => setShowEditModal(false)}
+        selectedIncidents={selectedIncidents}
+        currentEditIndex={currentEditIndex}
+        moveToNextEdit={moveToNextEdit}
+      />
     </>
   );
 };
