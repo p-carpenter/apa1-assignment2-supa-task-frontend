@@ -2,10 +2,15 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
-import Link from "next/link";
 import authStyles from "./Auth.module.css";
-import formStyles from "./FormStyles.module.css";
-import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import {
+  TextField,
+  PasswordField,
+  FormErrorMessage,
+  FormFooterLinks,
+  FormButtons,
+  PromptLabel
+} from "./fields";
 
 function SignupForm() {
   const [formData, setFormData] = useState({
@@ -138,7 +143,17 @@ function SignupForm() {
     }
   };
 
-  const hasError = (fieldName) => !!formErrors[fieldName];
+  // Password requirements to display as helper text
+  const passwordRequirementsHtml = () => {
+    return (
+      <>
+        {formErrors.passwordMinLength && <div className="formStyles.formError">{formErrors.passwordMinLength}</div>}
+        {formErrors.passwordNumber && <div className="formStyles.formError">{formErrors.passwordNumber}</div>}
+        {formErrors.passwordSpecialChar && <div className="formStyles.formError">{formErrors.passwordSpecialChar}</div>}
+        {formErrors.passwordUpperCase && <div className="formStyles.formError">{formErrors.passwordUpperCase}</div>}
+      </>
+    );
+  };
 
   return (
     <div className={authStyles.formContainer}>
@@ -147,132 +162,66 @@ function SignupForm() {
         <p className={authStyles.subtitle}>Register for archive access</p>
       </div>
 
-      {errorMessage && (
-        <div className={authStyles.authError}>{errorMessage}</div>
-      )}
+      <FormErrorMessage message={errorMessage} useAuthStyle={true} />
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
-        {/* Email Field */}
-        <div className={formStyles.formGroup}>
-          <label htmlFor="email" className={formStyles.formLabel}>
-            <span className={terminalStyles.prompt}>$</span> EMAIL
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className={`${formStyles.formInput} ${hasError("email") ? `${formStyles.formInput}` : ""}`}
-            placeholder="your@email.com"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={isSubmitting}
-            aria-describedby={hasError("email") ? "email-error" : undefined}
-          />
-          {hasError("email") && (
-            <div id="email-error" className={formStyles.formError}>
-              {formErrors.email}
-            </div>
-          )}
-        </div>
-
-        {/* Password Field */}
-        <div className={formStyles.formGroup}>
-          <label htmlFor="password" className={formStyles.formLabel}>
-            <span className={terminalStyles.prompt}>$</span> PASSWORD
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            className={`${formStyles.formInput} ${hasError("password") ? `${formStyles.inputError}` : ""}`}
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={isSubmitting}
-            aria-describedby={
-              hasError("password") ? "password-error" : undefined
-            }
-          />
-          {hasError("password") && (
-            <div id="password-error" className={formStyles.formError}>
-              {formErrors.password}
-            </div>
-          )}
-          {formErrors.passwordMinLength && (
-            <div className={formStyles.formError}>
-              {formErrors.passwordMinLength}
-            </div>
-          )}
-          {formErrors.passwordNumber && (
-            <div className={formStyles.formError}>
-              {formErrors.passwordNumber}
-            </div>
-          )}
-          {formErrors.passwordSpecialChar && (
-            <div className={formStyles.formError}>
-              {formErrors.passwordSpecialChar}
-            </div>
-          )}
-          {formErrors.passwordUpperCase && (
-            <div className={formStyles.formError}>
-              {formErrors.passwordUpperCase}
-            </div>
-          )}
-        </div>
-
-        {/* Confirm Password Field */}
-        <div className={formStyles.formGroup}>
-          <label htmlFor="confirmPassword" className={formStyles.formLabel}>
-            <span className={terminalStyles.prompt}>$</span> CONFIRM PASSWORD
-          </label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            autoComplete="new-password"
-            className={`${formStyles.formInput} ${hasError("confirmPassword") ? `${formStyles.inputError}` : ""}`}
-            placeholder="Re-enter password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            disabled={isSubmitting}
-            aria-describedby={
-              hasError("confirmPassword") ? "confirmPassword-error" : undefined
-            }
-          />
-          {hasError("confirmPassword") && (
-            <div id="confirmPassword-error" className={formStyles.formError}>
-              {formErrors.confirmPassword}
-            </div>
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className={`${authStyles.authButton} ${authStyles.authSubmit}`}
+        <TextField
+          id="email"
+          name="email"
+          type="email"
+          label={<PromptLabel>EMAIL</PromptLabel>}
+          autoComplete="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="your@email.com"
           disabled={isSubmitting}
-          data-testid="signup-button"
-        >
-          {isSubmitting ? (
-            <>
-              <span className={authStyles.authLoading}></span>REGISTERING...
-            </>
-          ) : (
-            "CREATE ACCOUNT"
-          )}
-        </button>
+          error={formErrors.email}
+        />
+
+        <PasswordField
+          id="password"
+          name="password"
+          label={<PromptLabel>PASSWORD</PromptLabel>}
+          autoComplete="new-password"
+          value={formData.password}
+          onChange={handleChange}
+          disabled={isSubmitting}
+          error={formErrors.password}
+        />
+        
+        {/* Display password requirements */}
+        {passwordRequirementsHtml()}
+
+        <PasswordField
+          id="confirmPassword"
+          name="confirmPassword"
+          label={<PromptLabel>CONFIRM PASSWORD</PromptLabel>}
+          autoComplete="new-password"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="Re-enter password"
+          disabled={isSubmitting}
+          error={formErrors.confirmPassword}
+        />
+
+        <FormButtons
+          submitLabel="CREATE ACCOUNT"
+          loadingLabel="REGISTERING..."
+          useAuthStyle={true}
+          testId="signup-button"
+          isSubmitting={isSubmitting}
+        />
       </form>
 
-      <div className={authStyles.authFooter}>
-        <p>
-          Already have an account?{" "}
-          <Link href="/login" className={authStyles.authLink}>
-            Login here
-          </Link>
-        </p>
-      </div>
+      <FormFooterLinks
+        links={[
+          {
+            label: "Already have an account?",
+            href: "/login",
+            text: "Login here"
+          }
+        ]}
+      />
     </div>
   );
 }

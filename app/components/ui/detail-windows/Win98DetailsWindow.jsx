@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDate } from "@/app/utils/formatting/dateUtils";
+import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
 import styles from "./Win98DetailsWindow.module.css";
 
 /**
@@ -24,7 +24,7 @@ const Win98DetailsWindow = ({ incident }) => {
           <div className={styles.metadataRow}>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Date:</span>
-              <span>{formatDate(incident.incident_date)}</span>
+              <span>{formatDateForDisplay(incident.incident_date)}</span>
             </div>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Category:</span>
@@ -49,7 +49,7 @@ const Win98DetailsWindow = ({ incident }) => {
         <div className="status-bar">
           <div className="status-bar-field">Tech Incident Archive</div>
           <div className="status-bar-field">
-            {formatDate(incident.incident_date)}
+            {formatDateForDisplay(incident.incident_date)}
           </div>
         </div>
       </div>

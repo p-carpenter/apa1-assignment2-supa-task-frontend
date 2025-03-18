@@ -58,6 +58,21 @@ export const useFileUpload = ({
   const [fileState, dispatchFile] = useReducer(fileReducer, initialState);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Updates form errors safely
+  const updateFormErrors = useCallback((errorUpdater) => {
+    if (!setFormErrors) return;
+
+    if (typeof errorUpdater === 'function') {
+      // If it's a function, execute it to get the new errors
+      const currentErrors = {}; // Start with empty errors
+      const newErrors = errorUpdater(currentErrors); 
+      setFormErrors(newErrors);
+    } else {
+      // If it's an object, pass it directly
+      setFormErrors(errorUpdater);
+    }
+  }, [setFormErrors]);
+
   // Process file after validation
   const processFile = useCallback(async (file) => {
     if (!file) return;
@@ -88,8 +103,9 @@ export const useFileUpload = ({
           });
           
           if (setFormErrors) {
-            setFormErrors((prev) => {
-              const newErrors = { ...prev };
+            // Create a new errors object without the file error
+            updateFormErrors((prevErrors) => {
+              const newErrors = { ...prevErrors };
               delete newErrors.file;
               return newErrors;
             });
@@ -113,10 +129,9 @@ export const useFileUpload = ({
           });
           
           if (setFormErrors) {
-            setFormErrors((prev) => ({
-              ...prev,
+            updateFormErrors({
               file: "Error processing file. Please try again."
-            }));
+            });
           }
         } finally {
           setIsProcessing(false);
@@ -132,10 +147,9 @@ export const useFileUpload = ({
         });
         
         if (setFormErrors) {
-          setFormErrors((prev) => ({
-            ...prev,
+          updateFormErrors({
             file: "Error reading file. The file may be corrupted."
-          }));
+          });
         }
         
         setIsProcessing(false);
@@ -152,15 +166,14 @@ export const useFileUpload = ({
       });
       
       if (setFormErrors) {
-        setFormErrors((prev) => ({
-          ...prev,
+        updateFormErrors({
           file: "Error processing file. Please try again."
-        }));
+        });
       }
       
       setIsProcessing(false);
     }
-  }, [setFormErrors, onFileLoaded]);
+  }, [setFormErrors, onFileLoaded, updateFormErrors]);
 
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0];
@@ -181,10 +194,9 @@ export const useFileUpload = ({
         });
         
         if (setFormErrors) {
-          setFormErrors(prev => ({ 
-            ...prev, 
+          updateFormErrors({ 
             file: errorMessage 
-          }));
+          });
         }
         
         return;
@@ -202,10 +214,9 @@ export const useFileUpload = ({
         });
         
         if (setFormErrors) {
-          setFormErrors(prev => ({ 
-            ...prev, 
+          updateFormErrors({ 
             file: errorMessage 
-          }));
+          });
         }
         
         return;
@@ -222,10 +233,9 @@ export const useFileUpload = ({
         });
         
         if (setFormErrors) {
-          setFormErrors(prev => ({ 
-            ...prev, 
+          updateFormErrors({ 
             file: errorMessage 
-          }));
+          });
         }
         
         return;
@@ -241,10 +251,9 @@ export const useFileUpload = ({
         });
         
         if (setFormErrors) {
-          setFormErrors(prev => ({ 
-            ...prev, 
+          updateFormErrors({ 
             file: validationResult.errorMessage 
-          }));
+          });
         }
         
         return;
@@ -263,25 +272,24 @@ export const useFileUpload = ({
       });
       
       if (setFormErrors) {
-        setFormErrors(prev => ({ 
-          ...prev, 
+        updateFormErrors({ 
           file: errorMessage 
-        }));
+        });
       }
     }
-  }, [validationOptions, setFormErrors, processFile]);
+  }, [validationOptions, setFormErrors, processFile, updateFormErrors]);
 
   const clearFile = useCallback(() => {
     dispatchFile({ type: "CLEAR_FILE" });
     
     if (setFormErrors) {
-      setFormErrors((prev) => {
-        const newErrors = { ...prev };
+      updateFormErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
         delete newErrors.file;
         return newErrors;
       });
     }
-  }, [setFormErrors]);
+  }, [setFormErrors, updateFormErrors]);
 
   return {
     fileState,

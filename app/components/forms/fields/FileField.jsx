@@ -12,13 +12,16 @@ const FileField = ({
   disabled = false,
   helperText,
   className = "",
+  hideLabel = false,
   ...props
 }) => {
   return (
     <div className={`${styles.formGroup} ${className}`}>
-      <label className={styles.formLabel} htmlFor={id || name}>
-        {label} {required && "*"}
-      </label>
+      {!hideLabel && (
+        <label className={styles.formLabel} htmlFor={id || name}>
+          {label} {required && "*"}
+        </label>
+      )}
       <input
         id={id || name}
         name={name}

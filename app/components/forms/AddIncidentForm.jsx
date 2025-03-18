@@ -11,7 +11,16 @@ import {
 import { handleAddNewIncident } from "../../catalog/crudHandlers";
 import { SeverityInfo } from "../ui/shared";
 import formStyles from "./FormStyles.module.css";
-import buttonStyles from "@/app/components/ui/buttons/Button.module.css";
+import {
+  TextField,
+  TextArea,
+  SelectField,
+  DateField,
+  FileField,
+  FormButtons,
+  FormErrorMessage,
+  FormRow
+} from "./fields";
 
 const categories = [
   "Software",
@@ -120,6 +129,16 @@ const AddIncidentForm = ({ onClose }) => {
     handleSubmit
   );
 
+  // Custom error handler to modify specific errors
+  const updateErrors = (modifyFn) => {
+    // Get the current form errors
+    const currentErrors = { ...formErrors };
+    // Apply the modification function
+    const updatedErrors = modifyFn(currentErrors);
+    // Set the updated errors
+    setErrors(updatedErrors);
+  };
+
   const { fileState, handleFileChange, clearFile } = useFileUpload({
     validationOptions: {
       maxSizeInMB: 2,
@@ -141,16 +160,19 @@ const AddIncidentForm = ({ onClose }) => {
 
     if (value !== "image") {
       clearFile();
-      setErrors((prev) => {
-        const newErrors = { ...prev };
+      
+      // Remove the file error by creating a new error object without the file property
+      updateErrors(prevErrors => {
+        const newErrors = { ...prevErrors };
         delete newErrors.file;
         return newErrors;
       });
     }
 
     if (value !== "code") {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
+      // Remove the artifactContent error
+      updateErrors(prevErrors => {
+        const newErrors = { ...prevErrors };
         delete newErrors.artifactContent;
         return newErrors;
       });
@@ -197,13 +219,13 @@ const AddIncidentForm = ({ onClose }) => {
         error.message.includes("image") ||
         error.message.includes("upload")
       ) {
-        setErrors((prev) => ({
-          ...prev,
+        updateErrors(prevErrors => ({
+          ...prevErrors,
           file: `Artifact error: ${error.message}`,
         }));
       } else if (error.status === 413) {
-        setErrors((prev) => ({
-          ...prev,
+        updateErrors(prevErrors => ({
+          ...prevErrors,
           file: "File is too large. Maximum size is 2MB.",
         }));
       } else if (error.status === 401 || error.status === 403) {
@@ -224,214 +246,138 @@ const AddIncidentForm = ({ onClose }) => {
     }
   }
 
+  // Create a custom severity label with question mark button
+  const SeverityLabel = () => (
+    <>
+      Severity
+      <button
+        onClick={toggleSeverityInfo}
+        style={{
+          marginLeft: "5px",
+          background: "none",
+          border: "none",
+          color: "#666",
+          fontSize: "0.8rem",
+          padding: "0 3px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          borderRadius: "50%",
+        }}
+        title="View severity level descriptions"
+        type="button"
+      >
+        ?
+      </button>
+    </>
+  );
+
   return (
     <form className={formStyles.form} onSubmit={submitForm} noValidate>
-      {submitError && (
-        <div className={formStyles.formErrorMessage}>{submitError}</div>
-      )}
+      <FormErrorMessage message={submitError} />
 
-      <div className={formStyles.formGroup}>
-        <label className={formStyles.formLabel} htmlFor="name">
-          Incident Name *
-        </label>
-        <input
-          id="name"
-          name="name"
-          type="text"
-          className={`${formStyles.formInput} ${formErrors.name ? formStyles.inputError : ""}`}
-          value={formData.name}
-          onChange={handleChange}
-          placeholder="e.g., Morris Worm, Y2K Bug"
+      <TextField
+        id="name"
+        name="name"
+        label="Incident Name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder="e.g., Morris Worm, Y2K Bug"
+        error={formErrors.name}
+        required
+      />
+
+      <FormRow>
+        <DateField
+          id="incident_date"
+          name="incident_date"
+          label="Date"
+          value={formData.incident_date}
+          onChange={handleDateChange}
+          placeholder="DD-MM-YYYY"
+          maxLength="10"
+          error={formErrors.incident_date}
+          required
+          className={formStyles.thirdWidth}
+          helperText="Year must be between 1980-2029"
         />
-        {formErrors.name && (
-          <div className={formStyles.formError}>{formErrors.name}</div>
-        )}
-      </div>
 
-      <div className={formStyles.formRow}>
-        <div className={`${formStyles.formGroup} ${formStyles.thirdWidth}`}>
-          <label className={formStyles.formLabel} htmlFor="incident_date">
-            Date *
-          </label>
-          <input
-            id="incident_date"
-            name="incident_date"
-            type="text"
-            className={`${formStyles.formInput} ${formErrors.incident_date ? formStyles.inputError : ""}`}
-            value={formData.incident_date}
-            onChange={handleDateChange}
-            placeholder="DD-MM-YYYY"
-            maxLength="10"
-          />
-          {formErrors.incident_date && (
-            <div className={formStyles.formError}>
-              {formErrors.incident_date}
-            </div>
-          )}
-          <small className={formStyles.helperText}>
-            Year must be between 1980-2029
-          </small>
-        </div>
+        <SelectField
+          id="category"
+          name="category"
+          label="Category"
+          value={formData.category}
+          onChange={handleChange}
+          options={categories}
+          className={formStyles.thirdWidth}
+        />
 
-        <div className={`${formStyles.formGroup} ${formStyles.thirdWidth}`}>
-          <label className={formStyles.formLabel} htmlFor="category">
-            Category
-          </label>
-          <select
-            id="category"
-            name="category"
-            className={formStyles.formSelect}
-            value={formData.category}
-            onChange={handleChange}
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className={`${formStyles.formGroup} ${formStyles.thirdWidth}`}>
-          <label className={formStyles.formLabel} htmlFor="severity">
-            Severity
-            <button
-              onClick={toggleSeverityInfo}
-              style={{
-                marginLeft: "5px",
-                background: "none",
-                border: "none",
-                color: "#666",
-                fontSize: "0.8rem",
-                padding: "0 3px",
-                cursor: "pointer",
-                fontWeight: "bold",
-                borderRadius: "50%",
-              }}
-              title="View severity level descriptions"
-              type="button"
-            >
-              ?
-            </button>
-          </label>
-          <select
-            id="severity"
-            name="severity"
-            className={formStyles.formSelect}
-            value={formData.severity}
-            onChange={handleChange}
-          >
-            {severityOptions.map((level) => (
-              <option key={level} value={level}>
-                {level}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        <SelectField
+          id="severity"
+          name="severity"
+          label={<SeverityLabel />}
+          value={formData.severity}
+          onChange={handleChange}
+          options={severityOptions}
+          className={formStyles.thirdWidth}
+        />
+      </FormRow>
 
       {showSeverityInfo && <SeverityInfo onClose={toggleSeverityInfo} />}
 
-      <div className={formStyles.formGroup}>
-        <label className={formStyles.formLabel} htmlFor="description">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          className={`${formStyles.formTextarea} ${formErrors.description ? formStyles.inputError : ""}`}
-          value={formData.description}
-          onChange={handleChange}
-          placeholder="Provide a description of the incident..."
-        />
-        {formErrors.description && (
-          <div className={formStyles.formError}>{formErrors.description}</div>
-        )}
-      </div>
+      <TextArea
+        id="description"
+        name="description"
+        label="Description"
+        value={formData.description}
+        onChange={handleChange}
+        placeholder="Provide a description of the incident..."
+        error={formErrors.description}
+      />
 
-      <div className={formStyles.formRow}>
-        <div className={formStyles.formGroup}>
-          <label className={formStyles.formLabel} htmlFor="artifactType">
-            Artifact Type
-          </label>
-          <select
-            id="artifactType"
-            name="artifactType"
-            className={formStyles.formSelect}
-            value={formData.artifactType}
-            onChange={handleArtifactTypeChange}
-          >
-            <option value="none">None</option>
-            <option value="code">Code (HTML)</option>
-            <option value="image">Image</option>
-          </select>
-        </div>
-      </div>
+      <SelectField
+        id="artifactType"
+        name="artifactType"
+        label="Artifact Type"
+        value={formData.artifactType}
+        onChange={handleArtifactTypeChange}
+        options={[
+          { value: "none", label: "None" },
+          { value: "code", label: "Code (HTML)" },
+          { value: "image", label: "Image" }
+        ]}
+      />
 
       {formData.artifactType === "code" && (
-        <div className={formStyles.formGroup}>
-          <label className={formStyles.formLabel} htmlFor="artifactContent">
-            HTML Code
-          </label>
-          <textarea
-            id="artifactContent"
-            name="artifactContent"
-            className={`${formStyles.formTextarea} ${formErrors.artifactContent ? formStyles.inputError : ""}`}
-            value={formData.artifactContent}
-            onChange={handleChange}
-            placeholder="Enter HTML code here..."
-          />
-          <small className={formStyles.helperText}>
-            HTML max dimensions: 863x768. Anything larger and the page layout
-            may break.
-          </small>
-          {formErrors.artifactContent && (
-            <div className={formStyles.formError}>
-              {formErrors.artifactContent}
-            </div>
-          )}
-        </div>
+        <TextArea
+          id="artifactContent"
+          name="artifactContent"
+          label="HTML Code"
+          value={formData.artifactContent}
+          onChange={handleChange}
+          placeholder="Enter HTML code here..."
+          error={formErrors.artifactContent}
+          helperText="HTML max dimensions: 863x768. Anything larger and the page layout may break."
+        />
       )}
 
       {formData.artifactType === "image" && (
-        <div className={formStyles.formGroup}>
-          <label className={formStyles.formLabel} htmlFor="file">
-            Upload Image
-          </label>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            className={`${formStyles.formInput} ${formErrors.file || fileState.error ? formStyles.inputError : ""}`}
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          <small className={formStyles.helperText}>Max: 863x768, 2MB</small>
-          {(formErrors.file || fileState.error) && (
-            <div className={formStyles.formError}>
-              {formErrors.file || fileState.error}
-            </div>
-          )}
-        </div>
+        <FileField
+          id="file"
+          name="file"
+          label="Upload Image"
+          onChange={handleFileChange}
+          accept="image/*"
+          error={formErrors.file || fileState.error}
+          helperText="Max: 863x768, 2MB"
+        />
       )}
 
-      <div className={formStyles.formButtons}>
-        <button
-          type="button"
-          className={`${buttonStyles.button} ${buttonStyles.primary}`}
-          onClick={onClose}
-          disabled={isSubmitting}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          className={`${buttonStyles.button} ${buttonStyles.primary} ${isSubmitting ? buttonStyles.loading : ""}`}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? "Adding..." : "Add Incident"}
-        </button>
-      </div>
+      <FormButtons
+        onCancel={onClose}
+        isSubmitting={isSubmitting}
+        submitLabel="Add Incident"
+        loadingLabel="Adding..."
+      />
     </form>
   );
 };

@@ -2,10 +2,15 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
-import Link from "next/link";
 import authStyles from "./Auth.module.css";
-import formStyles from "./FormStyles.module.css";
-import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import {
+  TextField,
+  PasswordField,
+  FormErrorMessage,
+  FormFooterLinks,
+  FormButtons,
+  PromptLabel
+} from "./fields";
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -120,10 +125,6 @@ function LoginForm() {
     }
   };
 
-  const hasError = (fieldName) => {
-    return !!formErrors[fieldName];
-  };
-
   return (
     <div className={authStyles.formContainer}>
       <div className={authStyles.header}>
@@ -133,85 +134,56 @@ function LoginForm() {
         </p>
       </div>
 
-      {errorMessage && (
-        <div className={authStyles.authError}>{errorMessage}</div>
-      )}
+      <FormErrorMessage message={errorMessage} useAuthStyle={true} />
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
-        <div className={formStyles.formGroup}>
-          <label htmlFor="email" className={formStyles.formLabel}>
-            <span className={terminalStyles.prompt}>$</span> EMAIL
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className={`${formStyles.formInput} ${hasError("email") ? `${formStyles.inputError}` : ""}`}
-            placeholder="user@example.com"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={loading}
-          />
-          {formErrors.email && (
-            <div className={formStyles.formError}>{formErrors.email}</div>
-          )}
-        </div>
+        <TextField
+          id="email"
+          name="email"
+          type="email"
+          label={<PromptLabel>EMAIL</PromptLabel>}
+          autoComplete="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="user@example.com"
+          disabled={loading}
+          error={formErrors.email}
+        />
 
-        <div className={formStyles.formGroup}>
-          <label htmlFor="password" className={formStyles.formLabel}>
-            <span className={terminalStyles.prompt}>$</span> PASSWORD
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            className={`${formStyles.formInput} ${hasError("password") ? `${formStyles.inputError}` : ""}`}
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={loading}
-          />
-          {formErrors.password && (
-            <div className={formStyles.formError}>{formErrors.password}</div>
-          )}
-          <p style={{ fontSize: "0.7rem", marginTop: "4px", color: "#888" }}>
-            Password must be at least 8 characters and include one number, one
-            special character, and one uppercase letter.
-          </p>
-        </div>
+        <PasswordField
+          id="password"
+          name="password"
+          label={<PromptLabel>PASSWORD</PromptLabel>}
+          value={formData.password}
+          onChange={handleChange}
+          error={formErrors.password}
+          disabled={loading}
+          helperText="Password must be at least 8 characters and include one number, one special character, and one uppercase letter."
+        />
 
-        <button
-          type="submit"
-          className={`${authStyles.authButton} ${authStyles.authSubmit}`}
-          data-testid="login-button"
-        >
-          {loading ? (
-            <>
-              <span className={authStyles.authLoading}></span>
-              AUTHENTICATING...
-            </>
-          ) : (
-            "LOGIN"
-          )}
-        </button>
+        <FormButtons
+          submitLabel="LOGIN"
+          loadingLabel="AUTHENTICATING..."
+          useAuthStyle={true}
+          testId="login-button"
+          isSubmitting={loading}
+        />
       </form>
 
-      <div className={authStyles.authFooter}>
-        <p>
-          Don't have access?{" "}
-          <Link href="/signup" className={authStyles.authLink}>
-            Register account
-          </Link>
-        </p>
-        <p>
-          Forgot password?{" "}
-          <Link href="/reset_password" className={authStyles.authLink}>
-            Reset password
-          </Link>
-        </p>
-      </div>
+      <FormFooterLinks
+        links={[
+          {
+            label: "Don't have access?",
+            href: "/signup",
+            text: "Register account"
+          },
+          {
+            label: "Forgot password?",
+            href: "/reset_password",
+            text: "Reset password"
+          }
+        ]}
+      />
     </div>
   );
 }

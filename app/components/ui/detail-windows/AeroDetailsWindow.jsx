@@ -1,4 +1,4 @@
-import { formatDate } from "@/app/utils/formatting/dateUtils";
+import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
 import styles from "./AeroDetailsWindow.module.css";
 import { Shield, Cpu, Code, Cloud, Users, Building2, Info } from "lucide-react";
 
@@ -74,7 +74,7 @@ const AeroDetailsWindow = ({ incident }) => {
           <div className={styles.metadataRow}>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Date:</span>
-              <span>{formatDate(incident.incident_date)}</span>
+              <span>{formatDateForDisplay(incident.incident_date)}</span>
             </div>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Category:</span>

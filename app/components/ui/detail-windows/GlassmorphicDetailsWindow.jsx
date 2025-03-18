@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { formatDate } from "@/app/utils/formatting/dateUtils";
+import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
 import styles from "./GlassmorphicDetailsWindow.module.css";
 
 const GlassmorphicDetailsWindow = ({ incident }) => {
@@ -83,7 +83,7 @@ const GlassmorphicDetailsWindow = ({ incident }) => {
       {/* Metadata Pills */}
       <div className={styles.metadata_container}>
         <div className={styles.metadata_pill}>
-          <span>{formatDate(incident.incident_date)}</span>
+          <span>{formatDateForDisplay(incident.incident_date)}</span>
         </div>
         <div
           className={styles.metadata_pill}

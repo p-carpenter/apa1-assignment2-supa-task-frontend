@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDate } from "@/app/utils/formatting/dateUtils";
+import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
 import styles from "./MaterialDetailsWindow.module.css";
 
 const MaterialDetailsWindow = ({ incident }) => {
@@ -31,7 +31,9 @@ const MaterialDetailsWindow = ({ incident }) => {
         </div>
 
         <div className={styles.tags_container}>
-          <div className={styles.tag}>{formatDate(incident.incident_date)}</div>
+          <div className={styles.tag}>
+            {formatDateForDisplay(incident.incident_date)}
+          </div>
           <div className={styles.tag} data-testid="category-tag">
             {incident.category || "Unknown"}
           </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "../FormStyles.module.css";
-import PromptLabel from "../../ui/console/PromptLabel";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
 const TextField = ({
   id,
@@ -21,7 +21,13 @@ const TextField = ({
   return (
     <div className={`${styles.formGroup} ${className}`}>
       <label className={styles.formLabel} htmlFor={id || name}>
-        {usePrompt ? <PromptLabel>{label}</PromptLabel> : label}{" "}
+        {usePrompt ? (
+          <>
+            <span className={terminalStyles.prompt}>$</span> {label}
+          </>
+        ) : (
+          label
+        )}{" "}
         {required && "*"}
       </label>
       <input

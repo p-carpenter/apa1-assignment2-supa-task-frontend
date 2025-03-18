@@ -2,20 +2,19 @@
 
 import { useAuth } from "@/app/contexts/AuthContext";
 import { Button } from "../components/ui/buttons";
-import { getProtectedData, addProtectedData } from "@/app/utils/auth/authUtils";
 import styles from "./ProfileInfo.module.css";
 import authStyles from "../components/forms/Auth.module.css";
 import layoutStyles from "@/app/components/layouts/Layout.module.css";
 
 export default function ProfileInfo() {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   // Get username from user object, fallback to email if not available
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
     } catch (error) {
       console.error("Logout error:", error);
     }

@@ -1,5 +1,5 @@
 import React from "react";
-import { formatDate } from "@/app/utils/formatting/dateUtils";
+import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
 import styles from "./MacintoshDetailsWindow.module.css";
 
 const MacintoshDetailsWindow = ({ incident }) => {
@@ -15,7 +15,7 @@ const MacintoshDetailsWindow = ({ incident }) => {
         <div className={`standard-dialog ${styles.standardDialog}`}>
           <div className={styles.compactFieldRow}>
             <div className={styles.fieldLabel}>
-              {formatDate(incident.incident_date)}
+              {formatDateForDisplay(incident.incident_date)}
             </div>
             <div className={styles.fieldLabel}>
               {incident.category || "Unknown"}
