@@ -1,31 +1,26 @@
-export async function PUT(req) {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+import {
+  createEndpointHandler,
+  callSupabaseFunction,
+  createResponse,
+  createErrorResponse,
+} from "../../utils/api/apiUtils";
 
+/**
+ * Update an existing tech incident
+ */
+export const PUT = createEndpointHandler(async (req) => {
   try {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // Allow all origins for testing
-      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
-
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
-
     const body = await req.json();
-    console.log("Update request body:", body);
+    console.log("Update request body:", {
+      ...body,
+      fileData: body.fileData ? "[Base64 data]" : undefined,
+    });
 
     // Extract the id and update data
     const { id, update } = body;
 
     if (!id) {
-      return new Response(
-        JSON.stringify({ error: "Incident ID is required" }),
-        {
-          status: 400,
-          headers: corsHeaders,
-        }
-      );
+      return createErrorResponse("Incident ID is required", 400);
     }
 
     // Create the payload with the necessary data
@@ -38,46 +33,28 @@ export async function PUT(req) {
     }
 
     // Forward the request to Supabase Edge Function
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/tech-incidents`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
+    const response = await callSupabaseFunction(
+      "tech-incidents",
+      "PUT",
+      payload
     );
 
     if (!response.ok) {
       console.error("Supabase update error:", response.status);
-      return new Response(
-        JSON.stringify({ error: `Supabase error: ${response.status}` }),
-        {
-          status: 500,
-          headers: corsHeaders,
-        }
+      const errorText = await response.text().catch(() => null);
+
+      return createErrorResponse(
+        `Supabase error: ${response.status}`,
+        response.status,
+        errorText
       );
     }
 
     // Get updated data and return it
     const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return createResponse(data);
   } catch (error) {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // Allow all origins for testing
-      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
-
     console.error("Update error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: corsHeaders,
-    });
+    throw error;
   }
-}
+});

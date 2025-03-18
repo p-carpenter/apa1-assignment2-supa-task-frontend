@@ -1,73 +1,45 @@
-export async function DELETE(req) {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+import {
+  createEndpointHandler,
+  callSupabaseFunction,
+  createResponse,
+  createErrorResponse,
+} from "../../utils/api/apiUtils";
 
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-  };
-
+/**
+ * Delete tech incidents by ID
+ */
+export const DELETE = createEndpointHandler(async (req) => {
   try {
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
-
     const body = await req.json();
-    console.log("Delete request body:", body);
+    const { ids } = body;
 
-    // Handle both single id and array of ids
-    const { id, ids } = body;
-    let idsToDelete = [];
-
-    if (id) {
-      idsToDelete = [id];
-    } else if (ids && Array.isArray(ids)) {
-      idsToDelete = ids;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return createErrorResponse("No valid incident IDs provided", 400);
     }
 
-    if (idsToDelete.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No valid incident IDs provided" }),
-        {
-          status: 400,
-          headers: corsHeaders,
-        }
-      );
-    }
+    console.log(`Attempting to delete ${ids.length} incidents:`, ids);
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/tech-incidents`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ids: idsToDelete }),
-      }
-    );
+    // Forward the request to Supabase Edge Function
+    const response = await callSupabaseFunction("tech-incidents", "DELETE", {
+      ids,
+    });
 
     if (!response.ok) {
       console.error("Supabase delete error:", response.status);
-      return new Response(
-        JSON.stringify({ error: `Supabase error: ${response.status}` }),
-        {
-          status: 500,
-          headers: corsHeaders,
-        }
+      const errorText = await response.text().catch(() => null);
+
+      return createErrorResponse(
+        `Supabase error: ${response.status}`,
+        response.status,
+        errorText
       );
     }
 
+    // Get updated data and return it
     const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return createResponse(data);
   } catch (error) {
     console.error("Delete error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: corsHeaders,
-    });
+    throw error;
   }
-}
+});

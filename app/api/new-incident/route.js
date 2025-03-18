@@ -1,24 +1,23 @@
-export async function POST(req) {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+import {
+  createEndpointHandler,
+  callSupabaseFunction,
+  createResponse,
+  createErrorResponse,
+} from "../../utils/api/apiUtils";
 
+/**
+ * Create a new tech incident
+ */
+export const POST = createEndpointHandler(async (req) => {
   try {
-    const corsHeaders = {
-      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
-
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
-
     const requestData = await req.json();
     const incidentData = requestData.addition;
 
+    // Ensure date format is consistent
     if (incidentData.incident_date) {
       const parts = incidentData.incident_date.split("/");
       if (parts.length === 3) {
-        const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-        incidentData.incident_date = isoDate;
+        incidentData.incident_date = `${parts[2]}-${parts[1]}-${parts[0]}`;
       }
     }
 
@@ -26,47 +25,46 @@ export async function POST(req) {
       addition: incidentData,
     };
 
-    if (incidentData.artifactType === "image" && incidentData.fileData) {
-      payload.fileData = incidentData.fileData;
-      payload.fileName = incidentData.fileName;
-      payload.fileType = incidentData.fileType;
+    // Add file data if present
+    if (incidentData.artifactType === "image" && requestData.fileData) {
+      payload.fileData = requestData.fileData;
+      payload.fileName = requestData.fileName;
+      payload.fileType = requestData.fileType;
     }
 
     console.log(
       "Sending payload to Supabase:",
-      JSON.stringify(payload, null, 2)
+      JSON.stringify(
+        {
+          ...payload,
+          fileData: payload.fileData ? "[Base64 data]" : undefined,
+        },
+        null,
+        2
+      )
     );
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/tech-incidents`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
+    const response = await callSupabaseFunction(
+      "tech-incidents",
+      "POST",
+      payload
     );
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`Supabase error: ${response.status}`, errorText);
-      return new Response(
-        JSON.stringify({
-          error: `Supabase error: ${response.status}`,
-          details: errorText,
-        }),
-        { status: 500 }
+
+      return createErrorResponse(
+        `Supabase error: ${response.status}`,
+        response.status,
+        errorText
       );
     }
 
     const data = await response.json();
-    return new Response(JSON.stringify(data), { status: 200 });
+    return createResponse(data);
   } catch (error) {
     console.error("Error in new-incident route:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-    });
+    throw error;
   }
-}
+});
