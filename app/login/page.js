@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { LoginForm } from "@/app/components/forms";
 import authStyles from "@/app/components/forms/Auth.module.css";
@@ -14,6 +14,18 @@ import { Button } from "../components/ui/buttons";
 export default function LoginPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [signupSuccessMessage, setSignupSuccessMessage] = useState("");
+
+  useEffect(() => {
+    // Check for signupSuccess parameter
+    const signupSuccess = searchParams.get("signupSuccess");
+    if (signupSuccess === "true") {
+      setSignupSuccessMessage(
+        "Account created successfully! Please check your email for verification instructions."
+      );
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -56,6 +68,22 @@ export default function LoginPage() {
               >
                 PLEASE ENTER YOUR CREDENTIALS
               </div>
+
+              {/* Display signup success message if present */}
+              {signupSuccessMessage && (
+                <div
+                  className={`${terminalStyles.outputText} ${terminalStyles.success}`}
+                  style={{
+                    color: "#4CAF50",
+                    marginTop: "10px",
+                    padding: "8px",
+                    borderLeft: "3px solid #4CAF50",
+                    backgroundColor: "rgba(76, 175, 80, 0.1)",
+                  }}
+                >
+                  {signupSuccessMessage}
+                </div>
+              )}
             </CommandOutput>
 
             <LoginForm />

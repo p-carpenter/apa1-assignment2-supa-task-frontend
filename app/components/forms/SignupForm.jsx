@@ -120,28 +120,31 @@ function SignupForm() {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setErrorMessage("");
 
-    if (!validateFields()) {
-      return;
-    }
+  if (!validateFields()) {
+    return;
+  }
 
-    setIsSubmitting(true);
+  setIsSubmitting(true);
 
-    try {
-      await signUp({
-        email: formData.email,
-        password: formData.password,
-        displayName: formData.email.split("@")[0],
-      });
-    } catch (err) {
-      setErrorMessage(err.message || "Failed to create account");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  try {
+    await signUp({
+      email: formData.email,
+      password: formData.password,
+      displayName: formData.email.split("@")[0],
+    });
+
+    // Redirect to login page with success parameter to show email confirmation message
+    window.location.href = "/login?signupSuccess=true";
+  } catch (err) {
+    setErrorMessage(err.message || "Failed to create account");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   // Password requirements to display as helper text
   const passwordRequirementsHtml = () => {
