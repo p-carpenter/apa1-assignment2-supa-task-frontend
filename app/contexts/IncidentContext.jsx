@@ -7,6 +7,7 @@ import {
   useMemo,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
 
 const IncidentContext = createContext(null);
@@ -16,7 +17,7 @@ export const IncidentProvider = ({
   incidents: initialIncidents = [],
 }) => {
   const [incidents, setIncidents] = useState(initialIncidents);
-  const [isLoading, setIsLoading] = useState(true); // Start with loading state true
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
   const [displayedIncident, setDisplayedIncident] = useState(null);
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
@@ -24,46 +25,49 @@ export const IncidentProvider = ({
   const [currentYear, setCurrentYear] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [hasInitialFetch, setHasInitialFetch] = useState(false);
+  const hasInitialFetchRef = useRef(false);
 
   // Auto-fetch incidents on initial mount
   useEffect(() => {
-    // Check if we already have data from SSR
+    // If we already have data in initialIncidents prop
     if (initialIncidents && initialIncidents.length > 0) {
       setIncidents(initialIncidents);
-      setHasInitialFetch(true);
+      hasInitialFetchRef.current = true;
       setIsLoading(false);
       return;
     }
 
-    // Check if we already have data from previous visits in this session
-    const sessionData = sessionStorage.getItem("incidents");
-    if (sessionData) {
-      try {
+    // If we've already fetched data, don't fetch again
+    if (hasInitialFetchRef.current) {
+      return;
+    }
+
+    // Try to get data from session storage
+    try {
+      const sessionData = sessionStorage.getItem("incidents");
+      if (sessionData) {
         const parsedData = JSON.parse(sessionData);
         if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
           console.log(
             `Loaded ${parsedData.length} incidents from session storage`
           );
           setIncidents(parsedData);
-          setHasInitialFetch(true);
+          hasInitialFetchRef.current = true;
           setIsLoading(false);
           return;
         }
-      } catch (error) {
-        console.error("Error parsing incidents from session storage:", error);
       }
+    } catch (error) {
+      console.error("Error accessing session storage:", error);
     }
 
-    // If no data found, perform initial fetch
-    if (!hasInitialFetch) {
-      fetchIncidents();
-    }
-  }, [initialIncidents]); // Only depend on initialIncidents, not hasInitialFetch
+    // If no data found, fetch from API
+    fetchIncidents();
+  }, [initialIncidents]);
 
   const fetchIncidents = useCallback(async () => {
-    // Don't fetch if we already have incidents in memory
-    if (hasInitialFetch && incidents.length > 0) {
+    // Using ref to prevent refetching
+    if (hasInitialFetchRef.current) {
       return incidents;
     }
 
@@ -88,7 +92,7 @@ export const IncidentProvider = ({
       }
 
       setIncidents(data);
-      setHasInitialFetch(true);
+      hasInitialFetchRef.current = true;
       return data;
     } catch (error) {
       console.error("Failed to fetch incidents:", error);
@@ -96,7 +100,7 @@ export const IncidentProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [hasInitialFetch]); // Remove incidents.length from dependencies
+  }, []);
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;
@@ -190,39 +194,57 @@ export const IncidentProvider = ({
     setCurrentDecade(null);
   };
 
-  const value = {
-    // Data
-    incidents,
-    setIncidents,
-    incidentsByDecade,
-    fetchIncidents,
-    isLoading,
-    setIsLoading,
-    hasInitialFetch,
-    // Selection state
-    selectedIncidents,
-    setSelectedIncidents,
-    displayedIncident,
-    setDisplayedIncident,
-    currentIncidentIndex,
-    setCurrentIncidentIndex,
-    // Navigation state
-    currentDecade,
-    setCurrentDecade,
-    currentYear,
-    setCurrentYear,
-    // Filter state
-    activeFilter,
-    setActiveFilter,
-    searchQuery,
-    setSearchQuery,
-    filteredIncidents,
-    clearFilters,
-    handleFilterClick,
-    // Action handlers
-    handleIncidentNavigation,
-    navigateToRoot,
-  };
+  const value = useMemo(
+    () => ({
+      // Data
+      incidents,
+      setIncidents,
+      incidentsByDecade,
+      fetchIncidents,
+      isLoading,
+      setIsLoading,
+      hasInitialFetch: hasInitialFetchRef.current,
+      // Selection state
+      selectedIncidents,
+      setSelectedIncidents,
+      displayedIncident,
+      setDisplayedIncident,
+      currentIncidentIndex,
+      setCurrentIncidentIndex,
+      // Navigation state
+      currentDecade,
+      setCurrentDecade,
+      currentYear,
+      setCurrentYear,
+      // Filter state
+      activeFilter,
+      setActiveFilter,
+      searchQuery,
+      setSearchQuery,
+      filteredIncidents,
+      clearFilters,
+      handleFilterClick,
+      // Action handlers
+      handleIncidentNavigation,
+      navigateToRoot,
+    }),
+    [
+      incidents,
+      incidentsByDecade,
+      fetchIncidents,
+      isLoading,
+      selectedIncidents,
+      displayedIncident,
+      currentIncidentIndex,
+      currentDecade,
+      currentYear,
+      activeFilter,
+      searchQuery,
+      filteredIncidents,
+      clearFilters,
+      handleFilterClick,
+    ]
+  );
 
   return (
     <IncidentContext.Provider value={value}>
