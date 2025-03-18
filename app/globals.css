@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -26,9 +28,6 @@
   font-family: "DEC Terminal Modern";
   src: url("/fonts/DEC Terminal Modern.ttf");
 }
-
-@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;600&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
 /* Global color variables */
 :root {

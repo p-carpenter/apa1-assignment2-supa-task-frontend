@@ -1,26 +1,20 @@
-"use client";
-
 import "./globals.css";
+import { getServerSession } from "./utils/auth/serverAuth";
 import Providers from "./contexts/Providers";
-import { usePathname } from "next/navigation";
-import { Button, CircuitBackground } from "./components/ui";
-import buttonStyles from "./components/ui/buttons/Button.module.css";
 
-export default function RootLayout({ children }) {
-  const pathname = usePathname();
-  const isHomePage = pathname === "/";
-
+/**
+ * Root Layout
+ * Entry point for the application
+ */
+export default async function RootLayout({ children }) {
+  // Fetch authentication data from the server
+  const { user, session } = await getServerSession();
+  
   return (
     <html lang="en">
       <body>
-        <Providers>
-          <CircuitBackground />
+        <Providers initialUser={user} initialSession={session}>
           {children}
-          {!isHomePage && (
-            <div className={buttonStyles.floatingHomeButton}>
-              <Button href="/" />
-            </div>
-          )}
         </Providers>
       </body>
     </html>

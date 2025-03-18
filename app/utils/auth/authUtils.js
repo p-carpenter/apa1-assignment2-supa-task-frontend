@@ -1,19 +1,17 @@
 "use client";
 
-// Local storage keys
-export const TOKEN_KEY = "auth_token";
-export const USER_KEY = "auth_user";
+import { AUTH_STORAGE_KEYS, AUTH_ENDPOINTS } from "./auth-config";
 
 /**
  * Sign in a user with email and password
+ * @param {Object} credentials - User credentials with email and password
+ * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function signIn({ email, password }) {
   try {
-    const response = await fetch("/api/auth/signin", {
+    const response = await fetch(AUTH_ENDPOINTS.SIGNIN, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for cookies
       body: JSON.stringify({ email, password }),
     });
@@ -27,10 +25,10 @@ export async function signIn({ email, password }) {
 
     // Store in localStorage for persistence
     if (data.user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
     }
     if (data.session?.access_token) {
-      localStorage.setItem(TOKEN_KEY, data.session.access_token);
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, data.session.access_token);
     }
 
     return data;
@@ -42,14 +40,14 @@ export async function signIn({ email, password }) {
 
 /**
  * Sign up a new user with email and password
+ * @param {Object} credentials - User signup data with email, password, and displayName
+ * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function signUp({ email, password, displayName }) {
   try {
-    const response = await fetch("/api/auth/signup", {
+    const response = await fetch(AUTH_ENDPOINTS.SIGNUP, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for cookies
       body: JSON.stringify({ email, password, displayName }),
     });
@@ -63,10 +61,10 @@ export async function signUp({ email, password, displayName }) {
 
     // Store in localStorage for persistence
     if (data.user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
     }
     if (data.session?.access_token) {
-      localStorage.setItem(TOKEN_KEY, data.session.access_token);
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, data.session.access_token);
     }
 
     return data;
@@ -78,20 +76,19 @@ export async function signUp({ email, password, displayName }) {
 
 /**
  * Sign out the current user
+ * @returns {Promise<Object>} Response from the server
  */
 export async function signOut() {
   try {
-    const response = await fetch("/api/auth/signout", {
+    const response = await fetch(AUTH_ENDPOINTS.SIGNOUT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for cookies
     });
 
     // Clear localStorage regardless of response
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
 
     if (!response.ok) {
       const error = await response.json();
@@ -107,20 +104,19 @@ export async function signOut() {
 
 /**
  * Get the current user
+ * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function getCurrentUser() {
   try {
     // First check localStorage for user data
-    const storedUser = localStorage.getItem(USER_KEY);
-    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
+    const storedToken = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
     const localData = storedUser ? { user: JSON.parse(storedUser) } : null;
 
     // Then verify with the server
-    const response = await fetch("/api/auth/user", {
+    const response = await fetch(AUTH_ENDPOINTS.USER, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for cookies
     });
 
@@ -148,10 +144,10 @@ export async function getCurrentUser() {
 
     // Update localStorage with fresh data
     if (data.user) {
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
     }
     if (data.session?.access_token) {
-      localStorage.setItem(TOKEN_KEY, data.session.access_token);
+      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, data.session.access_token);
     }
 
     return data;
@@ -159,8 +155,8 @@ export async function getCurrentUser() {
     console.error("Get user error:", error);
 
     // On network error, fall back to localStorage if available
-    const storedUser = localStorage.getItem(USER_KEY);
-    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
+    const storedToken = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
 
     if (storedUser) {
       return {
@@ -178,14 +174,13 @@ export async function getCurrentUser() {
 
 /**
  * Fetch protected user data
+ * @returns {Promise<Object|null>} Protected data or null if unauthorized
  */
 export async function getProtectedData() {
   try {
-    const response = await fetch("/api/auth/protected", {
+    const response = await fetch(AUTH_ENDPOINTS.PROTECTED, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for cookies
     });
 
@@ -203,14 +198,14 @@ export async function getProtectedData() {
 
 /**
  * Send data to protected endpoint
+ * @param {Object} data - Data to send to the protected endpoint
+ * @returns {Promise<Object>} Response from the server
  */
 export async function addProtectedData(data) {
   try {
-    const response = await fetch("/api/auth/protected", {
+    const response = await fetch(AUTH_ENDPOINTS.PROTECTED, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include", // Important for cookies
       body: JSON.stringify(data),
     });

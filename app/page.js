@@ -8,13 +8,11 @@ import consoleStyles from "./components/ui/console/Console.module.css";
 import terminalStyles from "./components/ui/console/Terminal.module.css";
 
 import { ConsoleWindow, ConsoleSection, CommandOutput } from "./components/ui";
-
 import { CTAButton } from "./components/ui/buttons";
 import { MuseumInfo, Illustrations, InfoModal } from "./components/ui/homepage";
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
-
+  const { user } = useAuth();
   const [infoModalOpen, setInfoModalOpen] = useState(false);
 
   const statusItems = [
@@ -24,126 +22,116 @@ export default function Home() {
   ];
 
   return (
-    <>
-      <div className={layoutStyles.archiveContainer}>
-        <ConsoleWindow title="tech-incidents-archive" statusItems={statusItems}>
-          <div className={consoleStyles.consoleMainLayout}>
-            <div className={consoleStyles.consoleLeft}>
-              <ConsoleSection
-                command="load tech_incidents.db"
-                commandParts={{
-                  baseCommand: "load",
-                  args: ["tech_incidents.db"],
-                }}
-              >
-                <CommandOutput title="TECH INCIDENTS" showLoadingBar={true}>
-                  Database loaded successfully.
-                </CommandOutput>
-              </ConsoleSection>
+    <div className={layoutStyles.archiveContainer}>
+      <ConsoleWindow title="tech-incidents-archive" statusItems={statusItems}>
+        <div className={consoleStyles.consoleMainLayout}>
+          <div className={consoleStyles.consoleLeft}>
+            <ConsoleSection
+              command="load tech_incidents.db"
+              commandParts={{
+                baseCommand: "load",
+                args: ["tech_incidents.db"],
+              }}
+            >
+              <CommandOutput title="TECH INCIDENTS" showLoadingBar={true}>
+                Database loaded successfully.
+              </CommandOutput>
+            </ConsoleSection>
 
-              <ConsoleSection
-                command="access_level --check"
-                commandParts={{
-                  baseCommand: "access_level",
-                  flags: ["--check"],
-                }}
-              >
-                <CommandOutput>
-                  <div className={terminalStyles.outputText}>
-                    <span className={terminalStyles.blinkOnce}>
-                      Verifying credentials...
-                    </span>
-                  </div>
-                  <div className={terminalStyles.outputText}>
-                    Access level: {isAuthenticated ? "MEMBER" : "PUBLIC"}
-                  </div>
+            <ConsoleSection
+              command="access_level --check"
+              commandParts={{
+                baseCommand: "access_level",
+                flags: ["--check"],
+              }}
+            >
+              <CommandOutput>
+                <div className={terminalStyles.outputText}>
+                  <div>Access level: {user ? "MEMBER" : "PUBLIC"}</div>
                   <div
                     className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
                   >
-                    YOU MAY{" "}
-                    {isAuthenticated ? "EXAMINE AND CONTRIBUTE TO" : "EXAMINE"}{" "}
-                    THE ARTIFACTS
+                    YOU MAY {user ? "EXAMINE AND CONTRIBUTE TO" : "EXAMINE"} THE
+                    ARTIFACTS
                   </div>
-                </CommandOutput>
-              </ConsoleSection>
-            </div>
-
-            <div className={consoleStyles.consoleRight}>
-              <MuseumInfo />
-            </div>
+                </div>
+              </CommandOutput>
+            </ConsoleSection>
           </div>
 
-          <ConsoleSection
-            className={styles.actionSection}
-            command="open gallery.exe"
-            commandParts={{
-              baseCommand: "open",
-              args: ["gallery.exe"],
-            }}
-            customPrompt="bubblessplat@archive:~$"
-          >
-            <div className={styles.actionButtons}>
-              <CTAButton href="/gallery" text="EXPLORE ARCHIVE" />
-              <CTAButton href="/catalog" text="CATALOG" />
-            </div>
+          <div className={consoleStyles.consoleRight}>
+            <MuseumInfo />
+          </div>
+        </div>
 
-            <button
-              className={styles.learnMoreLink}
-              onClick={() => setInfoModalOpen(true)}
-            >
-              What is the Tech Incidents Archive?
-            </button>
-
-            <Illustrations />
-          </ConsoleSection>
-        </ConsoleWindow>
-
-        {/* About the Tech Incidents Archive Modal */}
-        <InfoModal
-          isOpen={infoModalOpen}
-          onClose={() => setInfoModalOpen(false)}
-          title="About the Tech Incidents Archive"
+        <ConsoleSection
+          className={styles.actionSection}
+          command="open gallery.exe"
+          commandParts={{
+            baseCommand: "open",
+            args: ["gallery.exe"],
+          }}
         >
-          <p>
-            The Tech Incidents Archive is a digital museum dedicated to
-            documenting significant technological failures and their impact on
-            modern computing safety standards.
-          </p>
-          <p>
-            Our collection features case studies of notable incidents including:
-          </p>
-          <ul>
-            <li>
-              Y2K Bug - The millennium bug that threatened to crash computer
-              systems worldwide
-            </li>
-            <li>
-              Challenger Disaster - How software and engineering failures led to
-              tragedy
-            </li>
-            <li>
-              Morris Worm - One of the first recognized computer worms that
-              affected the internet
-            </li>
-            <li>
-              Therac-25 - A radiation therapy machine whose software errors
-              caused patient deaths
-            </li>
-          </ul>
-          <p>
-            By studying these incidents, we can better understand the importance
-            of robust software engineering practices.
-          </p>
-          <div className={styles.modalButtons}>
-            <button
-              className={`${styles.modalButton} ${styles.secondary}`}
-              onClick={() => setInfoModalOpen(false)}
-            >
-              Close
-            </button>
+          <div className={styles.actionButtons}>
+            <CTAButton href="/gallery" text="EXPLORE ARCHIVE" />
+            <CTAButton href="/catalog" text="CATALOG" />
           </div>
-        </InfoModal>
-      </div>
-    </>
+
+          <button
+            className={styles.learnMoreLink}
+            onClick={() => setInfoModalOpen(true)}
+          >
+            What is the Tech Incidents Archive?
+          </button>
+
+          <Illustrations />
+        </ConsoleSection>
+      </ConsoleWindow>
+
+      <InfoModal
+        isOpen={infoModalOpen}
+        onClose={() => setInfoModalOpen(false)}
+        title="About the Tech Incidents Archive"
+      >
+        <p>
+          The Tech Incidents Archive is a digital museum dedicated to
+          documenting significant technological failures and their impact on
+          modern computing safety standards.
+        </p>
+        <p>
+          Our collection features case studies of notable incidents including:
+        </p>
+        <ul>
+          <li>
+            Y2K Bug - The millennium bug that threatened to crash computer
+            systems worldwide
+          </li>
+          <li>
+            Challenger Disaster - How software and engineering failures led to
+            tragedy
+          </li>
+          <li>
+            Morris Worm - One of the first recognized computer worms that
+            affected the internet
+          </li>
+          <li>
+            Therac-25 - A radiation therapy machine whose software errors caused
+            patient deaths
+          </li>
+        </ul>
+        <p>
+          By studying these incidents, we can better understand the importance
+          of robust software engineering practices.
+        </p>
+        <div className={styles.modalButtons}>
+          <button
+            className={`${styles.modalButton} ${styles.secondary}`}
+            onClick={() => setInfoModalOpen(false)}
+          >
+            Close
+          </button>
+        </div>
+      </InfoModal>
+    </div>
   );
 }
