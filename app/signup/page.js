@@ -4,15 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { SignupForm } from "@/app/components/forms";
-import "./signup.styles.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import layoutStyles from "@/app/components/layouts/Layout.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
 // Import reusable components
-import {
-  ConsoleWindow,
-  ConsoleSection,
-  CommandOutput,
-  CatalogHeader,
-} from "../components/ui";
+import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
 import { Button } from "../components/ui/buttons";
 
 export default function SignupPage() {
@@ -34,13 +31,11 @@ export default function SignupPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-registration"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --register"
@@ -54,7 +49,7 @@ export default function SignupPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Create a new account to become a member of the Archive and
                 contribute.
               </div>

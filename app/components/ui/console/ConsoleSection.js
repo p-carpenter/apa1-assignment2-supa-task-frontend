@@ -1,20 +1,23 @@
-import React from 'react';
-import CommandLine from './CommandLine';
+import React from "react";
+import CommandLine from "./CommandLine";
+import styles from "./Console.module.css";
 
-const ConsoleSection = ({ 
-  command, 
+const ConsoleSection = ({
+  command,
   commandParts,
   customPrompt,
-  className = '', 
-  children 
+  className = "",
+  children,
 }) => {
   return (
-    <div className={`console-section ${className}`}>
-      {command && <CommandLine 
-        command={command} 
-        commandParts={commandParts}
-        customPrompt={customPrompt}
-      />}
+    <div className={`${styles.consoleSection} ${className}`}>
+      {command && (
+        <CommandLine
+          command={command}
+          commandParts={commandParts}
+          customPrompt={customPrompt}
+        />
+      )}
       {children}
     </div>
   );

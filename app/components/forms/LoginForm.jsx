@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
+import authStyles from "./Auth.module.css";
+import formStyles from "./FormStyles.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
 function LoginForm() {
   const [formData, setFormData] = useState({
@@ -127,52 +130,56 @@ function LoginForm() {
   };
 
   return (
-    <div className="auth-form-container">
-      <div className="auth-header">
-        <h2 className="auth-title">SYSTEM ACCESS</h2>
-        <p className="auth-subtitle">Enter credentials to access archive</p>
+    <div className={authStyles.formContainer}>
+      <div className={authStyles.header}>
+        <h2 className={authStyles.title}>SYSTEM ACCESS</h2>
+        <p className={authStyles.subtitle}>
+          Enter credentials to access archive
+        </p>
       </div>
 
-      {errorMessage && <div className="auth-error">{errorMessage}</div>}
+      {errorMessage && (
+        <div className={authStyles.authError}>{errorMessage}</div>
+      )}
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        <div className="form-group">
-          <label htmlFor="email" className="form-label">
-            <span className="prompt">$</span> EMAIL
+      <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
+        <div className={formStyles.formGroup}>
+          <label htmlFor="email" className={formStyles.formLabel}>
+            <span className={terminalStyles.prompt}>$</span> EMAIL
           </label>
           <input
             id="email"
             name="email"
             type="email"
             autoComplete="email"
-            className={`form-input ${hasError("email") ? "input-error" : ""}`}
+            className={`${formStyles.formInput} ${hasError("email") ? `${formStyles.inputError}` : ""}`}
             placeholder="user@example.com"
             value={formData.email}
             onChange={handleChange}
             disabled={loading}
           />
           {formErrors.email && (
-            <div className="form-error">{formErrors.email}</div>
+            <div className={formStyles.formError}>{formErrors.email}</div>
           )}
         </div>
 
-        <div className="form-group">
-          <label htmlFor="password" className="form-label">
-            <span className="prompt">$</span> PASSWORD
+        <div className={formStyles.formGroup}>
+          <label htmlFor="password" className={formStyles.formLabel}>
+            <span className={terminalStyles.prompt}>$</span> PASSWORD
           </label>
           <input
             id="password"
             name="password"
             type="password"
             autoComplete="current-password"
-            className={`form-input ${hasError("password") ? "input-error" : ""}`}
+            className={`${formStyles.formInput} ${hasError("password") ? `${formStyles.inputError}` : ""}`}
             placeholder="••••••••"
             value={formData.password}
             onChange={handleChange}
             disabled={loading}
           />
           {formErrors.password && (
-            <div className="form-error">{formErrors.password}</div>
+            <div className={formStyles.formError}>{formErrors.password}</div>
           )}
           <p style={{ fontSize: "0.7rem", marginTop: "4px", color: "#888" }}>
             Password must be at least 8 characters and include one number, one
@@ -182,13 +189,12 @@ function LoginForm() {
 
         <button
           type="submit"
-          className="auth-button"
-          disabled={loading}
+          className={`${authStyles.authButton} ${authStyles.authSubmit}`}
           data-testid="login-button"
         >
           {loading ? (
             <>
-              <span className="auth-loading"></span>
+              <span className={authStyles.authLoading}></span>
               AUTHENTICATING...
             </>
           ) : (
@@ -197,16 +203,16 @@ function LoginForm() {
         </button>
       </form>
 
-      <div className="auth-footer">
+      <div className={authStyles.authFooter}>
         <p>
           Don't have access?{" "}
-          <Link href="/signup" className="auth-link">
+          <Link href="/signup" className={authStyles.authLink}>
             Register account
           </Link>
         </p>
         <p>
           Forgot password?{" "}
-          <Link href="/reset_password" className="auth-link">
+          <Link href="/reset_password" className={authStyles.authLink}>
             Reset password
           </Link>
         </p>

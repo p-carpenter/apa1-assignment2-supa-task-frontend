@@ -1,35 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useIncidents } from "./contexts/IncidentContext";
 import { useAuth } from "./contexts/AuthContext";
-import "./homepage.styles.css";
+import styles from "./Homepage.module.css";
+import layoutStyles from "./components/layouts/Layout.module.css";
+import consoleStyles from "./components/ui/console/Console.module.css";
+import terminalStyles from "./components/ui/console/Terminal.module.css";
 
-import {
-  ConsoleWindow,
-  ConsoleSection,
-  CommandOutput,
-  DonationCard,
-  MuseumInfo,
-  CTAButton,
-  Illustrations,
-  InfoModal,
-} from "./components";
+import { ConsoleWindow, ConsoleSection, CommandOutput } from "./components/ui";
+
+import { CTAButton } from "./components/ui/buttons";
+import { MuseumInfo, Illustrations, InfoModal } from "./components/ui/homepage";
 
 export default function Home() {
-  const { incidents } = useIncidents();
   const { isAuthenticated } = useAuth();
 
   const [infoModalOpen, setInfoModalOpen] = useState(false);
-  const [dismissButtonText, setDismissButtonText] = useState("Maybe Later");
-  const [dismissButtonClass, setDismissButtonClass] = useState("dismiss");
-
-  const handleDismissClick = () => {
-    if (dismissButtonText === "Maybe Later") {
-      setDismissButtonText("Donate £100");
-      setDismissButtonClass("donate big-donate");
-    }
-  };
 
   const statusItems = [
     "TECH INCIDENTS DATABASE",
@@ -39,11 +25,10 @@ export default function Home() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-      <div className="archive-container">
+      <div className={layoutStyles.archiveContainer}>
         <ConsoleWindow title="tech-incidents-archive" statusItems={statusItems}>
-          <div className="console-main-layout">
-            <div className="console-left">
+          <div className={consoleStyles.consoleMainLayout}>
+            <div className={consoleStyles.consoleLeft}>
               <ConsoleSection
                 command="load tech_incidents.db"
                 commandParts={{
@@ -51,11 +36,7 @@ export default function Home() {
                   args: ["tech_incidents.db"],
                 }}
               >
-                <CommandOutput
-                  title="TECH INCIDENTS"
-                  showGlitch={true}
-                  showLoadingBar={true}
-                >
+                <CommandOutput title="TECH INCIDENTS" showLoadingBar={true}>
                   Database loaded successfully.
                 </CommandOutput>
               </ConsoleSection>
@@ -68,13 +49,17 @@ export default function Home() {
                 }}
               >
                 <CommandOutput>
-                  <div className="output-text blink-once">
-                    Verifying credentials...
+                  <div className={terminalStyles.outputText}>
+                    <span className={terminalStyles.blinkOnce}>
+                      Verifying credentials...
+                    </span>
                   </div>
-                  <div className="output-text">
+                  <div className={terminalStyles.outputText}>
                     Access level: {isAuthenticated ? "MEMBER" : "PUBLIC"}
                   </div>
-                  <div className="output-text highlight">
+                  <div
+                    className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
+                  >
                     YOU MAY{" "}
                     {isAuthenticated ? "EXAMINE AND CONTRIBUTE TO" : "EXAMINE"}{" "}
                     THE ARTIFACTS
@@ -83,34 +68,27 @@ export default function Home() {
               </ConsoleSection>
             </div>
 
-            <div className="console-right">
+            <div className={consoleStyles.consoleRight}>
               <MuseumInfo />
-
-              <DonationCard
-                dismissButtonText={dismissButtonText}
-                dismissButtonClass={dismissButtonClass}
-                onDismissClick={handleDismissClick}
-              />
             </div>
           </div>
 
           <ConsoleSection
-            className="action-section"
+            className={styles.actionSection}
             command="open gallery.exe"
             commandParts={{
               baseCommand: "open",
               args: ["gallery.exe"],
             }}
+            customPrompt="bubblessplat@archive:~$"
           >
-            <CTAButton href="/gallery" text="EXPLORE ARCHIVE" />
-            <CTAButton
-              href="/catalog"
-              text="CATALOG"
-              className="browse-catalog-button"
-            />
+            <div className={styles.actionButtons}>
+              <CTAButton href="/gallery" text="EXPLORE ARCHIVE" />
+              <CTAButton href="/catalog" text="CATALOG" />
+            </div>
 
             <button
-              className="learn-more-link"
+              className={styles.learnMoreLink}
               onClick={() => setInfoModalOpen(true)}
             >
               What is the Tech Incidents Archive?
@@ -156,9 +134,9 @@ export default function Home() {
             By studying these incidents, we can better understand the importance
             of robust software engineering practices.
           </p>
-          <div className="modal-buttons">
+          <div className={styles.modalButtons}>
             <button
-              className="modal-button secondary"
+              className={`${styles.modalButton} ${styles.secondary}`}
               onClick={() => setInfoModalOpen(false)}
             >
               Close

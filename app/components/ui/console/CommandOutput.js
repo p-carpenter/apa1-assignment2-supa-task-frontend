@@ -1,29 +1,29 @@
-import React from 'react';
+import React from "react";
+import styles from "./Terminal.module.css";
+import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
 
-const CommandOutput = ({ children, title, subtitle, showGlitch = true, showLoadingBar = false }) => {
+const CommandOutput = ({
+  children,
+  title,
+  subtitle,
+  showLoadingBar = false,
+}) => {
   return (
     <>
-    <h1 className="archive-title">
-        {showGlitch ? (
-          <span className="title-glitch" data-text={title}>
-            {title}
-          </span>
-        ) : (
-          title
+      {title && <h1 className={styles.title}>{title}</h1>}
+      {subtitle && <h2 className={styles.subtitle}>{subtitle}</h2>}
+      <div className={styles.commandOutput}>
+        {showLoadingBar && (
+          <div className={loadingStyles.loadingBar}>
+            <div className={loadingStyles.loadingProgress}></div>
+          </div>
         )}
-        <span className="cursor"></span>
-      </h1>
-    {subtitle && <h2 className="archive-subtitle">{subtitle}</h2>}
-    <div className="command-output">
-      {showLoadingBar && (
-        <div className="loading-bar">
-          <div className="loading-progress"></div>
-        </div>
-      )}
-      <div className="output-text">
-        {children}
+        {typeof children === "string" ? (
+          <div className={styles.outputText}>{children}</div>
+        ) : (
+          children
+        )}
       </div>
-    </div>
     </>
   );
 };

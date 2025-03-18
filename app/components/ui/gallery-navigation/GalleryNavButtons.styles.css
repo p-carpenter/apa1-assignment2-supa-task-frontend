@@ -65,6 +65,18 @@
   transform: translateY(-50%);
 }
 
+.gallery-nav-button {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  display: flex !important;
+}
+
+.year-button {
+  display: block !important;
+  pointer-events: auto !important;
+  opacity: 1 !important;
+}
+
 /* Position the buttons on left and right sides */
 .gallery-nav-button:first-child {
   left: 20px;

@@ -1,0 +1,101 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  background-color: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-text);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(90, 83, 72, 0.1);
+}
+
+.icon {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.button:hover .icon {
+  transform: translateX(-3px);
+}
+
+.floatingHomeButton {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+/* CTA Button styles */
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  margin: 1rem 0;
+  padding: 0.8rem 2.5rem;
+  border: none;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background-color: var(--color-accent);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(73, 107, 99, 0.3);
+  min-width: 250px;
+  text-align: center;
+}
+
+.ctaButton:hover {
+  background-color: var(--color-accent-hover);
+  box-shadow: 0 4px 12px rgba(73, 107, 99, 0.4);
+  transform: translateY(-2px);
+}
+
+.ctaButton:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(73, 107, 99, 0.4);
+}
+
+.secondary {
+  background-color: var(--color-bg-subtle);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 2px 4px rgba(90, 83, 72, 0.1);
+}
+
+.secondary:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 3px 8px rgba(90, 83, 72, 0.15);
+}
+
+.entryIcon {
+  font-size: 1.2rem;
+  transition: transform 0.3s ease;
+}
+
+.ctaButton:hover .entryIcon {
+  transform: translateX(3px);
+}

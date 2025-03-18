@@ -4,21 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
-import "./resetpassword.module.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import layoutStyles from "@/app/components/layouts/Layout.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import { ResetPasswordForm } from "@/app/components/forms";
+import { useForm } from "@/app/hooks/forms/useForm";
 
 import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
 
 export default function ResetPasswordPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    email: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -39,35 +37,28 @@ export default function ResetPasswordPage() {
     return null;
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const validateForm = (data, fieldName) => {
+    const errors = {};
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (name === "email") {
-      const error = validateEmail(value);
-      setFormErrors((prev) => ({
-        ...prev,
-        email: error,
-      }));
+    if (fieldName) {
+      // Validate a single field
+      if (fieldName === "email") {
+        const error = validateEmail(data.email);
+        if (error) errors.email = error;
+      }
+      return errors;
     }
+
+    // Validate all fields
+    const emailError = validateEmail(data.email);
+    if (emailError) errors.email = emailError;
+
+    return errors;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleFormSubmit = async (formData) => {
     setErrorMessage("");
     setSuccessMessage("");
-
-    const emailError = validateEmail(formData.email);
-    if (emailError) {
-      setFormErrors({ email: emailError });
-      return;
-    }
-
-    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/auth/password-recovery", {
@@ -88,17 +79,22 @@ export default function ResetPasswordPage() {
         "Password reset instructions have been sent to your email."
       );
 
-      setFormData({ email: "" });
+      resetForm();
     } catch (err) {
       setErrorMessage(err.message || "Failed to process request");
-    } finally {
-      setIsSubmitting(false);
+      throw err; // Re-throw for useForm to handle
     }
   };
 
-  const hasError = (fieldName) => {
-    return !!formErrors[fieldName];
-  };
+  const {
+    formData,
+    formErrors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    resetForm,
+    hasError,
+  } = useForm({ email: "" }, validateForm, handleFormSubmit);
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
@@ -108,13 +104,11 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-password-recovery"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --recovery --request"
@@ -128,71 +122,46 @@ export default function ResetPasswordPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Request a password reset link to be sent to your email.
               </div>
-              <div className="output-text highlight">
+              <div
+                className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
+              >
                 ENTER YOUR EMAIL ADDRESS
               </div>
             </CommandOutput>
 
-            <div className="auth-form-container">
-              <div className="auth-header">
-                <h2 className="auth-title">RECOVER ACCESS</h2>
-                <p className="auth-subtitle">
+            <div className={authStyles.formContainer}>
+              <div className={authStyles.header}>
+                <h2 className={authStyles.title}>RECOVER ACCESS</h2>
+                <p className={authStyles.subtitle}>
                   We&apos;ll send you password reset instructions to your email.
                 </p>
               </div>
 
-              {errorMessage && <div className="auth-error">{errorMessage}</div>}
+              {errorMessage && (
+                <div className={authStyles.authError}>{errorMessage}</div>
+              )}
               {successMessage && (
-                <div className="auth-success">{successMessage}</div>
+                <div className={authStyles.authSuccess}>{successMessage}</div>
               )}
 
               {!successMessage && (
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      <span className="prompt">$</span> EMAIL
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      className={`form-input ${hasError("email") ? "input-error" : ""}`}
-                      placeholder="user@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.email && (
-                      <div className="form-error">{formErrors.email}</div>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="auth-button"
-                    disabled={isSubmitting}
-                    data-testid="reset-password-button"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="auth-loading"></span>
-                        PROCESSING...
-                      </>
-                    ) : (
-                      "SEND RESET LINK"
-                    )}
-                  </button>
-                </form>
+                <ResetPasswordForm
+                  formData={formData}
+                  formErrors={formErrors}
+                  handleChange={handleChange}
+                  handleSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  hasError={hasError}
+                />
               )}
 
-              <div className="auth-footer">
+              <div className={authStyles.authFooter}>
                 <p>
                   Remember your password?{" "}
-                  <Link href="/login" className="auth-link">
+                  <Link href="/login" className={authStyles.authLink}>
                     Back to login
                   </Link>
                 </p>

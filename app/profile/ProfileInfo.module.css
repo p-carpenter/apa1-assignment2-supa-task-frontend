@@ -1,0 +1,67 @@
+.profileContainer {
+  max-width: 600px;
+  width: 100%;
+  margin: 1rem auto 2rem;
+  background-color: rgba(245, 242, 237, 0.96);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(90, 83, 72, 0.1);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.profileInfo {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: hsla(38, 29%, 95%, 0.7);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+}
+
+.profileRow {
+  display: flex;
+  margin-bottom: 0.75rem;
+  font-family:
+    IBM Plex Mono,
+    monospace;
+}
+
+.profileLabel {
+  width: 100px;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+.profileValue {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.profileId {
+  font-size: 0.85rem;
+  color: var(--color-text-light);
+  font-family:
+    IBM Plex Mono,
+    monospace;
+  word-break: break-all;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.buttonContainer > a,
+.buttonContainer > button {
+  flex: 1;
+}
+
+.logoutButton {
+  background-color: #b85c5c;
+  color: #fff !important;
+}
+
+.logoutButton:hover {
+  background-color: #c96868;
+}

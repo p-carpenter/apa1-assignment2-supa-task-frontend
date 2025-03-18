@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import styles from "./Button.module.css";
 
 const CTAButton = ({
   href = "/gallery",
@@ -8,10 +9,9 @@ const CTAButton = ({
   className = "",
 }) => {
   return (
-    <Link href={href} className={`console-button ${className}`}>
-      {showGlow && <div className="button-glow"></div>}
-      <span className="button-text">{text}</span>
-      <span className="entry-icon">&#x2192;</span>
+    <Link href={href} className={`${styles.ctaButton} ${className}`}>
+      <span>{text}</span>
+      <span className={styles.entryIcon}>&#x2192;</span>
     </Link>
   );
 };

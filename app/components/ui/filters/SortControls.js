@@ -1,11 +1,12 @@
 import React from "react";
+import styles from "./Filters.module.css";
 
 const SortControls = ({ sortOrder, onSortChange }) => {
   return (
-    <div className="multi-select-dropdown">
-      <div className="dropdown-label">SORT</div>
+    <div className={styles.multiSelectDropdown}>
+      <div className={styles.dropdownLabel}>SORT</div>
       <select
-        className="sort-select"
+        className={styles.sortSelect}
         value={sortOrder}
         onChange={(e) => onSortChange(e.target.value)}
       >

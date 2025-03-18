@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
-import "../resetpassword.module.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import layoutStyles from "@/app/components/layouts/Layout.module.css";
+import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import { ConfirmResetForm } from "@/app/components/forms";
+import { useForm } from "@/app/hooks/forms/useForm";
 
 import {
   ConsoleWindow,
@@ -17,15 +22,8 @@ export default function ConfirmResetPage() {
   const router = useRouter();
 
   const [token, setToken] = useState("");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -112,50 +110,28 @@ export default function ConfirmResetPage() {
     return error;
   };
 
-  const validateFields = () => {
+  const validateForm = (data, fieldName) => {
     const errors = {};
 
-    const emailError = validateField("email", formData.email);
-    if (emailError) errors.email = emailError;
-
-    const passwordError = validateField("password", formData.password);
-    if (passwordError) errors.password = passwordError;
-
-    const confirmPasswordError = validateField(
-      "confirmPassword",
-      formData.confirmPassword
-    );
-    if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    const error = validateField(name, value);
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    if (!validateFields()) {
-      return;
+    if (fieldName) {
+      // Validate a single field
+      const error = validateField(fieldName, data[fieldName]);
+      if (error) errors[fieldName] = error;
+      return errors;
     }
 
-    setIsSubmitting(true);
+    // Validate all fields
+    for (const field of ["email", "password", "confirmPassword"]) {
+      const error = validateField(field, data[field]);
+      if (error) errors[field] = error;
+    }
+
+    return errors;
+  };
+
+  const handleFormSubmit = async (formData) => {
+    setErrorMessage("");
+    setSuccessMessage("");
 
     try {
       const response = await fetch("/api/auth/password-recovery/confirm", {
@@ -181,14 +157,26 @@ export default function ConfirmResetPage() {
       );
     } catch (err) {
       setErrorMessage(err.message || "Failed to process request");
-    } finally {
-      setIsSubmitting(false);
+      throw err;
     }
   };
 
-  const hasError = (fieldName) => {
-    return !!formErrors[fieldName];
-  };
+  const {
+    formData,
+    formErrors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    hasError,
+  } = useForm(
+    {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validateForm,
+    handleFormSubmit
+  );
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
@@ -202,8 +190,8 @@ export default function ConfirmResetPage() {
     window.location.hash.includes("access_token")
   ) {
     return (
-      <div className="loading-container">
-        <div className="auth-loading"></div>
+      <div className={loadingStyles.loadingContainer}>
+        <div className={authStyles.authLoading}></div>
         <p>Loading password reset form...</p>
       </div>
     );
@@ -219,13 +207,11 @@ export default function ConfirmResetPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-password-reset"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --recovery --reset"
@@ -239,121 +225,46 @@ export default function ConfirmResetPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Create a new password for your account.
               </div>
-              <div className="output-text highlight">ENTER NEW PASSWORD</div>
+              <div
+                className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
+              >
+                ENTER NEW PASSWORD
+              </div>
             </CommandOutput>
 
-            <div className="auth-form-container">
-              <div className="auth-header">
-                <h2 className="auth-title">RESET PASSWORD</h2>
-                <p className="auth-subtitle">Create a new secure password</p>
+            <div className={authStyles.formContainer}>
+              <div className={authStyles.header}>
+                <h2 className={authStyles.title}>RESET PASSWORD</h2>
+                <p className={authStyles.subtitle}>
+                  Create a new secure password
+                </p>
               </div>
 
-              {errorMessage && <div className="auth-error">{errorMessage}</div>}
+              {errorMessage && (
+                <div className={authStyles.authError}>{errorMessage}</div>
+              )}
               {successMessage && (
-                <div className="auth-success">{successMessage}</div>
+                <div className={authStyles.authSuccess}>{successMessage}</div>
               )}
 
               {!successMessage && (
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      <span className="prompt">$</span> EMAIL
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      className={`form-input ${hasError("email") ? "input-error" : ""}`}
-                      placeholder="user@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.email && (
-                      <div className="form-error">{formErrors.email}</div>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="password" className="form-label">
-                      <span className="prompt">$</span> NEW PASSWORD
-                    </label>
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="new-password"
-                      className={`form-input ${hasError("password") ? "input-error" : ""}`}
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.password && (
-                      <div className="form-error">{formErrors.password}</div>
-                    )}
-                    <p
-                      style={{
-                        fontSize: "0.7rem",
-                        marginTop: "4px",
-                        color: "#888",
-                      }}
-                    >
-                      Password must be at least 8 characters and include one
-                      number, one special character, and one uppercase letter.
-                    </p>
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="confirmPassword" className="form-label">
-                      <span className="prompt">$</span> CONFIRM PASSWORD
-                    </label>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
-                      className={`form-input ${
-                        hasError("confirmPassword") ? "input-error" : ""
-                      }`}
-                      placeholder="••••••••"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.confirmPassword && (
-                      <div className="form-error">
-                        {formErrors.confirmPassword}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="auth-button"
-                    disabled={isSubmitting}
-                    data-testid="confirm-reset-button"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="auth-loading"></span>
-                        PROCESSING...
-                      </>
-                    ) : (
-                      "RESET PASSWORD"
-                    )}
-                  </button>
-                </form>
+                <ConfirmResetForm
+                  formData={formData}
+                  formErrors={formErrors}
+                  handleChange={handleChange}
+                  handleSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  hasError={hasError}
+                />
               )}
 
-              <div className="auth-footer">
+              <div className={authStyles.authFooter}>
                 <p>
                   Remember your password?{" "}
-                  <Link href="/login" className="auth-link">
+                  <Link href="/login" className={authStyles.authLink}>
                     Back to login
                   </Link>
                 </p>

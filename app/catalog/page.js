@@ -2,11 +2,14 @@
 
 import { useIncidents } from "../contexts/IncidentContext";
 import { useState, useEffect, useMemo } from "react";
-import "./catalog.styles.css";
+import styles from "./Catalog.module.css";
+import layoutStyles from "../components/layouts/Layout.module.css";
+import modalStyles from "../components/ui/modals/Modal.module.css";
 
 import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
 
-import { CatalogFilters, IncidentGrid } from "../components/layouts";
+import { CatalogFilters } from "../components/ui/filters";
+import IncidentGrid from "./IncidentGrid";
 import { Button } from "../components/ui/buttons";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import { handleDeleteIncidents } from "./crudHandlers";
@@ -80,7 +83,7 @@ const Catalog = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(realTimeSearch);
-    }, 300);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [realTimeSearch]);
@@ -278,9 +281,7 @@ const Catalog = () => {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="archive-container catalog-container">
+      <div className={layoutStyles.archiveContainer}>
         <ConsoleWindow title="tech-incidents-catalog" statusItems={statusItems}>
           <ConsoleSection
             command='query tech_incidents.db --search="*" --list'
@@ -316,7 +317,7 @@ const Catalog = () => {
           />
 
           <ConsoleSection>
-            <div className="command-output-with-controls">
+            <div className={styles.commandOutputWithControls}>
               <CommandOutput>
                 {incidentsLoading ? (
                   "Retrieving incidents..."
@@ -329,46 +330,51 @@ const Catalog = () => {
               </CommandOutput>
 
               {isAuthenticated && (
-                <div className="admin-controls">
+                <div className={styles.adminControls}>
                   {!selectionMode ? (
                     <>
-                      <Button
-                        className="admin-button"
+                      <button
+                        className={`${layoutStyles.homeButton} ${styles.adminButton}`}
                         id="add-incident"
-                        label="Add New"
                         onClick={handleAddNew}
                         disabled={incidentsLoading}
-                      />
-                      <Button
-                        className="admin-button"
+                      >
+                        Add New
+                      </button>
+                      <button
+                        className={`${layoutStyles.homeButton} ${styles.adminButton}`}
                         id="select-incident"
-                        label="Select"
                         onClick={toggleSelectionMode}
                         disabled={incidentsLoading || !hasFilteredIncidents}
-                      />
+                      >
+                        Select
+                      </button>
                     </>
                   ) : (
                     <>
-                      <Button
-                        className="admin-button"
+                      <button
+                        className={`${layoutStyles.homeButton} ${styles.adminButton}`}
                         id="cancel-selection"
-                        label="Cancel"
                         onClick={toggleSelectionMode}
-                      />
-                      <Button
-                        className={`admin-button ${selectedIncidents.length === 0 ? "disabled" : ""}`}
-                        label={`Delete (${selectedIncidents.length})`}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className={`${layoutStyles.homeButton} ${styles.adminButton} ${selectedIncidents.length === 0 ? styles.disabled : ""}`}
                         onClick={handleDelete}
                         disabled={isDeleting || selectedIncidents.length === 0}
                         id="delete-incident"
-                      />
-                      <Button
-                        className={`admin-button ${selectedIncidents.length === 0 ? "disabled" : ""}`}
-                        label={`Edit (${selectedIncidents.length})`}
+                      >
+                        {`Delete (${selectedIncidents.length})`}
+                      </button>
+                      <button
+                        className={`${layoutStyles.homeButton} ${styles.adminButton} ${selectedIncidents.length === 0 ? styles.disabled : ""}`}
                         onClick={handleEdit}
                         disabled={selectedIncidents.length === 0}
                         id="edit-incident"
-                      />
+                      >
+                        {`Edit (${selectedIncidents.length})`}
+                      </button>
                     </>
                   )}
                 </div>
@@ -394,17 +400,25 @@ const Catalog = () => {
 
       {/* Add New Incident Modal */}
       {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={modalStyles.modalOverlay}
+          onClick={() => setShowAddModal(false)}
+        >
+          <div
+            className={`${modalStyles.modal} ${modalStyles.modalLg}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              className="close-modal"
+              className={modalStyles.closeModal}
               onClick={() => setShowAddModal(false)}
               aria-label="Close modal"
             >
               ×
             </button>
-            <h2 className="modal-title">Add New Technical Incident</h2>
-            <div className="modal-content">
+            <h2 className={modalStyles.modalTitle}>
+              Add New Technical Incident
+            </h2>
+            <div className={modalStyles.modalContent}>
               <AddIncidentForm onClose={() => setShowAddModal(false)} />
             </div>
           </div>
@@ -413,19 +427,25 @@ const Catalog = () => {
 
       {/* Edit Incident Modal */}
       {showEditModal && selectedIncidents.length > 0 && (
-        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
+        <div
+          className={modalStyles.modalOverlay}
+          onClick={() => setShowEditModal(false)}
+        >
+          <div
+            className={`${modalStyles.modal} ${modalStyles.modalLg}`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
-              className="close-modal"
+              className={modalStyles.closeModal}
               onClick={() => setShowEditModal(false)}
               aria-label="Close modal"
             >
               ×
             </button>
-            <h2 className="modal-title">
+            <h2 className={modalStyles.modalTitle}>
               Edit Incident ({currentEditIndex + 1}/{selectedIncidents.length})
             </h2>
-            <div className="modal-content">
+            <div className={modalStyles.modalContent}>
               <EditIncidentForm
                 incident={selectedIncidents[currentEditIndex]}
                 onClose={() => setShowEditModal(false)}

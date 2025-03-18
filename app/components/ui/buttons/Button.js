@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import styles from "./Button.module.css";
 
 /**
  * A button component for navigating to the homepage
@@ -22,11 +23,11 @@ const Button = ({
   return (
     <Link
       href={href}
-      className={`home-button ${className}`}
+      className={`${styles.button} ${className}`}
       onClick={onClick}
       {...props}
     >
-      <span className="home-icon">{icon}</span>
+      <span className={styles.icon}>{icon}</span>
       {label}
     </Link>
   );

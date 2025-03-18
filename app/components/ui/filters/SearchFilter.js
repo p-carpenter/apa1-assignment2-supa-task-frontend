@@ -1,4 +1,5 @@
 import React from "react";
+import styles from "./Filters.module.css";
 
 const SearchFilter = ({
   searchQuery,
@@ -6,16 +7,16 @@ const SearchFilter = ({
   placeholder = "Search incidents...",
 }) => {
   return (
-    <div className="search-container">
-      <div className="dropdown-label">SEARCH</div>
+    <>
+      <div className={styles.dropdownLabel}>SEARCH</div>
       <input
         type="text"
         placeholder={placeholder}
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="search-input"
+        className={styles.searchInput}
       />
-    </div>
+    </>
   );
 };
 

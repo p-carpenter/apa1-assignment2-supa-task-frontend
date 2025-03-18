@@ -38,20 +38,20 @@ export const IncidentProvider = ({
     if (hasInitialFetch && incidents.length > 0) {
       return incidents;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
       console.log("Fetching incidents from API...");
       const response = await fetch("/api/fetch-incidents");
-      
+
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log(`Fetched ${data.length} incidents successfully`);
-      
+
       setIncidents(data);
       setHasInitialFetch(true);
       return data;
@@ -73,10 +73,10 @@ export const IncidentProvider = ({
       console.warn("incidents is not an array:", incidents);
       return {};
     }
-    
+
     return incidents.reduce((acc, incident) => {
       if (!incident) return acc;
-      
+
       try {
         const year = new Date(incident.incident_date).getFullYear();
         const decade = Math.floor(year / 10) * 10;
@@ -88,7 +88,6 @@ export const IncidentProvider = ({
       return acc;
     }, {});
   }, [incidents]);
-
 
   const filteredIncidents = useMemo(() => {
     if (!Array.isArray(incidents) || !incidents.length) return [];
@@ -117,12 +116,10 @@ export const IncidentProvider = ({
     return result;
   }, [incidents, activeFilter, searchQuery]);
 
-
   const clearFilters = useCallback(() => {
     setActiveFilter(null);
     setSearchQuery("");
   }, []);
-
 
   const handleFilterClick = useCallback((category) => {
     setActiveFilter((prevFilter) =>
@@ -130,10 +127,9 @@ export const IncidentProvider = ({
     );
   }, []);
 
-
   const handleIncidentDoubleClick = (incident) => {
     if (!Array.isArray(incidents)) return;
-    
+
     const index = incidents.findIndex((inc) => inc.id === incident.id);
     setCurrentIncidentIndex(index);
     setDisplayedIncident(incident);
@@ -141,12 +137,11 @@ export const IncidentProvider = ({
 
   const handleIncidentNavigation = (newIndex) => {
     if (!Array.isArray(incidents)) return;
-    
+
     if (newIndex >= 0 && newIndex < incidents.length) {
       const nextIncident = incidents[newIndex];
       setCurrentIncidentIndex(newIndex);
       setDisplayedIncident(nextIncident);
-
 
       try {
         const year = new Date(nextIncident.incident_date).getFullYear();
@@ -161,7 +156,6 @@ export const IncidentProvider = ({
       }
     }
   };
-
 
   const handleFolderDoubleClick = (decade) => {
     setCurrentYear(decade);

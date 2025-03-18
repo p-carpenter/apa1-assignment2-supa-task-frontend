@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
+import authStyles from "./Auth.module.css";
+import formStyles from "./FormStyles.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
 function SignupForm() {
   const [formData, setFormData] = useState({
@@ -138,26 +141,28 @@ function SignupForm() {
   const hasError = (fieldName) => !!formErrors[fieldName];
 
   return (
-    <div className="auth-form-container">
-      <div className="auth-header">
-        <h2 className="auth-title">CREATE ACCOUNT</h2>
-        <p className="auth-subtitle">Register for archive access</p>
+    <div className={authStyles.formContainer}>
+      <div className={authStyles.header}>
+        <h2 className={authStyles.title}>CREATE ACCOUNT</h2>
+        <p className={authStyles.subtitle}>Register for archive access</p>
       </div>
 
-      {errorMessage && <div className="auth-error">{errorMessage}</div>}
+      {errorMessage && (
+        <div className={authStyles.authError}>{errorMessage}</div>
+      )}
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
+      <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         {/* Email Field */}
-        <div className="form-group">
-          <label htmlFor="email" className="form-label">
-            <span className="prompt">$</span> EMAIL
+        <div className={formStyles.formGroup}>
+          <label htmlFor="email" className={formStyles.formLabel}>
+            <span className={terminalStyles.prompt}>$</span> EMAIL
           </label>
           <input
             id="email"
             name="email"
             type="email"
             autoComplete="email"
-            className={`form-input ${hasError("email") ? "input-error" : ""}`}
+            className={`${formStyles.formInput} ${hasError("email") ? `${formStyles.formInput}` : ""}`}
             placeholder="your@email.com"
             value={formData.email}
             onChange={handleChange}
@@ -165,23 +170,23 @@ function SignupForm() {
             aria-describedby={hasError("email") ? "email-error" : undefined}
           />
           {hasError("email") && (
-            <div id="email-error" className="form-error">
+            <div id="email-error" className={formStyles.formError}>
               {formErrors.email}
             </div>
           )}
         </div>
 
         {/* Password Field */}
-        <div className="form-group">
-          <label htmlFor="password" className="form-label">
-            <span className="prompt">$</span> PASSWORD
+        <div className={formStyles.formGroup}>
+          <label htmlFor="password" className={formStyles.formLabel}>
+            <span className={terminalStyles.prompt}>$</span> PASSWORD
           </label>
           <input
             id="password"
             name="password"
             type="password"
             autoComplete="new-password"
-            className={`form-input ${hasError("password") ? "input-error" : ""}`}
+            className={`${formStyles.formInput} ${hasError("password") ? `${formStyles.inputError}` : ""}`}
             placeholder="••••••••"
             value={formData.password}
             onChange={handleChange}
@@ -191,35 +196,43 @@ function SignupForm() {
             }
           />
           {hasError("password") && (
-            <div id="password-error" className="form-error">
+            <div id="password-error" className={formStyles.formError}>
               {formErrors.password}
             </div>
           )}
           {formErrors.passwordMinLength && (
-            <div className="form-error">{formErrors.passwordMinLength}</div>
+            <div className={formStyles.formError}>
+              {formErrors.passwordMinLength}
+            </div>
           )}
           {formErrors.passwordNumber && (
-            <div className="form-error">{formErrors.passwordNumber}</div>
+            <div className={formStyles.formError}>
+              {formErrors.passwordNumber}
+            </div>
           )}
           {formErrors.passwordSpecialChar && (
-            <div className="form-error">{formErrors.passwordSpecialChar}</div>
+            <div className={formStyles.formError}>
+              {formErrors.passwordSpecialChar}
+            </div>
           )}
           {formErrors.passwordUpperCase && (
-            <div className="form-error">{formErrors.passwordUpperCase}</div>
+            <div className={formStyles.formError}>
+              {formErrors.passwordUpperCase}
+            </div>
           )}
         </div>
 
         {/* Confirm Password Field */}
-        <div className="form-group">
-          <label htmlFor="confirmPassword" className="form-label">
-            <span className="prompt">$</span> CONFIRM PASSWORD
+        <div className={formStyles.formGroup}>
+          <label htmlFor="confirmPassword" className={formStyles.formLabel}>
+            <span className={terminalStyles.prompt}>$</span> CONFIRM PASSWORD
           </label>
           <input
             id="confirmPassword"
             name="confirmPassword"
             type="password"
             autoComplete="new-password"
-            className={`form-input ${hasError("confirmPassword") ? "input-error" : ""}`}
+            className={`${formStyles.formInput} ${hasError("confirmPassword") ? `${formStyles.inputError}` : ""}`}
             placeholder="Re-enter password"
             value={formData.confirmPassword}
             onChange={handleChange}
@@ -229,7 +242,7 @@ function SignupForm() {
             }
           />
           {hasError("confirmPassword") && (
-            <div id="confirmPassword-error" className="form-error">
+            <div id="confirmPassword-error" className={formStyles.formError}>
               {formErrors.confirmPassword}
             </div>
           )}
@@ -238,18 +251,24 @@ function SignupForm() {
         {/* Submit Button */}
         <button
           type="submit"
-          className="auth-button"
+          className={`${authStyles.authButton} ${authStyles.authSubmit}`}
           disabled={isSubmitting}
           data-testid="signup-button"
         >
-          {isSubmitting ? "REGISTERING..." : "CREATE ACCOUNT"}
+          {isSubmitting ? (
+            <>
+              <span className={authStyles.authLoading}></span>REGISTERING...
+            </>
+          ) : (
+            "CREATE ACCOUNT"
+          )}
         </button>
       </form>
 
-      <div className="auth-footer">
+      <div className={authStyles.authFooter}>
         <p>
           Already have an account?{" "}
-          <Link href="/login" className="auth-link">
+          <Link href="/login" className={authStyles.authLink}>
             Login here
           </Link>
         </p>

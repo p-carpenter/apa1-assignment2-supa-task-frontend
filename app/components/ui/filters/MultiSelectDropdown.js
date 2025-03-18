@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import styles from "./Filters.module.css";
 
 /**
  * A reusable multi-select dropdown component
- * 
+ *
  * @param {Object} props
  * @param {string} props.label - Optional label for the dropdown
  * @param {Array} props.items - Array of items to show in the dropdown
@@ -25,22 +26,20 @@ const MultiSelectDropdown = ({
   getDisplayValue = (item) => item,
   renderItem = null,
   className = "",
-  width = 150
+  width = 150,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
-
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -50,69 +49,64 @@ const MultiSelectDropdown = ({
 
   const handleItemSelect = (item) => {
     if (item === allItemsKey) {
-      
       onSelectionChange([allItemsKey]);
     } else {
       let updatedSelection;
-      
+
       if (selectedItems.includes(item)) {
-        
-        updatedSelection = selectedItems.filter(i => i !== item);
-        
+        updatedSelection = selectedItems.filter((i) => i !== item);
+
         if (updatedSelection.length === 0) {
           updatedSelection = [allItemsKey];
-        }
-        
-        else if (updatedSelection.includes(allItemsKey)) {
-          updatedSelection = updatedSelection.filter(i => i !== allItemsKey);
+        } else if (updatedSelection.includes(allItemsKey)) {
+          updatedSelection = updatedSelection.filter((i) => i !== allItemsKey);
         }
       } else {
-        
-        
         if (selectedItems.includes(allItemsKey)) {
           updatedSelection = [item];
         } else {
           updatedSelection = [...selectedItems, item];
         }
       }
-      
+
       onSelectionChange(updatedSelection);
     }
   };
 
-  const selectedCount = selectedItems.includes(allItemsKey) 
-    ? allItemsLabel 
+  const selectedCount = selectedItems.includes(allItemsKey)
+    ? allItemsLabel
     : `${selectedItems.length} selected`;
 
   return (
-    <div 
-      className={`multi-select-dropdown ${className}`} 
+    <div
+      className={`${styles.multiSelectDropdown} ${className}`}
       ref={dropdownRef}
       style={{ width: `${width}px` }}
     >
-      {label && <div className="dropdown-label">{label}</div>}
-      
-      <div 
-        className="dropdown-header" 
-        onClick={toggleDropdown}
-      >
-        <span className="selected-text">{selectedCount}</span>
-        <span className={`dropdown-arrow ${isOpen ? 'open' : ''}`}>▼</span>
+      {label && <div className={styles.dropdownLabel}>{label}</div>}
+
+      <div className={styles.sortSelect} onClick={toggleDropdown}>
+        {selectedCount}
+        <span
+          className={`${styles.dropdownArrow} ${isOpen ? styles.open : ""}`}
+        >
+          ▼
+        </span>
       </div>
-      
+
       {isOpen && (
-        <div className="dropdown-options">
+        <div className={styles.dropdownOptions}>
           <div
-            className={`dropdown-option ${selectedItems.includes(allItemsKey) ? "active" : ""}`}
+            className={`${styles.dropdownOption} ${selectedItems.includes(allItemsKey) ? styles.selected : ""}`}
             onClick={() => handleItemSelect(allItemsKey)}
           >
             {allItemsLabel}
           </div>
-          
+
           {items.map((item) => (
             <div
               key={`item-${getDisplayValue(item)}`}
-              className={`dropdown-option ${selectedItems.includes(item) ? "active" : ""}`}
+              className={`${styles.dropdownOption} ${selectedItems.includes(item) ? styles.selected : ""}`}
               onClick={() => handleItemSelect(item)}
             >
               {renderItem ? renderItem(item) : getDisplayValue(item)}

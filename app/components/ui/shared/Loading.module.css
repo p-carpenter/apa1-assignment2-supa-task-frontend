@@ -1,0 +1,62 @@
+.loadingBar {
+  height: 4px;
+  width: 100%;
+  background-color: rgba(90, 83, 72, 0.1);
+  margin: 0.8rem 0;
+  position: relative;
+}
+
+.loadingProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  background-color: var(--color-accent);
+  animation: loading 2s ease-in forwards;
+}
+
+@keyframes loading {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.loadingContainer {
+  background-color: var(--color-bg-subtle);
+  padding: 2rem;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.9rem;
+  position: relative;
+}
+
+.loadingMessage {
+  padding: 1rem 0;
+  color: var(--color-text-light);
+  text-align: center;
+  font-style: italic;
+}
+
+.loadingSpinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

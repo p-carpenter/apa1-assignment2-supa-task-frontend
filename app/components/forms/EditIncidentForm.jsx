@@ -1,355 +1,336 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer, useCallback } from "react";
 import { useIncidents } from "../../contexts/IncidentContext";
+import useForm from "../../hooks/forms/useForm";
+import {
+  validateMinLength,
+  validateDateString,
+  validateImageFile,
+  formatDateInput,
+  convertDateForStorage,
+} from "../../utils/formValidation";
 import { handleUpdateIncident } from "../../catalog/crudHandlers";
+import { SeverityInfo } from "../ui/shared";
+import formStyles from "./FormStyles.module.css";
+import buttonStyles from "@/app/components/ui/buttons/Button.module.css";
+
+const categories = [
+  "Software",
+  "Hardware",
+  "Infrastructure",
+  "Security",
+  "Human Error",
+  "External Factor",
+];
+
+const severityOptions = ["Low", "Moderate", "High", "Critical"];
+
+// File state reducer
+const fileReducer = (state, action) => {
+  switch (action.type) {
+    case "SET_FILE":
+      return {
+        ...state,
+        data: action.payload.data,
+        name: action.payload.name,
+        type: action.payload.type,
+        error: "",
+      };
+    case "CLEAR_FILE":
+      return {
+        data: null,
+        name: null,
+        type: null,
+        error: "",
+      };
+    case "SET_ERROR":
+      return {
+        ...state,
+        error: action.payload,
+        data: null,
+        name: null,
+        type: null,
+      };
+    default:
+      return state;
+  }
+};
+
+// Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
+const formatDateForDisplay = (dateString) => {
+  if (!dateString) return "";
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "";
+  }
+};
 
 const EditIncidentForm = ({ incident, onClose, onNext }) => {
   const { setIncidents } = useIncidents();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [formErrors, setFormErrors] = useState({});
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    incident_date: "",
-    category: "Software",
-    severity: "Low",
-    description: "",
-    artifactType: "none",
-    artifactContent: "",
+
+  // Use the fileReducer to manage file state
+  const [fileState, dispatchFile] = useReducer(fileReducer, {
+    data: null,
+    name: null,
+    type: null,
+    error: "",
   });
-  const [fileData, setFileData] = useState(null);
-  const [fileName, setFileName] = useState(null);
-  const [fileType, setFileType] = useState(null);
-  const [fileError, setFileError] = useState("");
 
-  useEffect(() => {
-    if (incident) {
-      let displayDate = "";
-      if (incident.incident_date) {
-        const date = new Date(incident.incident_date);
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const year = date.getFullYear();
-        displayDate = `${day}-${month}-${year}`;
-      }
-
-      setFormData({
-        name: incident.name || "",
-        incident_date: displayDate,
-        category: incident.category || "Software",
-        severity: incident.severity || "Low",
-        description: incident.description || "",
-        artifactType: incident.artifactType || "none",
-        artifactContent: incident.artifactContent || "",
-      });
-
-      setFormErrors({});
-      setFileError("");
+  // Initial form values
+  const getInitialFormValues = useCallback(() => {
+    if (!incident) {
+      return {
+        name: "",
+        incident_date: "",
+        category: "Software",
+        severity: "Low",
+        description: "",
+        artifactType: "none",
+        artifactContent: "",
+      };
     }
+
+    return {
+      name: incident.name || "",
+      incident_date: formatDateForDisplay(incident.incident_date),
+      category: incident.category || "Software",
+      severity: incident.severity || "Low",
+      description: incident.description || "",
+      artifactType: incident.artifactType || "none",
+      artifactContent: incident.artifactContent || "",
+    };
   }, [incident]);
 
-  const categories = [
-    "Software",
-    "Hardware",
-    "Infrastructure",
-    "Security",
-    "Human Error",
-    "External Factor",
-  ];
+  // Form validation function
+  const validateForm = useCallback(
+    (data, fieldName = null) => {
+      let errors = {};
 
-  const severityOptions = ["Low", "Moderate", "High", "Critical"];
+      // If a specific field is provided, only validate that field
+      if (fieldName) {
+        switch (fieldName) {
+          case "name":
+            const nameValidation = validateMinLength(
+              data.name,
+              3,
+              "Incident Name"
+            );
+            if (!nameValidation.isValid)
+              errors.name = nameValidation.errorMessage;
+            break;
 
-  const validateFields = () => {
-    let errors = {};
+          case "description":
+            const descValidation = validateMinLength(
+              data.description,
+              10,
+              "Description"
+            );
+            if (!descValidation.isValid)
+              errors.description = descValidation.errorMessage;
+            break;
 
-    if (!formData.name.trim()) {
-      errors.name = "Incident Name is required.";
-    } else if (formData.name.trim().length < 3) {
-      errors.name = "Incident Name must be at least 3 characters.";
-    }
+          case "incident_date":
+            const dateValidation = validateDateString(data.incident_date);
+            if (!dateValidation.isValid)
+              errors.incident_date = dateValidation.errorMessage;
+            break;
 
-    if (!formData.incident_date.trim()) {
-      errors.incident_date = "Date is required.";
-    } else {
-      const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
-      if (!dateRegex.test(formData.incident_date)) {
-        errors.incident_date =
-          "Please enter a valid date in DD-MM-YYYY format.";
-      } else {
-        const match = formData.incident_date.match(dateRegex);
-        const day = parseInt(match[1], 10);
-        const month = parseInt(match[2], 10) - 1;
-        const year = parseInt(match[3], 10);
-        const inputDate = new Date(year, month, day);
-
-        if (
-          inputDate.getFullYear() !== year ||
-          inputDate.getMonth() !== month ||
-          inputDate.getDate() !== day
-        ) {
-          errors.incident_date = "This date doesn't exist in the calendar.";
-        } else {
-          const minDate = new Date(1980, 0, 1);
-          const maxDate = new Date(2029, 11, 31);
-
-          if (inputDate < minDate) {
-            errors.incident_date = "Date must be on or after 01-01-1980.";
-          } else if (inputDate > maxDate) {
-            errors.incident_date = "Date must be on or before 31-12-2029.";
-          }
-        }
-      }
-    }
-
-    if (!formData.description.trim()) {
-      errors.description = "Description is required.";
-    } else if (formData.description.trim().length < 10) {
-      errors.description = "Description must be at least 10 characters.";
-    }
-
-    if (formData.artifactType === "code" && !formData.artifactContent.trim()) {
-      errors.artifactContent =
-        "HTML Code is required when Artifact Type is set to Code.";
-    }
-
-    if (formData.artifactType === "image" && fileData && fileError) {
-      errors.file = fileError;
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const validateField = (name, value) => {
-    let error = null;
-
-    switch (name) {
-      case "name":
-        if (!value.trim()) {
-          error = "Incident Name is required.";
-        } else if (value.trim().length < 3) {
-          error = "Incident Name must be at least 3 characters.";
-        }
-        break;
-
-      case "description":
-        if (!value.trim()) {
-          error = "Description is required.";
-        } else if (value.trim().length < 10) {
-          error = "Description must be at least 10 characters.";
-        }
-        break;
-
-      case "incident_date":
-        if (!value.trim()) {
-          error = "Date is required.";
-        } else {
-          const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
-          if (!dateRegex.test(value)) {
-            error = "Please enter a valid date in DD-MM-YYYY format.";
-          } else {
-            const match = value.match(dateRegex);
-            const day = parseInt(match[1], 10);
-            const month = parseInt(match[2], 10) - 1;
-            const year = parseInt(match[3], 10);
-            const inputDate = new Date(year, month, day);
-
-            if (
-              inputDate.getFullYear() !== year ||
-              inputDate.getMonth() !== month ||
-              inputDate.getDate() !== day
-            ) {
-              error = "This date doesn't exist in the calendar.";
-            } else {
-              const minDate = new Date(1980, 0, 1);
-              const maxDate = new Date(2029, 11, 31);
-
-              if (inputDate < minDate) {
-                error = "Date must be on or after 01-01-1980.";
-              } else if (inputDate > maxDate) {
-                error = "Date must be on or before 31-12-2029.";
-              }
+          case "artifactContent":
+            if (data.artifactType === "code" && !data.artifactContent?.trim()) {
+              errors.artifactContent =
+                "HTML Code is required when Artifact Type is set to Code.";
             }
-          }
+            break;
         }
-        break;
+        return errors;
+      }
 
-      case "artifactContent":
-        if (formData.artifactType === "code" && !value.trim()) {
-          error = "HTML Code is required when Artifact Type is set to Code.";
-        }
-        break;
+      // Otherwise, validate all fields
+      // Name validation
+      const nameValidation = validateMinLength(data.name, 3, "Incident Name");
+      if (!nameValidation.isValid) errors.name = nameValidation.errorMessage;
 
-      default:
-        break;
-    }
+      // Date validation
+      const dateValidation = validateDateString(data.incident_date);
+      if (!dateValidation.isValid)
+        errors.incident_date = dateValidation.errorMessage;
 
-    return error;
+      // Description validation
+      const descValidation = validateMinLength(
+        data.description,
+        10,
+        "Description"
+      );
+      if (!descValidation.isValid)
+        errors.description = descValidation.errorMessage;
+
+      // Artifact validation
+      if (data.artifactType === "code" && !data.artifactContent?.trim()) {
+        errors.artifactContent =
+          "HTML Code is required when Artifact Type is set to Code.";
+      }
+
+      // Only validate file if a new file is being uploaded
+      if (data.artifactType === "image" && fileState.data && fileState.error) {
+        errors.file = fileState.error;
+      }
+
+      return errors;
+    },
+    [fileState.data, fileState.error]
+  );
+
+  // Initialize the form using our custom hook
+  const {
+    formData,
+    formErrors,
+    isSubmitting,
+    submitError,
+    handleChange,
+    handleSubmit: submitForm,
+    setErrors,
+    setValues,
+  } = useForm(getInitialFormValues(), validateForm, handleSubmit);
+
+  // Update form values when incident changes
+  useEffect(() => {
+    setValues(getInitialFormValues());
+    dispatchFile({ type: "CLEAR_FILE" });
+  }, [incident, getInitialFormValues, setValues]);
+
+  // Date change handler
+  const handleDateChange = (e) => {
+    const formattedDate = formatDateInput(e.target.value);
+
+    const syntheticEvent = {
+      target: {
+        name: "incident_date",
+        value: formattedDate,
+      },
+    };
+
+    handleChange(syntheticEvent);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  // File change handler with validation
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (["name", "description", "artifactContent"].includes(name)) {
-      const error = validateField(name, value);
-
-      setFormErrors((prev) => ({
-        ...prev,
-        [name]: error,
-      }));
+    if (!file) {
+      dispatchFile({ type: "CLEAR_FILE" });
+      return;
     }
 
-    if (name === "artifactType") {
-      if (value !== "image") {
-        setFileError("");
-        setFormErrors((prev) => {
+    try {
+      // Validate the file
+      const fileValidation = await validateImageFile(file);
+
+      if (!fileValidation.isValid) {
+        dispatchFile({
+          type: "SET_ERROR",
+          payload: fileValidation.errorMessage,
+        });
+        setErrors((prev) => ({
+          ...prev,
+          file: fileValidation.errorMessage,
+        }));
+        return;
+      }
+
+      // Read the file
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        dispatchFile({
+          type: "SET_FILE",
+          payload: {
+            data: event.target.result,
+            name: file.name,
+            type: file.type,
+          },
+        });
+
+        // Clear the file error if validation passed
+        setErrors((prev) => {
           const newErrors = { ...prev };
           delete newErrors.file;
           return newErrors;
         });
-      }
-
-      if (value !== "code") {
-        setFormErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.artifactContent;
-          return newErrors;
-        });
-      }
-    }
-  };
-
-  const handleDateChange = (e) => {
-    const input = e.target.value;
-
-    let formattedDate = input;
-
-    const digits = input.replace(/\D/g, "");
-
-    if (digits.length <= 2) {
-      formattedDate = digits;
-    } else if (digits.length <= 4) {
-      formattedDate = `${digits.substring(0, 2)}-${digits.substring(2)}`;
-    } else if (digits.length <= 8) {
-      formattedDate = `${digits.substring(0, 2)}-${digits.substring(2, 4)}-${digits.substring(4, 8)}`;
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      incident_date: formattedDate,
-    }));
-
-    const error = validateField("incident_date", formattedDate);
-    setFormErrors((prev) => ({
-      ...prev,
-      incident_date: error,
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setFileError("");
-
-    if (!file) {
-      setFileData(null);
-      setFileName(null);
-      setFileType(null);
-      return;
-    }
-
-    if (!file.type.startsWith("image/")) {
-      setFileError("Selected file is not an image.");
-      setFileData(null);
-      setFileName(null);
-      setFileType(null);
-      setFormErrors((prev) => ({
-        ...prev,
-        file: "Selected file is not an image.",
-      }));
-      return;
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      setFileError("Image size must be less than 2MB.");
-      setFileData(null);
-      setFileName(null);
-      setFileType(null);
-      setFormErrors((prev) => ({
-        ...prev,
-        file: "Image size must be less than 2MB.",
-      }));
-      return;
-    }
-
-    setFileName(file.name);
-    setFileType(file.type);
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setFileData(event.target.result);
-
-      const img = new Image();
-      img.onload = function () {
-        if (this.width > 863 || this.height > 768) {
-          setFileError("Image dimensions should not exceed 863x768 pixels.");
-          setFormErrors((prev) => ({
-            ...prev,
-            file: "Image dimensions should not exceed 863x768 pixels.",
-          }));
-        } else {
-          setFormErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors.file;
-            return newErrors;
-          });
-        }
       };
-      img.src = event.target.result;
-    };
 
-    reader.onerror = () => {
-      setFileError("Error reading file. Please try again.");
-      setFormErrors((prev) => ({
+      reader.onerror = () => {
+        dispatchFile({
+          type: "SET_ERROR",
+          payload: "Error reading file. Please try again.",
+        });
+        setErrors((prev) => ({
+          ...prev,
+          file: "Error reading file. Please try again.",
+        }));
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      dispatchFile({
+        type: "SET_ERROR",
+        payload: "Error processing file. Please try again.",
+      });
+      setErrors((prev) => ({
         ...prev,
-        file: "Error reading file. Please try again.",
+        file: "Error processing file. Please try again.",
       }));
-    };
-
-    reader.readAsDataURL(file);
+    }
   };
 
+  // Custom handler for artifactType changes
+  const handleArtifactTypeChange = (e) => {
+    const { value } = e.target;
+
+    // First handle the normal field change
+    handleChange(e);
+
+    // Clear errors based on the new artifact type
+    if (value !== "image") {
+      dispatchFile({ type: "CLEAR_FILE" });
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.file;
+        return newErrors;
+      });
+    }
+
+    if (value !== "code") {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.artifactContent;
+        return newErrors;
+      });
+    }
+  };
+
+  // Toggle severity info panel
   const toggleSeverityInfo = (e) => {
     e.preventDefault();
     setShowSeverityInfo(!showSeverityInfo);
   };
 
-  const hasError = (fieldName) => {
-    return formErrors[fieldName] ? true : false;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage("");
-
-    if (!validateFields()) {
-      setIsSubmitting(false);
-      return;
-    }
-
+  // Handler for the form submission
+  async function handleSubmit(data) {
     try {
-      const [inputDay, inputMonth, inputYear] =
-        formData.incident_date.split("-");
-      const storageDate = `${inputYear}-${inputMonth}-${inputDay}`;
-
+      // Convert the date format from DD-MM-YYYY to YYYY-MM-DD for storage
       const storageFormattedData = {
-        ...formData,
-        incident_date: storageDate,
+        ...data,
+        incident_date: data.incident_date
+          ? convertDateForStorage(data.incident_date)
+          : "",
       };
 
       const payload = {
@@ -357,10 +338,11 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         update: storageFormattedData,
       };
 
-      if (formData.artifactType === "image" && fileData) {
-        payload.fileData = fileData;
-        payload.fileName = fileName;
-        payload.fileType = fileType;
+      // Add file data if present
+      if (data.artifactType === "image" && fileState.data) {
+        payload.fileData = fileState.data;
+        payload.fileName = fileState.name;
+        payload.fileType = fileState.type;
       }
 
       const result = await handleUpdateIncident(payload);
@@ -369,6 +351,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         throw new Error(result);
       }
 
+      // Update incidents and close or continue
       setIncidents(result);
 
       if (onNext) {
@@ -381,78 +364,80 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
       const errorMsg =
         error.message || "Failed to update incident. Please try again.";
 
+      // Handle file-specific errors
       if (
         errorMsg.includes("file") ||
         errorMsg.includes("image") ||
         errorMsg.includes("upload")
       ) {
-        setFileError(`Artifact error: ${errorMsg}`);
+        dispatchFile({
+          type: "SET_ERROR",
+          payload: `Artifact error: ${errorMsg}`,
+        });
+        return { error: errorMsg };
       } else {
-        setErrorMessage(errorMsg);
+        return { error: errorMsg };
       }
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  }
 
   return (
-    <form className="modal-form" onSubmit={handleSubmit} noValidate>
-      {errorMessage && <div className="form-error-message">{errorMessage}</div>}
+    <form className={formStyles.form} onSubmit={submitForm} noValidate>
+      {submitError && (
+        <div className={formStyles.formErrorMessage}>{submitError}</div>
+      )}
 
-      <div className="form-group" style={{ marginBottom: "10px" }}>
-        <label className="form-label" htmlFor="name">
+      <div className={formStyles.formGroup}>
+        <label className={formStyles.formLabel} htmlFor="name">
           Incident Name *
         </label>
         <input
           id="name"
           name="name"
           type="text"
-          className={`form-input ${hasError("name") ? "input-error" : ""}`}
+          className={`${formStyles.formInput} ${formErrors.name ? formStyles.inputError : ""}`}
           value={formData.name}
           onChange={handleChange}
           placeholder="e.g., Morris Worm, Y2K Bug"
         />
-        {formErrors.name && <div className="form-error">{formErrors.name}</div>}
+        {formErrors.name && (
+          <div className={formStyles.formError}>{formErrors.name}</div>
+        )}
       </div>
 
-      <div className="form-row">
-        <div
-          className="form-group"
-          style={{ marginBottom: "10px", width: "30%" }}
-        >
-          <label className="form-label" htmlFor="incident_date">
+      <div className={formStyles.formRow}>
+        <div className={`${formStyles.formGroup} ${formStyles.thirdWidth}`}>
+          <label className={formStyles.formLabel} htmlFor="incident_date">
             Date *
           </label>
           <input
             id="incident_date"
             name="incident_date"
             type="text"
-            className={`form-input ${hasError("incident_date") ? "input-error" : ""}`}
+            className={`${formStyles.formInput} ${formErrors.incident_date ? formStyles.inputError : ""}`}
             value={formData.incident_date}
             onChange={handleDateChange}
             placeholder="DD-MM-YYYY"
             maxLength="10"
-            style={{ width: "100%" }}
           />
           {formErrors.incident_date && (
-            <div className="form-error">{formErrors.incident_date}</div>
+            <div className={formStyles.formError}>
+              {formErrors.incident_date}
+            </div>
           )}
-          <small style={{ fontSize: "0.7rem", color: "#666" }}>
+          <small className={formStyles.helperText}>
             Year must be between 1980-2029
           </small>
         </div>
 
-        <div
-          className="form-group"
-          style={{ marginBottom: "10px", width: "35%" }}
-        >
-          <label className="form-label" htmlFor="category">
+        <div className={`${formStyles.formGroup} ${formStyles.thirdWidth}`}>
+          <label className={formStyles.formLabel} htmlFor="category">
             Category
           </label>
           <select
             id="category"
             name="category"
-            className="form-select"
+            className={formStyles.formSelect}
             value={formData.category}
             onChange={handleChange}
           >
@@ -464,11 +449,8 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
           </select>
         </div>
 
-        <div
-          className="form-group"
-          style={{ marginBottom: "10px", width: "35%" }}
-        >
-          <label className="form-label" htmlFor="severity">
+        <div className={`${formStyles.formGroup} ${formStyles.thirdWidth}`}>
+          <label className={formStyles.formLabel} htmlFor="severity">
             Severity
             <button
               onClick={toggleSeverityInfo}
@@ -484,6 +466,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
                 borderRadius: "50%",
               }}
               title="View severity level descriptions"
+              type="button"
             >
               ?
             </button>
@@ -491,7 +474,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
           <select
             id="severity"
             name="severity"
-            className="form-select"
+            className={formStyles.formSelect}
             value={formData.severity}
             onChange={handleChange}
           >
@@ -504,91 +487,36 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         </div>
       </div>
 
-      {showSeverityInfo && (
-        <div
-          style={{
-            padding: "10px",
-            marginBottom: "10px",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            backgroundColor: "#f9f9f9",
-            fontSize: "0.8rem",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "5px",
-            }}
-          >
-            <strong>Severity</strong>
-            <button
-              onClick={toggleSeverityInfo}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#666",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-              }}
-            >
-              Close
-            </button>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "auto 1fr",
-              gap: "5px",
-            }}
-          >
-            <div style={{ fontWeight: "bold" }}>Low:</div>
-            <div>
-              Minor/localized impact, quickly resolved, little disruption.
-            </div>
+      {showSeverityInfo && <SeverityInfo onClose={toggleSeverityInfo} />}
 
-            <div style={{ fontWeight: "bold" }}>Moderate:</div>
-            <div>Noticeable disruption, but limited in scale or duration.</div>
-
-            <div style={{ fontWeight: "bold" }}>High:</div>
-            <div>Widespread impact, major disruptions, difficult recovery.</div>
-
-            <div style={{ fontWeight: "bold" }}>Critical:</div>
-            <div>Catastrophic failure with long-term consequences.</div>
-          </div>
-        </div>
-      )}
-
-      <div className="form-group" style={{ marginBottom: "10px" }}>
-        <label className="form-label" htmlFor="description">
+      <div className={formStyles.formGroup}>
+        <label className={formStyles.formLabel} htmlFor="description">
           Description
         </label>
         <textarea
           id="description"
           name="description"
-          className={`form-textarea ${hasError("description") ? "input-error" : ""}`}
-          style={{ height: "70px" }}
+          className={`${formStyles.formTextarea} ${formErrors.description ? formStyles.inputError : ""}`}
           value={formData.description}
           onChange={handleChange}
           placeholder="Provide a description of the incident..."
         />
         {formErrors.description && (
-          <div className="form-error">{formErrors.description}</div>
+          <div className={formStyles.formError}>{formErrors.description}</div>
         )}
       </div>
 
-      <div className="form-row">
-        <div className="form-group" style={{ marginBottom: "10px" }}>
-          <label className="form-label" htmlFor="artifactType">
+      <div className={formStyles.formRow}>
+        <div className={formStyles.formGroup}>
+          <label className={formStyles.formLabel} htmlFor="artifactType">
             Artifact Type
           </label>
           <select
             id="artifactType"
             name="artifactType"
-            className="form-select"
+            className={formStyles.formSelect}
             value={formData.artifactType}
-            onChange={handleChange}
+            onChange={handleArtifactTypeChange}
           >
             <option value="none">None</option>
             <option value="code">Code (HTML)</option>
@@ -598,25 +526,26 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
       </div>
 
       {formData.artifactType === "code" && (
-        <div className="form-group" style={{ marginBottom: "10px" }}>
-          <label className="form-label" htmlFor="artifactContent">
+        <div className={formStyles.formGroup}>
+          <label className={formStyles.formLabel} htmlFor="artifactContent">
             HTML Code
           </label>
           <textarea
             id="artifactContent"
             name="artifactContent"
-            className={`form-textarea ${hasError("artifactContent") ? "input-error" : ""}`}
-            style={{ height: "80px" }}
+            className={`${styles.formTextarea} ${formErrors.artifactContent ? styles.inputError : ""}`}
             value={formData.artifactContent}
             onChange={handleChange}
             placeholder="Enter HTML code here..."
           />
-          <small style={{ fontSize: "0.7rem", color: "#666" }}>
+          <small className={formStyles.helperText}>
             HTML max dimensions: 863x768. Anything larger and the page layout
             may break.
           </small>
           {formErrors.artifactContent && (
-            <div className="form-error">{formErrors.artifactContent}</div>
+            <div className={formStyles.formError}>
+              {formErrors.artifactContent}
+            </div>
           )}
         </div>
       )}
@@ -631,26 +560,26 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
           }}
         >
           <div style={{ flex: "1" }}>
-            <label className="form-label" htmlFor="file">
+            <label className={formStyles.formLabel} htmlFor="file">
               Upload New Image
             </label>
             <input
               id="file"
               name="file"
               type="file"
-              className={`form-input ${hasError("file") || fileError ? "input-error" : ""}`}
+              className={`${formStyles.formInput} ${formErrors.file || fileState.error ? styles.inputError : ""}`}
               accept="image/*"
               onChange={handleFileChange}
             />
-            <small style={{ fontSize: "0.7rem", color: "#666" }}>
-              Max: 863x768, 2MB
-            </small>
-            {(formErrors.file || fileError) && (
-              <div className="form-error">{formErrors.file || fileError}</div>
+            <small className={formStyles.helperText}>Max: 863x768, 2MB</small>
+            {(formErrors.file || fileState.error) && (
+              <div className={styles.formError}>
+                {formErrors.file || fileState.error}
+              </div>
             )}
           </div>
 
-          {incident.artifactContent && (
+          {incident?.artifactContent && (
             <div style={{ flex: "1", textAlign: "center" }}>
               <small
                 style={{
@@ -676,10 +605,10 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         </div>
       )}
 
-      <div className="form-buttons">
+      <div className={formStyles.formButtons}>
         <button
           type="button"
-          className="form-button-cancel"
+          className={`${buttonStyles.button} ${buttonStyles.primary}`}
           onClick={onClose}
           disabled={isSubmitting}
         >
@@ -687,7 +616,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         </button>
         <button
           type="submit"
-          className="form-button-submit"
+          className={`${buttonStyles.button} ${buttonStyles.primary} ${isSubmitting ? buttonStyles.loading : ""}`}
           disabled={isSubmitting}
         >
           {isSubmitting

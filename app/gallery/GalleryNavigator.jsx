@@ -10,6 +10,7 @@ import {
   findIncidentBySlug,
   generateSlug,
 } from "@/app/utils/navigation/slugUtils";
+import styles from "./GalleryNavigator.module.css";
 
 const GalleryPageContent = () => {
   const { theme } = useTheme();
@@ -299,7 +300,7 @@ const GalleryPageContent = () => {
   }, []);
 
   return (
-    <div className={`gallery-container incident-content`}>
+    <div className={styles.galleryContainer}>
       <GalleryNavButtons
         onPreviousClick={() => handleNavigation("prev")}
         onNextClick={() => handleNavigation("next")}
@@ -310,7 +311,7 @@ const GalleryPageContent = () => {
         currentIncidentIndexInYear={currentYearIndex}
       />
 
-      <div className="incident-detail-container" style={{ flexGrow: 1 }}>
+      <div className={styles.incidentDisplayContainer} style={{ flexGrow: 1 }}>
         <GalleryDisplay
           incident={currentIncident || placeholderIncident}
           incidents={availableIncidents}

@@ -1,17 +1,25 @@
-export const categoryIcons = {
+import React from "react";
+
+const categoryIcons = {
   Hardware: "🔧", // wrench
   Software: "💻", // laptop
-  Network: "🌐", // globe
+  "Human Error": "👤", // person
   Security: "🔒", // lock
   Infrastructure: "🏗️", // building construction
-  Database: "💾", // floppy disk
-  "UI/UX": "👁️", // eye
-  System: "⚙️", // gear
-  Game: "🎮", // game controller
-  Default: "📁", // folder
+  "External Factor": "🌍", // earth globe
 };
 
+/**
+ * Returns a category icon component
+ * @param {string} category - Category name
+ * @returns {React.JSX.Element} - Icon span element
+ */
 export const getCategoryIcon = (category) => {
-  if (!category) return categoryIcons.Default;
-  return categoryIcons[category] || categoryIcons.Default;
+  const icon = category ? categoryIcons[category] || "❓" : "❓";
+
+  return (
+    <span role="img" aria-label={category || "Category"}>
+      {icon}
+    </span>
+  );
 };

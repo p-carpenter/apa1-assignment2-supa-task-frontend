@@ -4,15 +4,11 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { LoginForm } from "@/app/components/forms";
-import "./login.styles.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import layoutStyles from "@/app/components/layouts/Layout.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
-// Import reusable components
-import {
-  ConsoleWindow,
-  ConsoleSection,
-  CommandOutput,
-  CatalogHeader,
-} from "../components/ui";
+import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
 import { Button } from "../components/ui/buttons";
 
 export default function LoginPage() {
@@ -34,13 +30,11 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-login"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --auth"
@@ -54,10 +48,12 @@ export default function LoginPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Authentication required for secure access.
               </div>
-              <div className="output-text highlight">
+              <div
+                className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
+              >
                 PLEASE ENTER YOUR CREDENTIALS
               </div>
             </CommandOutput>
