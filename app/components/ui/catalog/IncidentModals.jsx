@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import Modal from "../modals/Modal";
 import AddIncidentForm from "../../forms/AddIncidentForm";
 import EditIncidentForm from "../../forms/EditIncidentForm";
+import { ERROR_TYPES } from "../../../utils/api/errors/errorHandling";
 
 /**
  * Component for incident-related modals (add/edit)
@@ -25,6 +26,38 @@ const IncidentModals = ({
   currentEditIndex,
   moveToNextEdit,
 }) => {
+  const [addFormApiError, setAddFormApiError] = useState(null);
+
+  const handleAddFormRetry = () => {
+    setAddFormApiError(null);
+    // The form will handle the retry internally
+  };
+
+  const handleAddFormDismiss = () => {
+    setAddFormApiError(null);
+  };
+
+  const [editFormApiError, setEditFormApiError] = useState(null);
+
+  const handleEditFormRetry = () => {
+    setEditFormApiError(null);
+  };
+
+  const handleEditFormDismiss = () => {
+    setEditFormApiError(null);
+  };
+
+  const handleFormError = (error, setErrorFn) => {
+    if (error.type) {
+      setErrorFn(error);
+    } else {
+      setErrorFn({
+        type: ERROR_TYPES.UNKNOWN_ERROR,
+        message: error.message || "An error occurred",
+      });
+    }
+  };
+
   return (
     <>
       {/* Add New Incident Modal */}
@@ -35,7 +68,13 @@ const IncidentModals = ({
           title="Add New Technical Incident"
           size="large"
         >
-          <AddIncidentForm onClose={closeAddModal} />
+          <AddIncidentForm
+            onClose={closeAddModal}
+            apiError={addFormApiError}
+            onRetry={handleAddFormRetry}
+            onDismiss={handleAddFormDismiss}
+            onError={(error) => handleFormError(error, setAddFormApiError)}
+          />
         </Modal>
       )}
 
@@ -51,6 +90,10 @@ const IncidentModals = ({
             incident={selectedIncidents[currentEditIndex]}
             onClose={closeEditModal}
             onNext={moveToNextEdit}
+            apiError={editFormApiError}
+            onRetry={handleEditFormRetry}
+            onDismiss={handleEditFormDismiss}
+            onError={(error) => handleFormError(error, setEditFormApiError)}
           />
         </Modal>
       )}

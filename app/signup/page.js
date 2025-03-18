@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { SignupForm } from "@/app/components/forms";
 import authStyles from "@/app/components/forms/Auth.module.css";
-import layoutStyles from "@/app/components/layouts/Layout.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
 
-// Import reusable components
-import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
-import { Button } from "../components/ui/buttons";
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+} from "../components/ui/console";
 
 export default function SignupPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const [apiError, setApiError] = useState(null);
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
@@ -22,12 +25,30 @@ export default function SignupPage() {
     }
   }, [isAuthenticated, loading, router]);
 
-  // Define status items for the console footer
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "USER REGISTRATION",
     { text: "NEW ACCOUNT CREATION", blink: true },
   ];
+
+  const handleSignupError = (error) => {
+    if (error.type) {
+      setApiError(error);
+    } else {
+      setApiError({
+        type: ERROR_TYPES.UNKNOWN_ERROR,
+        message: error.message || "Registration failed",
+      });
+    }
+  };
+
+  const handleRetry = () => {
+    setApiError(null);
+  };
+
+  const handleDismiss = () => {
+    setApiError(null);
+  };
 
   return (
     <>
@@ -55,7 +76,12 @@ export default function SignupPage() {
               </div>
             </CommandOutput>
 
-            <SignupForm />
+            <SignupForm
+              apiError={apiError}
+              onError={handleSignupError}
+              onRetry={handleRetry}
+              onDismiss={handleDismiss}
+            />
           </ConsoleSection>
         </ConsoleWindow>
       </div>

@@ -1,16 +1,18 @@
 /**
  * Common API utilities for handling requests and responses
  */
+import { handleApiError, ERROR_TYPES, shouldRedirectToLogin } from './errors/errorHandling';
 
 /**
  * Fetch with standardized error handling to use in calling internal API routes
  *
  * @param {string} url - The URL to fetch
  * @param {Object} options - Fetch options
+ * @param {Object} errorOptions - Options for error handling
  * @returns {Promise<any>} - The response data
  * @throws {Error} - If the response is not ok
  */
-export const fetchWithErrorHandling = async (url, options = {}) => {
+export const fetchWithErrorHandling = async (url, options = {}, errorOptions = {}) => {
   try {
     const response = await fetch(url, options);
 
@@ -34,15 +36,19 @@ export const fetchWithErrorHandling = async (url, options = {}) => {
 
     return await response.json();
   } catch (error) {
-    if (!error.status) {
-      // This is a network or other fetch error, not a response error
-      console.error(`Network Error (${url}):`, error.message);
-      throw new Error(
-        `Network error: ${error.message}. Please check your connection.`
-      );
+    // Use the centralized error handler
+    const standardError = handleApiError(error, errorOptions);
+    
+    // Handle authentication errors that require redirect
+    if (shouldRedirectToLogin(standardError.type) && typeof window !== 'undefined') {
+      // Could redirect to login or trigger a global auth context method
+      console.log('Authentication error - user needs to sign in again');
+      
+      // You might want to dispatch an event or call a context method instead
+      // For example: authContext.handleAuthError();
     }
-    console.error(`API Error (${url}):`, error.message);
-    throw error;
+    
+    throw standardError;
   }
 };
 
@@ -68,13 +74,18 @@ export const createEndpointHandler = (handler) => async (req) => {
   } catch (error) {
     console.error(`Handler error:`, error);
 
+    // Map error status codes to standard error types
+    let errorMessage = error.message || "Internal Server Error";
+    let statusCode = error.status || 500;
+    
+    // Standardize error responses
     return new Response(
       JSON.stringify({
-        error: error.message || "Internal Server Error",
+        error: errorMessage,
         timestamp: new Date().toISOString(),
       }),
       {
-        status: error.status || 500,
+        status: statusCode,
         headers: {
           ...corsHeaders,
           "Content-Type": "application/json",
@@ -229,25 +240,3 @@ export const fetchFromSupabase = async (
     throw error;
   }
 };
-
-// /**
-//  * Parse form data for API requests
-//  *
-//  * @param {Object} formData - Form data to format
-//  * @returns {Object} - Formatted data for API
-//  */
-// export const formatApiRequestData = (formData) => {
-//   // Process dates
-//   const processedData = { ...formData };
-
-//   // Handle date formatting if needed
-//   if (formData.incident_date && formData.incident_date.includes('-')) {
-//     // Check if we need to convert DD-MM-YYYY to YYYY-MM-DD
-//     const dateParts = formData.incident_date.split('-');
-//     if (dateParts[0].length === 2 && dateParts[2].length === 4) {
-//       processedData.incident_date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
-//     }
-//   }
-
-//   return processedData;
-// };

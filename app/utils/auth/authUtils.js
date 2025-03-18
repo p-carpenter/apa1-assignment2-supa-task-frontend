@@ -1,6 +1,7 @@
 "use client";
 
 import { AUTH_STORAGE_KEYS, AUTH_ENDPOINTS } from "./auth-config";
+import { ERROR_TYPES } from "../api/errors/errorHandling";
 
 /**
  * Sign in a user with email and password
@@ -9,24 +10,33 @@ import { AUTH_STORAGE_KEYS, AUTH_ENDPOINTS } from "./auth-config";
  */
 export async function signIn({ email, password }) {
   if (!email || !email.trim()) {
-    throw new Error("Email is required");
+    const error = new Error("Email is required");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
 
   if (!password || !password.trim()) {
-    throw new Error("Password is required");
+    const error = new Error("Password is required");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    throw new Error("Please enter a valid email address");
+    const error = new Error("Please enter a valid email address");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
 
   try {
     // Network connectivity check
     if (typeof window !== "undefined" && !window.navigator.onLine) {
-      throw new Error(
+      const offlineError = new Error(
         "No internet connection. Please check your network and try again."
       );
+      offlineError.type = ERROR_TYPES.NETWORK_ERROR;
+      offlineError.isOffline = true;
+      throw offlineError;
     }
 
     const controller = new AbortController();
@@ -51,39 +61,53 @@ export async function signIn({ email, password }) {
         errorData = { error: `Error: ${response.status}` };
       }
 
+      const error = new Error(
+        errorData.error || "Authentication failed"
+      );
+      error.status = response.status;
+
       switch (response.status) {
         case 400:
-          throw new Error(
-            errorData.error ||
-              "Invalid login request. Please check your credentials."
-          );
+          error.type = ERROR_TYPES.VALIDATION_ERROR;
+          error.message = errorData.error || "Invalid login request. Please check your credentials.";
+          break;
         case 401:
-          throw new Error("Invalid email or password. Please try again.");
+          error.type = ERROR_TYPES.INVALID_CREDENTIALS;
+          error.message = "Invalid email or password. Please try again.";
+          break;
         case 403:
-          throw new Error(
-            "Your account has been disabled. Please contact support."
-          );
+          error.type = ERROR_TYPES.PERMISSION_DENIED;
+          error.message = "Your account has been disabled. Please contact support.";
+          break;
         case 404:
-          throw new Error(
-            "Authentication service not found. Please try again later."
-          );
+          error.type = ERROR_TYPES.NOT_FOUND;
+          error.message = "Authentication service not found. Please try again later.";
+          break;
         case 429:
-          throw new Error("Too many login attempts. Please try again later.");
+          error.type = ERROR_TYPES.RATE_LIMITED;
+          error.message = "Too many login attempts. Please try again later.";
+          break;
         case 500:
         case 502:
         case 503:
         case 504:
-          throw new Error("Server error. Please try again later.");
+          error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+          error.message = "Server error. Please try again later.";
+          break;
         default:
-          throw new Error(errorData.error || "Failed to sign in");
+          error.type = ERROR_TYPES.UNKNOWN_ERROR;
+          error.message = errorData.error || "Failed to sign in";
       }
+      
+      throw error;
     }
 
     const data = await response.json();
 
-    // Validate the response contains required data
     if (!data.user) {
-      throw new Error("Invalid response from authentication server");
+      const error = new Error("Invalid response from authentication server");
+      error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+      throw error;
     }
 
     // Store in localStorage for persistence
@@ -108,13 +132,22 @@ export async function signIn({ email, password }) {
     console.error("Sign in error:", error);
 
     if (error.name === "AbortError") {
-      throw new Error("Login request timed out. Please try again.");
+      const timeoutError = new Error("Login request timed out. Please try again.");
+      timeoutError.type = ERROR_TYPES.TIMEOUT;
+      throw timeoutError;
     }
 
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      throw new Error(
+      const networkError = new Error(
         "Network error. Please check your connection and try again."
       );
+      networkError.type = ERROR_TYPES.NETWORK_ERROR;
+      throw networkError;
+    }
+
+    // If the error already has a type, it's a standardized error
+    if (!error.type) {
+      error.type = ERROR_TYPES.UNKNOWN_ERROR;
     }
 
     throw error;
@@ -127,28 +160,39 @@ export async function signIn({ email, password }) {
  * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function signUp({ email, password, displayName }) {
-  // Input validation
+  // Input validation with standardized errors
   if (!email || !email.trim()) {
-    throw new Error("Email is required");
+    const error = new Error("Email is required");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
   
   if (!password || !password.trim()) {
-    throw new Error("Password is required");
+    const error = new Error("Password is required");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
   
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    throw new Error("Please enter a valid email address");
+    const error = new Error("Please enter a valid email address");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
   
   if (password.length < 6) {
-    throw new Error("Password must be at least 6 characters");
+    const error = new Error("Password must be at least 6 characters");
+    error.type = ERROR_TYPES.VALIDATION_ERROR;
+    throw error;
   }
 
   try {
     // Network connectivity check
     if (typeof window !== "undefined" && !window.navigator.onLine) {
-      throw new Error("No internet connection. Please check your network and try again.");
+      const offlineError = new Error("No internet connection. Please check your network and try again.");
+      offlineError.type = ERROR_TYPES.NETWORK_ERROR;
+      offlineError.isOffline = true;
+      throw offlineError;
     }
     
     const controller = new AbortController();
@@ -173,35 +217,52 @@ export async function signUp({ email, password, displayName }) {
         errorData = { error: `Error: ${response.status}` };
       }
 
+      const error = new Error(errorData.error || "Signup failed");
+      error.status = response.status;
+
       if (errorData.error === "User already exists" || response.status === 409) {
-        throw new Error("An account with this email already exists. Please log in instead.");
+        error.type = ERROR_TYPES.ALREADY_EXISTS;
+        error.message = "An account with this email already exists. Please log in instead.";
+        throw error;
       }
       
       switch (response.status) {
         case 400:
-          throw new Error(errorData.error || "Invalid signup data. Please check your information.");
+          error.type = ERROR_TYPES.VALIDATION_ERROR;
+          error.message = errorData.error || "Invalid signup data. Please check your information.";
+          break;
         case 422:
-          throw new Error(errorData.error || "Password too weak or email invalid.");
+          error.type = ERROR_TYPES.VALIDATION_ERROR;
+          error.message = errorData.error || "Password too weak or email invalid.";
+          break;
         case 429:
-          throw new Error("Too many signup attempts. Please try again later.");
+          error.type = ERROR_TYPES.RATE_LIMITED;
+          error.message = "Too many signup attempts. Please try again later.";
+          break;
         case 500:
         case 502:
         case 503:
         case 504:
-          throw new Error("Server error. Please try again later.");
+          error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+          error.message = "Server error. Please try again later.";
+          break;
         default:
-          throw new Error(errorData.error || "Failed to sign up");
+          error.type = ERROR_TYPES.UNKNOWN_ERROR;
+          error.message = errorData.error || "Failed to sign up";
       }
+      
+      throw error;
     }
 
     const data = await response.json();
     
     // Validate the response contains required data
     if (!data.user) {
-      throw new Error("Invalid response from authentication server");
+      const validationError = new Error("Invalid response from authentication server");
+      validationError.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+      throw validationError;
     }
 
-    // Store in localStorage for persistence
     try {
       localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
       if (data.session?.access_token) {
@@ -209,7 +270,6 @@ export async function signUp({ email, password, displayName }) {
       }
     } catch (storageError) {
       console.warn("Failed to store authentication in localStorage:", storageError);
-      // Continue anyway as cookies are the primary auth method
     }
 
     return data;
@@ -217,11 +277,19 @@ export async function signUp({ email, password, displayName }) {
     console.error("Sign up error:", error);
     
     if (error.name === "AbortError") {
-      throw new Error("Signup request timed out. Please try again.");
+      const timeoutError = new Error("Signup request timed out. Please try again.");
+      timeoutError.type = ERROR_TYPES.TIMEOUT;
+      throw timeoutError;
     }
     
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      throw new Error("Network error. Please check your connection and try again.");
+      const networkError = new Error("Network error. Please check your connection and try again.");
+      networkError.type = ERROR_TYPES.NETWORK_ERROR;
+      throw networkError;
+    }
+    
+    if (!error.type) {
+      error.type = ERROR_TYPES.UNKNOWN_ERROR;
     }
     
     throw error;
@@ -254,7 +322,6 @@ export async function signOut() {
     
     clearTimeout(timeoutId);
 
-    // Clear localStorage regardless of response
     localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
     localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
 
@@ -266,8 +333,28 @@ export async function signOut() {
         errorData = { error: `Error: ${response.status}` };
       }
       
+      const error = new Error(errorData.error || "Failed to sign out on server");
+      error.status = response.status;
+      
+      switch (response.status) {
+        case 401:
+          error.type = ERROR_TYPES.AUTH_REQUIRED;
+          break;
+        case 403:
+          error.type = ERROR_TYPES.PERMISSION_DENIED;
+          break;
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+          break;
+        default:
+          error.type = ERROR_TYPES.UNKNOWN_ERROR;
+      }
+      
       // Still throw the error for proper handling
-      throw new Error(errorData.error || "Failed to sign out on server");
+      throw error;
     }
 
     return await response.json();
@@ -275,7 +362,6 @@ export async function signOut() {
     console.error("Sign out error:", error);
     
     if (error.name === "AbortError") {
-      // For timeout, return success but with warning
       return { 
         success: true, 
         warning: "Signout timed out, but local state has been cleared" 
@@ -283,14 +369,16 @@ export async function signOut() {
     }
     
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      // For network errors, return success but with warning
       return { 
         success: true, 
         warning: "Network error during signout, but local state has been cleared" 
       };
     }
     
-    // For other errors, throw so caller can handle
+    if (!error.type) {
+      error.type = ERROR_TYPES.UNKNOWN_ERROR;
+    }
+    
     throw error;
   }
 }
@@ -325,7 +413,6 @@ export function getStoredUser() {
     };
   } catch (e) {
     console.error("Error parsing stored user:", e);
-    // Clear potentially corrupted data
     localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
     localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
     return null;
@@ -339,7 +426,7 @@ export function getStoredUser() {
  * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function getCurrentUser(forceRefresh = false) {
-  // First check localStorage
+  // Check localStorage
   const storedData = getStoredUser();
 
   // If we have stored data and don't need to refresh, return it immediately
@@ -361,7 +448,11 @@ export async function getCurrentUser(forceRefresh = false) {
           },
         };
       }
-      throw new Error("No internet connection and no stored user data");
+      
+      const offlineError = new Error("No internet connection and no stored user data");
+      offlineError.type = ERROR_TYPES.NETWORK_ERROR;
+      offlineError.isOffline = true;
+      throw offlineError;
     }
     
     const controller = new AbortController();
@@ -377,20 +468,26 @@ export async function getCurrentUser(forceRefresh = false) {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      // If unauthorized, clear localStorage as well
+      const error = new Error("Authentication check failed");
+      error.status = response.status;
+      
       if (response.status === 401 || response.status === 403) {
         localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
         localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
         
+        error.type = response.status === 401 ? ERROR_TYPES.AUTH_REQUIRED : ERROR_TYPES.PERMISSION_DENIED;
+        error.message = response.status === 401 ? "Authentication expired" : "Access forbidden";
+        
         return { 
           user: null, 
           session: null, 
-          error: response.status === 401 ? "Authentication expired" : "Access forbidden" 
+          error: error.message
         };
       }
       
       if (response.status >= 500) {
-        // For server errors, fall back to stored data if available
+        error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+        
         if (storedData) {
           return {
             ...storedData,
@@ -401,6 +498,8 @@ export async function getCurrentUser(forceRefresh = false) {
             },
           };
         }
+        
+        throw error;
       }
       
       return { user: null, session: null };
@@ -410,7 +509,9 @@ export async function getCurrentUser(forceRefresh = false) {
     const data = await response.json();
     
     if (!data || !data.user) {
-      throw new Error("Invalid response from authentication server");
+      const invalidError = new Error("Invalid response from authentication server");
+      invalidError.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+      throw invalidError;
     }
 
     // Update localStorage with fresh data
@@ -428,6 +529,9 @@ export async function getCurrentUser(forceRefresh = false) {
     console.error("Get user error:", error);
     
     if (error.name === "AbortError") {
+      const timeoutError = new Error("Authentication check timed out");
+      timeoutError.type = ERROR_TYPES.TIMEOUT;
+      
       // Fall back to stored data with warning if request times out
       if (storedData) {
         return {
@@ -439,11 +543,14 @@ export async function getCurrentUser(forceRefresh = false) {
           },
         };
       }
-      throw new Error("Authentication check timed out");
+      
+      throw timeoutError;
     }
 
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      // Fall back to stored data with warning if network error
+      const networkError = new Error("Network error during authentication check");
+      networkError.type = ERROR_TYPES.NETWORK_ERROR;
+      
       if (storedData) {
         return {
           ...storedData,
@@ -454,10 +561,14 @@ export async function getCurrentUser(forceRefresh = false) {
           },
         };
       }
-      throw new Error("Network error during authentication check");
+      
+      throw networkError;
     }
 
-    // If we have stored data, fall back to it for other errors
+    if (!error.type) {
+      error.type = ERROR_TYPES.UNKNOWN_ERROR;
+    }
+
     if (storedData) {
       return {
         ...storedData,
@@ -481,7 +592,10 @@ export async function getProtectedData() {
   try {
     // Network connectivity check
     if (typeof window !== "undefined" && !window.navigator.onLine) {
-      throw new Error("No internet connection. Please check your network and try again.");
+      const offlineError = new Error("No internet connection. Please check your network and try again.");
+      offlineError.type = ERROR_TYPES.NETWORK_ERROR;
+      offlineError.isOffline = true;
+      throw offlineError;
     }
     
     const controller = new AbortController();
@@ -504,12 +618,21 @@ export async function getProtectedData() {
         errorData = { error: `Error: ${response.status}` };
       }
       
+      // Create a standardized error
+      const error = new Error(errorData.error || "Failed to fetch protected data");
+      error.status = response.status;
+      
       // Handle common error cases
       if (response.status === 401 || response.status === 403) {
-        throw new Error("Authentication required to access this data");
+        error.type = response.status === 401 ? ERROR_TYPES.AUTH_REQUIRED : ERROR_TYPES.PERMISSION_DENIED;
+        error.message = "Authentication required to access this data";
+      } else if (response.status >= 500) {
+        error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+      } else {
+        error.type = ERROR_TYPES.UNKNOWN_ERROR;
       }
       
-      throw new Error(errorData.error || "Failed to fetch protected data");
+      throw error;
     }
 
     return await response.json();
@@ -517,11 +640,20 @@ export async function getProtectedData() {
     console.error("Protected data error:", error);
     
     if (error.name === "AbortError") {
-      throw new Error("Request timed out. Please try again.");
+      const timeoutError = new Error("Request timed out. Please try again.");
+      timeoutError.type = ERROR_TYPES.TIMEOUT;
+      throw timeoutError;
     }
     
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      throw new Error("Network error. Please check your connection and try again.");
+      const networkError = new Error("Network error. Please check your connection and try again.");
+      networkError.type = ERROR_TYPES.NETWORK_ERROR;
+      throw networkError;
+    }
+    
+    // If the error already has a type, it's a standardized error
+    if (!error.type) {
+      error.type = ERROR_TYPES.UNKNOWN_ERROR;
     }
     
     return null;
@@ -537,12 +669,17 @@ export async function addProtectedData(data) {
   try {
     // Input validation
     if (!data || typeof data !== 'object') {
-      throw new Error("Invalid data. Expected an object.");
+      const validationError = new Error("Invalid data. Expected an object.");
+      validationError.type = ERROR_TYPES.VALIDATION_ERROR;
+      throw validationError;
     }
     
     // Network connectivity check
     if (typeof window !== "undefined" && !window.navigator.onLine) {
-      throw new Error("No internet connection. Please check your network and try again.");
+      const offlineError = new Error("No internet connection. Please check your network and try again.");
+      offlineError.type = ERROR_TYPES.NETWORK_ERROR;
+      offlineError.isOffline = true;
+      throw offlineError;
     }
     
     const controller = new AbortController();
@@ -566,25 +703,45 @@ export async function addProtectedData(data) {
         errorData = { error: `Error: ${response.status}` };
       }
       
+      // Create a standardized error
+      const error = new Error(errorData.error || "Failed to add data");
+      error.status = response.status;
+      
       // Handle common error cases
       switch (response.status) {
         case 400:
-          throw new Error(errorData.error || "Invalid data format");
+          error.type = ERROR_TYPES.VALIDATION_ERROR;
+          error.message = errorData.error || "Invalid data format";
+          break;
         case 401:
+          error.type = ERROR_TYPES.AUTH_REQUIRED;
+          error.message = "Authentication required to add data";
+          break;
         case 403:
-          throw new Error("Authentication required to add data");
+          error.type = ERROR_TYPES.PERMISSION_DENIED;
+          error.message = "Authentication required to add data";
+          break;
         case 413:
-          throw new Error("Data size exceeds limit");
+          error.type = ERROR_TYPES.FILE_TOO_LARGE;
+          error.message = "Data size exceeds limit";
+          break;
         case 429:
-          throw new Error("Too many requests. Please try again later.");
+          error.type = ERROR_TYPES.RATE_LIMITED;
+          error.message = "Too many requests. Please try again later.";
+          break;
         case 500:
         case 502:
         case 503:
         case 504:
-          throw new Error("Server error. Please try again later.");
+          error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
+          error.message = "Server error. Please try again later.";
+          break;
         default:
-          throw new Error(errorData.error || "Failed to add data");
+          error.type = ERROR_TYPES.UNKNOWN_ERROR;
+          error.message = errorData.error || "Failed to add data";
       }
+      
+      throw error;
     }
 
     return await response.json();
@@ -592,11 +749,20 @@ export async function addProtectedData(data) {
     console.error("Add protected data error:", error);
     
     if (error.name === "AbortError") {
-      throw new Error("Request timed out. Please try again.");
+      const timeoutError = new Error("Request timed out. Please try again.");
+      timeoutError.type = ERROR_TYPES.TIMEOUT;
+      throw timeoutError;
     }
     
     if (error.name === "TypeError" && error.message.includes("fetch")) {
-      throw new Error("Network error. Please check your connection and try again.");
+      const networkError = new Error("Network error. Please check your connection and try again.");
+      networkError.type = ERROR_TYPES.NETWORK_ERROR;
+      throw networkError;
+    }
+    
+    // If the error already has a type, it's a standardized error
+    if (!error.type) {
+      error.type = ERROR_TYPES.UNKNOWN_ERROR;
     }
     
     throw error;

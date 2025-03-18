@@ -5,17 +5,22 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
 import authStyles from "@/app/components/forms/Auth.module.css";
-import layoutStyles from "@/app/components/layouts/Layout.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ResetPasswordForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/forms/useForm";
+import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
 
-import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+} from "../components/ui/console";
 
 export default function ResetPasswordPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState("");
+  const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -41,7 +46,6 @@ export default function ResetPasswordPage() {
     const errors = {};
 
     if (fieldName) {
-      // Validate a single field
       if (fieldName === "email") {
         const error = validateEmail(data.email);
         if (error) errors.email = error;
@@ -49,15 +53,24 @@ export default function ResetPasswordPage() {
       return errors;
     }
 
-    // Validate all fields
     const emailError = validateEmail(data.email);
     if (emailError) errors.email = emailError;
 
     return errors;
   };
 
+  const handleRetry = () => {
+    setApiError(null);
+    handleSubmit(new Event("submit"));
+  };
+
+  const handleDismiss = () => {
+    setApiError(null);
+  };
+
   const handleFormSubmit = async (formData) => {
     setErrorMessage("");
+    setApiError(null);
     setSuccessMessage("");
 
     try {
@@ -72,7 +85,26 @@ export default function ResetPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Something went wrong");
+        const error = new Error(data.error || "Something went wrong");
+        error.status = response.status;
+
+        switch (response.status) {
+          case 400:
+            error.type = ERROR_TYPES.VALIDATION_ERROR;
+            break;
+          case 404:
+            error.type = ERROR_TYPES.NOT_FOUND;
+            error.message = "No account found with that email address.";
+            break;
+          case 429:
+            error.type = ERROR_TYPES.RATE_LIMITED;
+            error.message = "Too many requests. Please try again later.";
+            break;
+          default:
+            error.type = ERROR_TYPES.UNKNOWN_ERROR;
+        }
+
+        throw error;
       }
 
       setSuccessMessage(
@@ -81,7 +113,15 @@ export default function ResetPasswordPage() {
 
       resetForm();
     } catch (err) {
-      setErrorMessage(err.message || "Failed to process request");
+      if (err.type) {
+        setApiError(err);
+      } else {
+        setApiError({
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: err.message || "Failed to process request",
+        });
+      }
+
       throw err; // Re-throw for useForm to handle
     }
   };
@@ -140,9 +180,6 @@ export default function ResetPasswordPage() {
                 </p>
               </div>
 
-              {errorMessage && (
-                <div className={authStyles.authError}>{errorMessage}</div>
-              )}
               {successMessage && (
                 <div className={authStyles.authSuccess}>{successMessage}</div>
               )}
@@ -155,6 +192,10 @@ export default function ResetPasswordPage() {
                   handleSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   hasError={hasError}
+                  errorMessage={errorMessage}
+                  apiError={apiError}
+                  onRetry={handleRetry}
+                  onDismiss={handleDismiss}
                 />
               )}
 

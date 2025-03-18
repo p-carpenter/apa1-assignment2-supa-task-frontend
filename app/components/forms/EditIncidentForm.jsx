@@ -10,6 +10,8 @@ import {
 } from "../../utils/formValidation";
 import { handleUpdateIncident } from "../../catalog/crudHandlers";
 import { SeverityInfo } from "../ui/shared";
+import { ApiErrorMessage } from "../ui/errors";
+import { ERROR_TYPES } from "../../utils/api/errors/errorHandling";
 import formStyles from "./FormStyles.module.css";
 import {
   TextField,
@@ -19,7 +21,7 @@ import {
   FileField,
   FormButtons,
   FormErrorMessage,
-  FormRow
+  FormRow,
 } from "./fields";
 
 const categories = [
@@ -50,9 +52,21 @@ const formatDateForDisplay = (dateString) => {
   }
 };
 
-const EditIncidentForm = ({ incident, onClose, onNext }) => {
+const EditIncidentForm = ({
+  incident,
+  onClose,
+  onNext,
+  apiError: externalApiError,
+  onRetry: externalRetry,
+  onDismiss: externalDismiss,
+  onError,
+}) => {
   const { setIncidents } = useIncidents();
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
+  const [internalApiError, setInternalApiError] = useState(null);
+
+  // Use external error if provided, otherwise use internal
+  const apiError = externalApiError || internalApiError;
 
   const getInitialFormValues = useCallback(() => {
     if (!incident) {
@@ -110,9 +124,13 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
           break;
 
         case "artifactContent":
-          if (data.artifactType === "code" && !data.artifactContent?.trim()) {
+          if (
+            data.artifactType === "code" &&
+            (!data.artifactContent?.trim() ||
+              !data.artifactContent.includes("<html>"))
+          ) {
             errors.artifactContent =
-              "HTML Code is required when Artifact Type is set to Code.";
+              "HTML code is required when Artifact Type is set to Code. Remember to add a <html> tag.";
           }
           break;
       }
@@ -176,6 +194,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
   useEffect(() => {
     setValues(getInitialFormValues());
     clearFile();
+    setInternalApiError(null);
   }, [incident, getInitialFormValues, setValues, clearFile]);
 
   const handleDateChange = (e) => {
@@ -188,11 +207,14 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
 
     handleChange(e);
 
+    // Clear API error when making changes
+    setInternalApiError(null);
+
     if (value !== "image") {
       clearFile();
-      
+
       // Remove the file error by creating a new error object without the file property
-      updateErrors(prevErrors => {
+      updateErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors.file;
         return newErrors;
@@ -201,7 +223,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
 
     if (value !== "code") {
       // Remove the artifactContent error
-      updateErrors(prevErrors => {
+      updateErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors.artifactContent;
         return newErrors;
@@ -214,8 +236,27 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     setShowSeverityInfo(!showSeverityInfo);
   };
 
+  const handleRetry = () => {
+    if (externalApiError && externalRetry) {
+      externalRetry();
+    } else {
+      setInternalApiError(null);
+      submitForm(new Event("submit"));
+    }
+  };
+
+  const handleDismiss = () => {
+    if (externalApiError && externalDismiss) {
+      externalDismiss();
+    } else {
+      setInternalApiError(null);
+    }
+  };
+
   async function handleSubmit(data) {
     try {
+      setInternalApiError(null);
+
       const storageFormattedData = {
         ...data,
         incident_date: data.incident_date
@@ -249,22 +290,59 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
       }
     } catch (error) {
       console.error("Error updating incident:", error);
-      const errorMsg =
-        error.message || "Failed to update incident. Please try again.";
+
+      // Handle standardized error object
+      if (error.type) {
+        if (onError) {
+          onError(error);
+        } else {
+          setInternalApiError(error);
+        }
+        return { error: error.message };
+      }
+
+      // Legacy error handling - convert to standardized errors
+      let standardizedError = null;
 
       if (
-        errorMsg.includes("file") ||
-        errorMsg.includes("image") ||
-        errorMsg.includes("upload")
+        error.message.includes("file") ||
+        error.message.includes("image") ||
+        error.message.includes("upload")
       ) {
-        updateErrors(prevErrors => ({
+        updateErrors((prevErrors) => ({
           ...prevErrors,
-          file: `Artifact error: ${errorMsg}`,
+          file: `Artifact error: ${error.message}`,
         }));
-        return { error: errorMsg };
+      } else if (error.status === 413) {
+        standardizedError = {
+          type: ERROR_TYPES.FILE_TOO_LARGE,
+          message: "File is too large. Maximum size is 2MB.",
+        };
+      } else if (error.status === 401 || error.status === 403) {
+        standardizedError = {
+          type: ERROR_TYPES.PERMISSION_DENIED,
+          message:
+            "You don't have permission to perform this action. Please log in again.",
+        };
       } else {
-        return { error: errorMsg };
+        standardizedError = {
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message:
+            error.message || "Failed to update incident. Please try again.",
+        };
       }
+
+      if (standardizedError) {
+        if (onError) {
+          onError(standardizedError);
+        } else {
+          setInternalApiError(standardizedError);
+        }
+      }
+
+      return {
+        error: error.message || "Failed to update incident. Please try again.",
+      };
     }
   }
 
@@ -295,7 +373,13 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
 
   return (
     <form className={formStyles.form} onSubmit={submitForm} noValidate>
-      <FormErrorMessage message={submitError} />
+      {apiError && (
+        <ApiErrorMessage
+          error={apiError}
+          onRetry={handleRetry}
+          onDismiss={handleDismiss}
+        />
+      )}
 
       <TextField
         id="name"
@@ -365,7 +449,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         options={[
           { value: "none", label: "None" },
           { value: "code", label: "Code (HTML)" },
-          { value: "image", label: "Image" }
+          { value: "image", label: "Image" },
         ]}
       />
 
@@ -387,11 +471,13 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
           <label className={formStyles.formLabel} htmlFor="file">
             Upload New Image
           </label>
-          <div style={{
-            display: "flex",
-            gap: "1rem",
-            alignItems: "flex-start"
-          }}>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "flex-start",
+            }}
+          >
             <div style={{ flex: "1" }}>
               <FileField
                 id="file"

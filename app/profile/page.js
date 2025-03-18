@@ -8,7 +8,11 @@ import authStyles from "@/app/components/forms/Auth.module.css";
 import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
-import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+} from "../components/ui/console";
 import { Button } from "../components/ui/buttons";
 
 const ProfilePage = () => {

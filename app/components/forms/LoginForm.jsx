@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 import authStyles from "./Auth.module.css";
+import { FormValidationError } from "../ui/errors";
+import { resolveError } from "../../utils/api/errors/errorHandling";
 import {
   TextField,
   PasswordField,
@@ -12,19 +14,31 @@ import {
   PromptLabel
 } from "./fields";
 
-function LoginForm() {
+function LoginForm({ apiError: externalApiError, onError, onRetry: externalRetry, onDismiss: externalDismiss }) {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
+  const [internalError, setInternalError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { signIn, loading: authLoading } = useAuth();
 
+  // Use centralized error resolution logic
+  const error = resolveError(externalApiError, internalError, errorMessage);
+
   // Combine component's internal loading state with auth context loading state
   const loading = isSubmitting || authLoading;
+  
+  // Clear internal error when external error changes
+  useEffect(() => {
+    if (externalApiError) {
+      setInternalError(null);
+      setErrorMessage("");
+    }
+  }, [externalApiError]);
 
   // Validate a single field
   const validateField = (name, value) => {
@@ -94,6 +108,10 @@ function LoginForm() {
       [name]: value,
     }));
 
+    // Clear error state when user starts typing
+    setInternalError(null);
+    setErrorMessage("");
+
     // Validate field as user types and update errors
     const error = validateField(name, value);
     setFormErrors((prev) => ({
@@ -102,9 +120,29 @@ function LoginForm() {
     }));
   };
 
+  const handleRetry = () => {
+    if (externalApiError && externalRetry) {
+      externalRetry();
+    } else {
+      setInternalError(null);
+      setErrorMessage("");
+      handleSubmit(new Event('submit'));
+    }
+  };
+
+  const handleDismiss = () => {
+    if (externalApiError && externalDismiss) {
+      externalDismiss();
+    } else {
+      setInternalError(null);
+      setErrorMessage("");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
+    setInternalError(null);
 
     if (!validateFields()) {
       return;
@@ -119,11 +157,24 @@ function LoginForm() {
       });
       // Redirect is handled by useEffect in the LoginPage component
     } catch (err) {
-      setErrorMessage(err.message || "Failed to sign in");
+      // Use the standardized error object if available
+      if (err.type) {
+        if (onError) {
+          onError(err);
+        } else {
+          setInternalError(err);
+        }
+      } else {
+        setErrorMessage(err.message || "Failed to sign in");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Determine if we should show field validation errors
+  const showFieldErrors = Object.keys(formErrors).some(key => formErrors[key]) && 
+                         !isSubmitting;
 
   return (
     <div className={authStyles.formContainer}>
@@ -134,7 +185,18 @@ function LoginForm() {
         </p>
       </div>
 
-      <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      <FormErrorMessage 
+        error={error} 
+        message={errorMessage}
+        onRetry={handleRetry}
+        onDismiss={handleDismiss}
+        useAuthStyle={true}
+      />
+
+      {/* Only show field validation errors if there are any and we're not submitting */}
+      {showFieldErrors && (
+        <FormValidationError fieldErrors={formErrors} />
+      )}
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

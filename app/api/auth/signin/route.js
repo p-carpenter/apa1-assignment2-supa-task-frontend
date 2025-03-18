@@ -2,6 +2,7 @@ import {
   createEndpointHandler,
   fetchFromSupabase,
 } from "@/app/utils/api/apiUtils";
+import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
 import { cookies } from "next/headers";
 
 export const POST = createEndpointHandler(async (req) => {
@@ -10,7 +11,10 @@ export const POST = createEndpointHandler(async (req) => {
     
     if (!body.email || !body.password) {
       return new Response(
-        JSON.stringify({ error: "Email and password are required" }),
+        JSON.stringify({ 
+          error: "Email and password are required",
+          errorType: ERROR_TYPES.VALIDATION_ERROR 
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -20,7 +24,10 @@ export const POST = createEndpointHandler(async (req) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
+        JSON.stringify({ 
+          error: "Invalid email format",
+          errorType: ERROR_TYPES.VALIDATION_ERROR 
+        }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -32,7 +39,10 @@ export const POST = createEndpointHandler(async (req) => {
 
     if (!data || !data.user) {
       return new Response(
-        JSON.stringify({ error: "Invalid authentication response" }),
+        JSON.stringify({ 
+          error: "Invalid authentication response",
+          errorType: ERROR_TYPES.SERVICE_UNAVAILABLE 
+        }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -58,7 +68,8 @@ export const POST = createEndpointHandler(async (req) => {
     } else {
       return new Response(
         JSON.stringify({ 
-          error: "Authentication succeeded but no session was created" 
+          error: "Authentication succeeded but no session was created",
+          errorType: ERROR_TYPES.SERVICE_UNAVAILABLE 
         }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
@@ -73,20 +84,29 @@ export const POST = createEndpointHandler(async (req) => {
     
     if (error.status === 401) {
       return new Response(
-        JSON.stringify({ error: "Invalid email or password" }),
+        JSON.stringify({ 
+          error: "Invalid email or password",
+          errorType: ERROR_TYPES.INVALID_CREDENTIALS 
+        }),
         { status: 401, headers: { "Content-Type": "application/json" } }
       );
     }
     
     if (error.status === 429) {
       return new Response(
-        JSON.stringify({ error: "Too many login attempts, please try again later" }),
+        JSON.stringify({ 
+          error: "Too many login attempts, please try again later",
+          errorType: ERROR_TYPES.RATE_LIMITED 
+        }),
         { status: 429, headers: { "Content-Type": "application/json" } }
       );
     }
     
     return new Response(
-      JSON.stringify({ error: "Authentication failed" }),
+      JSON.stringify({ 
+        error: "Authentication failed",
+        errorType: ERROR_TYPES.UNKNOWN_ERROR 
+      }),
       { status: error.status || 500, headers: { "Content-Type": "application/json" } }
     );
   }

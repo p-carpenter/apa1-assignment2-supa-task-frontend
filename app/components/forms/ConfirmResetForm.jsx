@@ -1,4 +1,5 @@
 import React from "react";
+import { ApiErrorMessage, FormValidationError } from "../ui/errors";
 import {
   TextField,
   PasswordField,
@@ -15,10 +16,29 @@ const ConfirmResetForm = ({
   handleSubmit,
   isSubmitting,
   errorMessage,
+  apiError,
+  onRetry,
+  onDismiss,
 }) => {
+  // Check if we have field validation errors
+  const hasFieldErrors = Object.keys(formErrors).some(key => formErrors[key]);
+  
   return (
     <>
-      <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      {apiError ? (
+        <ApiErrorMessage 
+          error={apiError}
+          onRetry={onRetry}
+          onDismiss={onDismiss}
+        />
+      ) : (
+        <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      )}
+      
+      {/* Show field validation errors if present */}
+      {hasFieldErrors && (
+        <FormValidationError fieldErrors={formErrors} />
+      )}
       
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

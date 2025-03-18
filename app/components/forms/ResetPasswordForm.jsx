@@ -1,4 +1,5 @@
 import React from "react";
+import { ApiErrorMessage } from "../ui/errors";
 import {
   TextField,
   FormButtons,
@@ -14,11 +15,22 @@ const ResetPasswordForm = ({
   handleSubmit,
   isSubmitting,
   errorMessage,
+  apiError,
+  onRetry,
+  onDismiss,
   buttonText = "SEND RESET LINK",
 }) => {
   return (
     <>
-      <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      {apiError ? (
+        <ApiErrorMessage 
+          error={apiError}
+          onRetry={onRetry}
+          onDismiss={onDismiss}
+        />
+      ) : (
+        <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      )}
       
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

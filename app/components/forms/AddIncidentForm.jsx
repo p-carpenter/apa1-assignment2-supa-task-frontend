@@ -10,6 +10,8 @@ import {
 } from "../../utils/formValidation";
 import { handleAddNewIncident } from "../../catalog/crudHandlers";
 import { SeverityInfo } from "../ui/shared";
+import { ApiErrorMessage } from "../ui/errors";
+import { ERROR_TYPES } from "../../utils/api/errors/errorHandling";
 import formStyles from "./FormStyles.module.css";
 import {
   TextField,
@@ -19,7 +21,7 @@ import {
   FileField,
   FormButtons,
   FormErrorMessage,
-  FormRow
+  FormRow,
 } from "./fields";
 
 const categories = [
@@ -33,9 +35,19 @@ const categories = [
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
 
-const AddIncidentForm = ({ onClose }) => {
+const AddIncidentForm = ({
+  onClose,
+  apiError: externalApiError,
+  onRetry: externalRetry,
+  onDismiss: externalDismiss,
+  onError,
+}) => {
   const { setIncidents } = useIncidents();
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
+  const [internalApiError, setInternalApiError] = useState(null);
+
+  // Use external error if provided, otherwise use internal
+  const apiError = externalApiError || internalApiError;
 
   const validateForm = (data, fieldName = null) => {
     let errors = {};
@@ -93,9 +105,13 @@ const AddIncidentForm = ({ onClose }) => {
     if (!descValidation.isValid)
       errors.description = descValidation.errorMessage;
 
-    if (data.artifactType === "code" && !data.artifactContent?.trim()) {
+    if (
+      data.artifactType === "code" &&
+      (!data.artifactContent?.trim() ||
+        !data.artifactContent.includes("<html>"))
+    ) {
       errors.artifactContent =
-        "HTML Code is required when Artifact Type is set to Code.";
+        "HTML code is required when Artifact Type is set to Code. Remember to add a <html> tag.";
     }
 
     if (data.artifactType === "image" && !fileState.data) {
@@ -158,11 +174,14 @@ const AddIncidentForm = ({ onClose }) => {
 
     handleChange(e);
 
+    // Clear API error when making changes
+    setInternalApiError(null);
+
     if (value !== "image") {
       clearFile();
-      
+
       // Remove the file error by creating a new error object without the file property
-      updateErrors(prevErrors => {
+      updateErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors.file;
         return newErrors;
@@ -171,7 +190,7 @@ const AddIncidentForm = ({ onClose }) => {
 
     if (value !== "code") {
       // Remove the artifactContent error
-      updateErrors(prevErrors => {
+      updateErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors.artifactContent;
         return newErrors;
@@ -184,8 +203,27 @@ const AddIncidentForm = ({ onClose }) => {
     setShowSeverityInfo(!showSeverityInfo);
   };
 
+  const handleRetry = () => {
+    if (externalApiError && externalRetry) {
+      externalRetry();
+    } else {
+      setInternalApiError(null);
+      submitForm(new Event("submit"));
+    }
+  };
+
+  const handleDismiss = () => {
+    if (externalApiError && externalDismiss) {
+      externalDismiss();
+    } else {
+      setInternalApiError(null);
+    }
+  };
+
   async function handleSubmit(data) {
     try {
+      setInternalApiError(null);
+
       const storageFormattedData = {
         ...data,
         incident_date: data.incident_date
@@ -214,35 +252,63 @@ const AddIncidentForm = ({ onClose }) => {
     } catch (error) {
       console.error("Error adding incident:", error);
 
+      // Handle standardized error object
+      if (error.type) {
+        if (onError) {
+          onError(error);
+        } else {
+          setInternalApiError(error);
+        }
+        return { error: error.message };
+      }
+
+      // Legacy error handling - convert to standardized errors
+      let standardizedError = null;
+
       if (
         error.message.includes("file") ||
         error.message.includes("image") ||
         error.message.includes("upload")
       ) {
-        updateErrors(prevErrors => ({
+        updateErrors((prevErrors) => ({
           ...prevErrors,
           file: `Artifact error: ${error.message}`,
         }));
       } else if (error.status === 413) {
-        updateErrors(prevErrors => ({
-          ...prevErrors,
-          file: "File is too large. Maximum size is 2MB.",
-        }));
+        standardizedError = {
+          type: ERROR_TYPES.FILE_TOO_LARGE,
+          message: "File is too large. Maximum size is 2MB.",
+        };
       } else if (error.status === 401 || error.status === 403) {
-        return {
-          error:
+        standardizedError = {
+          type: ERROR_TYPES.PERMISSION_DENIED,
+          message:
             "You don't have permission to perform this action. Please log in again.",
         };
       } else if (error.status === 400) {
-        // Validation error from server
-        return {
-          error: "Invalid data submitted. Please check the form and try again.",
+        standardizedError = {
+          type: ERROR_TYPES.VALIDATION_ERROR,
+          message:
+            "Invalid data submitted. Please check the form and try again.",
         };
       } else {
-        return {
-          error: error.message || "Failed to add incident. Please try again.",
+        standardizedError = {
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: error.message || "Failed to add incident. Please try again.",
         };
       }
+
+      if (standardizedError) {
+        if (onError) {
+          onError(standardizedError);
+        } else {
+          setInternalApiError(standardizedError);
+        }
+      }
+
+      return {
+        error: error.message || "Failed to add incident. Please try again.",
+      };
     }
   }
 
@@ -273,7 +339,13 @@ const AddIncidentForm = ({ onClose }) => {
 
   return (
     <form className={formStyles.form} onSubmit={submitForm} noValidate>
-      <FormErrorMessage message={submitError} />
+      {apiError && (
+        <ApiErrorMessage
+          error={apiError}
+          onRetry={handleRetry}
+          onDismiss={handleDismiss}
+        />
+      )}
 
       <TextField
         id="name"
@@ -343,7 +415,7 @@ const AddIncidentForm = ({ onClose }) => {
         options={[
           { value: "none", label: "None" },
           { value: "code", label: "Code (HTML)" },
-          { value: "image", label: "Image" }
+          { value: "image", label: "Image" },
         ]}
       />
 

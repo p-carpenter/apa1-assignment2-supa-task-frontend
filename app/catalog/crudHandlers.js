@@ -2,6 +2,7 @@
  * CRUD operations for incident management
  */
 import { fetchWithErrorHandling } from "../utils/api/apiUtils";
+import { ERROR_TYPES } from "../utils/api/errors/errorHandling";
 
 /**
  * Fetch all incidents from the API
@@ -9,7 +10,14 @@ import { fetchWithErrorHandling } from "../utils/api/apiUtils";
  * @returns {Promise<Array>} Array of incidents
  */
 export const fetchIncidents = async () => {
-  return fetchWithErrorHandling("/api/fetch-incidents");
+  try {
+    return await fetchWithErrorHandling("/api/fetch-incidents", {}, {
+      defaultMessage: "Failed to load incidents. Please try again."
+    });
+  } catch (error) {
+    console.error("Error fetching incidents:", error);
+    throw error;
+  }
 };
 
 /**
@@ -24,10 +32,18 @@ export const handleAddNewIncident = async (payload) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    }, {
+      defaultMessage: "Failed to create incident. Please try again."
     });
   } catch (error) {
     console.error("Error adding incident:", error);
-    return error.message || "Failed to create incident";
+    
+    // File-specific error handling
+    if (error.type === ERROR_TYPES.FILE_TOO_LARGE) {
+      throw error;
+    }
+    
+    throw error;
   }
 };
 
@@ -47,10 +63,12 @@ export const handleUpdateIncident = async (payload) => {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    }, {
+      defaultMessage: "Failed to update incident. Please try again."
     });
   } catch (error) {
     console.error("Error updating incident:", error);
-    return error.message || "Failed to update incident";
+    throw error;
   }
 };
 
@@ -72,9 +90,11 @@ export const handleDeleteIncidents = async (selectedIncidents) => {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ids: idArray }),
+    }, {
+      defaultMessage: "Failed to delete incidents. Please try again."
     });
   } catch (error) {
     console.error("Error deleting incidents:", error);
-    return error.message || "Failed to delete incidents";
+    throw error;
   }
 };

@@ -7,7 +7,11 @@ import layoutStyles from "./components/layouts/Layout.module.css";
 import consoleStyles from "./components/ui/console/Console.module.css";
 import terminalStyles from "./components/ui/console/Terminal.module.css";
 
-import { ConsoleWindow, ConsoleSection, CommandOutput } from "./components/ui";
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+} from "./components/ui/console";
 import { CTAButton } from "./components/ui/buttons";
 import { MuseumInfo, Illustrations, InfoModal } from "./components/ui/homepage";
 

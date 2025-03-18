@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
+import { ApiErrorMessage, FormValidationError } from "../ui/errors";
+import { ERROR_TYPES } from "../../utils/api/errors/errorHandling";
 import authStyles from "./Auth.module.css";
 import {
   TextField,
@@ -20,6 +22,7 @@ function SignupForm() {
   });
   const [formErrors, setFormErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
+  const [apiError, setApiError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { signUp } = useAuth();
@@ -105,6 +108,10 @@ function SignupForm() {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear error states when user makes changes
+    setApiError(null);
+    setErrorMessage("");
 
     setFormErrors((prev) => ({
       ...prev,
@@ -120,41 +127,68 @@ function SignupForm() {
     }
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setErrorMessage("");
+  const handleRetry = () => {
+    setApiError(null);
+    handleSubmit(new Event('submit'));
+  };
+  
+  const handleDismiss = () => {
+    setApiError(null);
+  };
 
-  if (!validateFields()) {
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage("");
+    setApiError(null);
 
-  setIsSubmitting(true);
+    if (!validateFields()) {
+      return;
+    }
 
-  try {
-    await signUp({
-      email: formData.email,
-      password: formData.password,
-      displayName: formData.email.split("@")[0],
-    });
+    setIsSubmitting(true);
 
-    // Redirect to login page with success parameter to show email confirmation message
-    window.location.href = "/login?signupSuccess=true";
-  } catch (err) {
-    setErrorMessage(err.message || "Failed to create account");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    try {
+      await signUp({
+        email: formData.email,
+        password: formData.password,
+        displayName: formData.email.split("@")[0],
+      });
+
+      // Redirect to login page with success parameter to show email confirmation message
+      window.location.href = "/login?signupSuccess=true";
+    } catch (err) {
+      // Handle standardized error object
+      if (err.type) {
+        setApiError(err);
+      } else {
+        // Create a standardized error
+        setApiError({
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: err.message || "Failed to create account"
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Password requirements to display as helper text
   const passwordRequirementsHtml = () => {
+    const requirements = [
+      { key: 'passwordMinLength', value: formErrors.passwordMinLength },
+      { key: 'passwordNumber', value: formErrors.passwordNumber },
+      { key: 'passwordSpecialChar', value: formErrors.passwordSpecialChar },
+      { key: 'passwordUpperCase', value: formErrors.passwordUpperCase }
+    ].filter(req => req.value);
+    
+    if (requirements.length === 0) return null;
+    
     return (
-      <>
-        {formErrors.passwordMinLength && <div className="formStyles.formError">{formErrors.passwordMinLength}</div>}
-        {formErrors.passwordNumber && <div className="formStyles.formError">{formErrors.passwordNumber}</div>}
-        {formErrors.passwordSpecialChar && <div className="formStyles.formError">{formErrors.passwordSpecialChar}</div>}
-        {formErrors.passwordUpperCase && <div className="formStyles.formError">{formErrors.passwordUpperCase}</div>}
-      </>
+      <div style={{ marginTop: "-10px", marginBottom: "15px" }}>
+        {requirements.map(req => (
+          <div key={req.key} className={authStyles.passwordRequirement}>{req.value}</div>
+        ))}
+      </div>
     );
   };
 
@@ -165,7 +199,15 @@ const handleSubmit = async (e) => {
         <p className={authStyles.subtitle}>Register for archive access</p>
       </div>
 
-      <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      {apiError ? (
+        <ApiErrorMessage 
+          error={apiError}
+          onRetry={handleRetry}
+          onDismiss={handleDismiss}
+        />
+      ) : (
+        <FormErrorMessage message={errorMessage} useAuthStyle={true} />
+      )}
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

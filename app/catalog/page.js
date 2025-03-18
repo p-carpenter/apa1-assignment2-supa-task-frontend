@@ -5,7 +5,11 @@ import { useState, useEffect, useMemo } from "react";
 import styles from "./Catalog.module.css";
 import layoutStyles from "../components/layouts/Layout.module.css";
 
-import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+} from "../components/ui/console";
 import { CatalogFilters } from "../components/ui/filters";
 import IncidentGrid from "@/app/components/ui/catalog/IncidentGrid";
 import { useAuth } from "../contexts/AuthContext.jsx";

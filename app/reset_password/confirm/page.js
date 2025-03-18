@@ -5,17 +5,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
 import authStyles from "@/app/components/forms/Auth.module.css";
-import layoutStyles from "@/app/components/layouts/Layout.module.css";
 import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ConfirmResetForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/forms/useForm";
+import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
 
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-} from "../../components/ui";
+} from "../..ui/components/ui/console";
 
 export default function ConfirmResetPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -23,6 +23,7 @@ export default function ConfirmResetPage() {
 
   const [token, setToken] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -114,13 +115,11 @@ export default function ConfirmResetPage() {
     const errors = {};
 
     if (fieldName) {
-      // Validate a single field
       const error = validateField(fieldName, data[fieldName]);
       if (error) errors[fieldName] = error;
       return errors;
     }
 
-    // Validate all fields
     for (const field of ["email", "password", "confirmPassword"]) {
       const error = validateField(field, data[field]);
       if (error) errors[field] = error;
@@ -129,8 +128,18 @@ export default function ConfirmResetPage() {
     return errors;
   };
 
+  const handleRetry = () => {
+    setApiError(null);
+    handleSubmit(new Event("submit"));
+  };
+
+  const handleDismiss = () => {
+    setApiError(null);
+  };
+
   const handleFormSubmit = async (formData) => {
     setErrorMessage("");
+    setApiError(null);
     setSuccessMessage("");
 
     try {
@@ -149,14 +158,42 @@ export default function ConfirmResetPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Something went wrong");
+        const error = new Error(data.error || "Something went wrong");
+        error.status = response.status;
+
+        switch (response.status) {
+          case 400:
+            error.type = ERROR_TYPES.VALIDATION_ERROR;
+            break;
+          case 401:
+            error.type = ERROR_TYPES.INVALID_CREDENTIALS;
+            error.message =
+              "Invalid or expired token. Please request a new password reset link.";
+            break;
+          case 404:
+            error.type = ERROR_TYPES.NOT_FOUND;
+            error.message = "No account found with that email address.";
+            break;
+          default:
+            error.type = ERROR_TYPES.UNKNOWN_ERROR;
+        }
+
+        throw error;
       }
 
       setSuccessMessage(
         "Your password has been successfully reset. You can now login with your new password."
       );
     } catch (err) {
-      setErrorMessage(err.message || "Failed to process request");
+      if (err.type) {
+        setApiError(err);
+      } else {
+        setApiError({
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: err.message || "Failed to process request",
+        });
+      }
+
       throw err;
     }
   };
@@ -243,9 +280,6 @@ export default function ConfirmResetPage() {
                 </p>
               </div>
 
-              {errorMessage && (
-                <div className={authStyles.authError}>{errorMessage}</div>
-              )}
               {successMessage && (
                 <div className={authStyles.authSuccess}>{successMessage}</div>
               )}
@@ -258,6 +292,10 @@ export default function ConfirmResetPage() {
                   handleSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   hasError={hasError}
+                  errorMessage={errorMessage}
+                  apiError={apiError}
+                  onRetry={handleRetry}
+                  onDismiss={handleDismiss}
                 />
               )}
 
