@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import { useIncidents } from "./IncidentContext";
 import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
@@ -20,30 +20,34 @@ const IncidentDetailsWindows = {
 
 const StandardArtifactWidth = 863;
 
-const ThemeContext = createContext({
+const defaultContextValue = {
   decade: 1990,
   getPaddingSizeForArtifact: getPaddingSizeForArtifact,
   artifactWidth: StandardArtifactWidth,
   IncidentDetailsWindows: IncidentDetailsWindows[1990],
-});
+};
+
+const ThemeContext = createContext(defaultContextValue);
 
 export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider = ({ children }) => {
   const { currentDecade } = useIncidents();
 
-  const decadeKey = Object.keys(IncidentDetailsWindows).includes(
-    String(currentDecade)
-  )
-    ? currentDecade
-    : 2020;
+  const value = useMemo(() => {
+    const decadeKey = Object.keys(IncidentDetailsWindows).includes(
+      String(currentDecade)
+    )
+      ? currentDecade
+      : 2020;
 
-  const value = {
-    decade: decadeKey,
-    IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
-    getPaddingSizeForArtifact: getPaddingSizeForArtifact,
-    artifactWidth: StandardArtifactWidth,
-  };
+    return {
+      decade: decadeKey,
+      IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
+      getPaddingSizeForArtifact: getPaddingSizeForArtifact,
+      artifactWidth: StandardArtifactWidth,
+    };
+  }, [currentDecade]); // Only re-compute when currentDecade changes
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

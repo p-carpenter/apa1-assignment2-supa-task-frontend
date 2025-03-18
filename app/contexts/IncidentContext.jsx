@@ -28,13 +28,41 @@ export const IncidentProvider = ({
 
   // Auto-fetch incidents on initial mount
   useEffect(() => {
+    // Check if we already have data from SSR
+    if (initialIncidents && initialIncidents.length > 0) {
+      setIncidents(initialIncidents);
+      setHasInitialFetch(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if we already have data from previous visits in this session
+    const sessionData = sessionStorage.getItem("incidents");
+    if (sessionData) {
+      try {
+        const parsedData = JSON.parse(sessionData);
+        if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
+          console.log(
+            `Loaded ${parsedData.length} incidents from session storage`
+          );
+          setIncidents(parsedData);
+          setHasInitialFetch(true);
+          setIsLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.error("Error parsing incidents from session storage:", error);
+      }
+    }
+
+    // If no data found, perform initial fetch
     if (!hasInitialFetch) {
       fetchIncidents();
     }
-  }, [hasInitialFetch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialIncidents]); // Only depend on initialIncidents, not hasInitialFetch
 
   const fetchIncidents = useCallback(async () => {
-    // If we're already loading or have loaded incidents, don't fetch again
+    // Don't fetch if we already have incidents in memory
     if (hasInitialFetch && incidents.length > 0) {
       return incidents;
     }
@@ -52,6 +80,13 @@ export const IncidentProvider = ({
       const data = await response.json();
       console.log(`Fetched ${data.length} incidents successfully`);
 
+      // Save to session storage to prevent refetching on browser refresh
+      try {
+        sessionStorage.setItem("incidents", JSON.stringify(data));
+      } catch (error) {
+        console.error("Failed to save incidents to session storage:", error);
+      }
+
       setIncidents(data);
       setHasInitialFetch(true);
       return data;
@@ -61,7 +96,7 @@ export const IncidentProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [incidents.length, hasInitialFetch]);
+  }, [hasInitialFetch]); // Remove incidents.length from dependencies
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;

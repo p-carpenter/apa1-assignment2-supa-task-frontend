@@ -1,7 +1,7 @@
 "use server";
 
 import { getServerSession } from "../utils/auth/serverAuth";
-import { AuthProvider } from "../contexts/AuthContext";
+import { AuthProvider } from "./AuthContext";
 
 /**
  * Server Auth Provider

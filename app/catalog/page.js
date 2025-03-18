@@ -31,7 +31,6 @@ const Catalog = () => {
 
   const [selectedYears, setSelectedYears] = useState(["all"]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [yearsAvailable, setYearsAvailable] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState(["all"]);
   const [sortOrder, setSortOrder] = useState("year-desc");
   const [realTimeSearch, setRealTimeSearch] = useState("");
@@ -44,16 +43,15 @@ const Catalog = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [currentEditIndex, setCurrentEditIndex] = useState(0);
 
-  useEffect(() => {
-    if (!incidents || !incidents.length) return;
+  const yearsAvailable = useMemo(() => {
+    if (!incidents || !incidents.length) return [];
 
     const years = incidents
       .map((incident) => getIncidentYear(incident))
       .filter((year) => year !== null)
       .map((year) => year.toString());
 
-    const uniqueYears = [...new Set(years)].sort();
-    setYearsAvailable(uniqueYears);
+    return [...new Set(years)].sort();
   }, [incidents]);
 
   const categories = useMemo(() => {
@@ -93,11 +91,14 @@ const Catalog = () => {
     return sortIncidents(filteredIncidents, sortOrder);
   }, [filteredIncidents, sortOrder]);
 
-  const statusItems = [
-    "TECH INCIDENTS DATABASE",
-    "CATALOG VIEW",
-    { text: `${filteredIncidents.length} RECORDS RETRIEVED`, blink: true },
-  ];
+  const statusItems = useMemo(
+    () => [
+      "TECH INCIDENTS DATABASE",
+      "CATALOG VIEW",
+      { text: `${filteredIncidents.length} RECORDS RETRIEVED`, blink: true },
+    ],
+    [filteredIncidents.length]
+  );
 
   const handleIncidentSelect = (incident, e) => {
     if (selectionMode) {
