@@ -191,21 +191,35 @@ const AddIncidentForm = ({ onClose }) => {
       onClose();
     } catch (error) {
       console.error("Error adding incident:", error);
-      const errorMsg =
-        error.message || "Failed to add incident. Please try again.";
 
       if (
-        errorMsg.includes("file") ||
-        errorMsg.includes("image") ||
-        errorMsg.includes("upload")
+        error.message.includes("file") ||
+        error.message.includes("image") ||
+        error.message.includes("upload")
       ) {
         setErrors((prev) => ({
           ...prev,
-          file: `Artifact error: ${errorMsg}`,
+          file: `Artifact error: ${error.message}`,
         }));
-        return { error: errorMsg };
+      } else if (error.status === 413) {
+        setErrors((prev) => ({
+          ...prev,
+          file: "File is too large. Maximum size is 2MB.",
+        }));
+      } else if (error.status === 401 || error.status === 403) {
+        return {
+          error:
+            "You don't have permission to perform this action. Please log in again.",
+        };
+      } else if (error.status === 400) {
+        // Validation error from server
+        return {
+          error: "Invalid data submitted. Please check the form and try again.",
+        };
       } else {
-        return { error: errorMsg };
+        return {
+          error: error.message || "Failed to add incident. Please try again.",
+        };
       }
     }
   }

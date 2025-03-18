@@ -18,6 +18,7 @@ export const IncidentProvider = ({
 }) => {
   const [incidents, setIncidents] = useState(initialIncidents);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedIncidents, setSelectedIncidents] = useState([]);
   const [displayedIncident, setDisplayedIncident] = useState(null);
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
@@ -26,6 +27,8 @@ export const IncidentProvider = ({
   const [activeFilter, setActiveFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const hasInitialFetchRef = useRef(false);
+  const retryCount = useRef(0);
+  const maxRetries = 3;
 
   // Auto-fetch incidents on initial mount
   useEffect(() => {
@@ -72,35 +75,102 @@ export const IncidentProvider = ({
     }
 
     setIsLoading(true);
+    setError(null);
 
     try {
+      // Network connectivity check
+      if (typeof window !== "undefined" && !window.navigator.onLine) {
+        throw new Error("You appear to be offline. Please check your internet connection.");
+      }
+
       console.log("Fetching incidents from API...");
-      const response = await fetch("/api/fetch-incidents");
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch("/api/fetch-incidents", {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Error fetching incidents: ${response.status}`);
       }
 
       const data = await response.json();
+      
+      // Validate the response data
+      if (!data || !Array.isArray(data)) {
+        throw new Error("Invalid response format: expected an array of incidents");
+      }
+      
       console.log(`Fetched ${data.length} incidents successfully`);
 
       // Save to session storage to prevent refetching on browser refresh
       try {
         sessionStorage.setItem("incidents", JSON.stringify(data));
-      } catch (error) {
-        console.error("Failed to save incidents to session storage:", error);
+      } catch (storageError) {
+        console.warn("Failed to save incidents to session storage:", storageError);
       }
 
       setIncidents(data);
       hasInitialFetchRef.current = true;
+      retryCount.current = 0; // Reset retry count on success
       return data;
     } catch (error) {
       console.error("Failed to fetch incidents:", error);
+      
+      // Set user-friendly error message
+      let errorMessage = "Failed to load incidents. Please try refreshing the page.";
+      
+      if (error.name === "AbortError") {
+        errorMessage = "Request timed out. Please try again.";
+      } else if (error.message.includes("offline")) {
+        errorMessage = "You appear to be offline. Please check your internet connection.";
+      } else if (error.message.includes("Invalid response format")) {
+        errorMessage = "We received unexpected data from the server. Please refresh the page.";
+      } else if (error.status === 403 || error.status === 401) {
+        errorMessage = "You don't have permission to view incidents. Please sign in again.";
+      } else if (error.status >= 500) {
+        errorMessage = "Our servers are currently experiencing issues. Please try again later.";
+      }
+      
+      setError(errorMessage);
+      
+      // Implement retry with exponential backoff
+      if (retryCount.current < maxRetries) {
+        const backoffTime = Math.pow(2, retryCount.current) * 1000; // Exponential backoff
+        console.log(`Retrying in ${backoffTime}ms (attempt ${retryCount.current + 1}/${maxRetries})...`);
+        
+        setTimeout(() => {
+          retryCount.current += 1;
+          fetchIncidents();
+        }, backoffTime);
+      }
+      
+      // Try to get data from session storage as fallback
+      try {
+        const cachedData = sessionStorage.getItem("incidents");
+        if (cachedData) {
+          const parsedData = JSON.parse(cachedData);
+          if (Array.isArray(parsedData) && parsedData.length > 0) {
+            console.log(`Loaded ${parsedData.length} incidents from session storage as fallback`);
+            setIncidents(parsedData);
+            setError(null); // Clear error as we have data
+            // We don't set hasInitialFetchRef to true so it will try to fetch fresh data on next attempt
+          }
+        }
+      } catch (storageError) {
+        console.error("Error accessing session storage:", storageError);
+      }
+      
       return [];
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [incidents]);
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;
@@ -136,6 +206,7 @@ export const IncidentProvider = ({
     if (activeFilter) {
       result = result.filter(
         (incident) =>
+          incident && 
           incident.category &&
           incident.category.toLowerCase() === activeFilter.toLowerCase()
       );
@@ -144,10 +215,14 @@ export const IncidentProvider = ({
     if (searchQuery && searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((incident) => {
+        if (!incident) return false;
+        
         return (
           (incident.name && incident.name.toLowerCase().includes(query)) ||
           (incident.description &&
-            incident.description.toLowerCase().includes(query))
+            incident.description.toLowerCase().includes(query)) ||
+          (incident.category && 
+            incident.category.toLowerCase().includes(query))
         );
       });
     }
@@ -166,33 +241,56 @@ export const IncidentProvider = ({
     );
   }, []);
 
-  const handleIncidentNavigation = (newIndex) => {
-    if (!Array.isArray(incidents)) return;
+  const handleIncidentNavigation = useCallback((newIndex) => {
+    if (!Array.isArray(incidents) || incidents.length === 0) {
+      console.warn("Cannot navigate: incidents array is empty or invalid");
+      return;
+    }
+    
+    if (newIndex < 0 || newIndex >= incidents.length) {
+      console.warn(`Invalid index: ${newIndex}. Valid range is 0-${incidents.length - 1}`);
+      return;
+    }
 
-    if (newIndex >= 0 && newIndex < incidents.length) {
+    try {
       const nextIncident = incidents[newIndex];
+      if (!nextIncident) {
+        console.warn(`No incident found at index ${newIndex}`);
+        return;
+      }
+      
       setCurrentIncidentIndex(newIndex);
       setDisplayedIncident(nextIncident);
 
-      try {
+      // Extract year and decade
+      if (nextIncident.incident_date) {
         const year = new Date(nextIncident.incident_date).getFullYear();
         const decade = calculateDecadeFromYear(year);
         setCurrentDecade(decade);
-      } catch (error) {
-        console.error(
-          "Error extracting decade from incident:",
-          nextIncident,
-          error
-        );
+      } else {
+        console.warn("Incident has no date:", nextIncident);
       }
+    } catch (error) {
+      console.error("Error during incident navigation:", error);
     }
-  };
+  }, [incidents, calculateDecadeFromYear]);
 
-  const navigateToRoot = () => {
-    setCurrentYear(null);
-    setSelectedIncidents([]);
-    setCurrentDecade(null);
-  };
+  const navigateToRoot = useCallback(() => {
+    try {
+      setCurrentYear(null);
+      setSelectedIncidents([]);
+      setCurrentDecade(null);
+    } catch (error) {
+      console.error("Error navigating to root:", error);
+    }
+  }, []);
+
+  const refreshIncidents = useCallback(async () => {
+    // Force a refresh of the incidents data
+    hasInitialFetchRef.current = false;
+    setError(null);
+    return fetchIncidents();
+  }, [fetchIncidents]);
 
   const value = useMemo(
     () => ({
@@ -201,8 +299,10 @@ export const IncidentProvider = ({
       setIncidents,
       incidentsByDecade,
       fetchIncidents,
+      refreshIncidents,
       isLoading,
       setIsLoading,
+      error,
       hasInitialFetch: hasInitialFetchRef.current,
       // Selection state
       selectedIncidents,
@@ -232,7 +332,9 @@ export const IncidentProvider = ({
       incidents,
       incidentsByDecade,
       fetchIncidents,
+      refreshIncidents,
       isLoading,
+      error,
       selectedIncidents,
       displayedIncident,
       currentIncidentIndex,
@@ -243,6 +345,8 @@ export const IncidentProvider = ({
       filteredIncidents,
       clearFilters,
       handleFilterClick,
+      handleIncidentNavigation,
+      navigateToRoot,
     ]
   );
 

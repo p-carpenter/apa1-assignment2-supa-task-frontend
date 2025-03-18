@@ -2,17 +2,42 @@ import {
   createEndpointHandler,
   fetchFromSupabase,
 } from "@/app/utils/api/apiUtils";
+import { cookies } from "next/headers";
 
 export const POST = createEndpointHandler(async (req) => {
-  const { email, password, displayName } = await req.json();
   try {
+    const body = await req.json();
+    
+    if (!body.email || !body.password) {
+      return new Response(
+        JSON.stringify({ error: "Email and password are required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
+    const { email, password, displayName } = body;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid email format" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (password.length < 6) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 6 characters" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
     const data = await fetchFromSupabase("authentication/signup", "POST", {
       email,
       password,
       displayName,
     });
 
-    // Check for existing user response from Supabase: user exists but identities array is empty and no session
     if (
       data.user &&
       Array.isArray(data.user.identities) &&
@@ -22,31 +47,59 @@ export const POST = createEndpointHandler(async (req) => {
       return new Response(
         JSON.stringify({
           error: "User already exists",
-          message:
-            "An account with this email already exists. Please log in instead.",
+          message: "An account with this email already exists. Please log in instead.",
         }),
-        {
-          status: 400,
-          headers: { "Content-Type": "application/json" },
-        }
+        { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (error) {
-    console.error("Error in signup route:", error);
+    if (data.session) {
+      const cookieStore = cookies();
+
+      cookieStore.set("sb-access-token", data.session.access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 3600,
+        path: "/",
+        sameSite: "lax",
+      });
+
+      cookieStore.set("sb-refresh-token", data.session.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 7776000,
+        path: "/",
+        sameSite: "lax",
+      });
+    }
+
     return new Response(
-      JSON.stringify({
-        error: error.message || "Sign up failed",
-        message: "Unable to create account. Please try again later.",
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      JSON.stringify({ user: data.user, session: data.session }),
+      { status: 201, headers: { "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Signup error:", error);
+    
+    if (error.message && error.message.includes("already exists")) {
+      return new Response(
+        JSON.stringify({
+          error: "User already exists",
+          message: "An account with this email already exists. Please log in instead.",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
+    if (error.message && error.message.includes("password")) {
+      return new Response(
+        JSON.stringify({ error: error.message }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    
+    return new Response(
+      JSON.stringify({ error: "Failed to create account" }),
+      { status: error.status || 500, headers: { "Content-Type": "application/json" } }
     );
   }
 });

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 /**
  * Custom hook for managing form state and validation
@@ -14,6 +14,14 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [touched, setTouched] = useState({});
+  const isMounted = useRef(true);
+  
+  // Set isMounted to false when the component unmounts
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   /**
    * Sets a field value directly
@@ -23,17 +31,28 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
    */
   const setFieldValue = useCallback(
     (name, value) => {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
+      try {
+        setFormData((prevData) => ({
+          ...prevData,
+          [name]: value,
+        }));
 
-      if (validateFn) {
-        const newData = { ...formData, [name]: value };
-        const fieldError = validateFn(newData, name);
+        if (validateFn) {
+          const newData = { ...formData, [name]: value };
+          const fieldError = validateFn(newData, name);
+          if (fieldError && typeof fieldError === 'object') {
+            setFormErrors((prevErrors) => ({
+              ...prevErrors,
+              [name]: fieldError[name],
+            }));
+          }
+        }
+      } catch (error) {
+        console.error(`Error setting field value for ${name}:`, error);
+        // Set a generic error for the field
         setFormErrors((prevErrors) => ({
           ...prevErrors,
-          [name]: fieldError[name],
+          [name]: "Error updating field value",
         }));
       }
     },
@@ -42,23 +61,36 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
 
   const handleChange = useCallback(
     (e) => {
-      const { name, value, type, checked } = e.target;
-      const inputValue = type === "checkbox" ? checked : value;
+      try {
+        const { name, value, type, checked } = e.target;
+        const inputValue = type === "checkbox" ? checked : value;
 
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: inputValue,
-      }));
-
-      if (validateFn) {
-        const fieldError = validateFn(
-          { ...formData, [name]: inputValue },
-          name
-        );
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]: fieldError[name],
+        setFormData((prevData) => ({
+          ...prevData,
+          [name]: inputValue,
         }));
+
+        if (validateFn) {
+          const fieldError = validateFn(
+            { ...formData, [name]: inputValue },
+            name
+          );
+          
+          if (fieldError && typeof fieldError === 'object') {
+            setFormErrors((prevErrors) => ({
+              ...prevErrors,
+              [name]: fieldError[name],
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error handling input change:", error);
+        if (e && e.target && e.target.name) {
+          setFormErrors((prevErrors) => ({
+            ...prevErrors,
+            [e.target.name]: "Error updating field",
+          }));
+        }
       }
     },
     [formData, validateFn]
@@ -66,50 +98,96 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
 
   const handleBlur = useCallback(
     (e) => {
-      const { name } = e.target;
-      setTouched((prev) => ({ ...prev, [name]: true }));
+      try {
+        const { name } = e.target;
+        setTouched((prev) => ({ ...prev, [name]: true }));
 
-      if (validateFn) {
-        const fieldError = validateFn(formData, name);
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]: fieldError[name],
-        }));
+        if (validateFn) {
+          const fieldError = validateFn(formData, name);
+          if (fieldError && typeof fieldError === 'object') {
+            setFormErrors((prevErrors) => ({
+              ...prevErrors,
+              [name]: fieldError[name],
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error handling input blur:", error);
+        if (e && e.target && e.target.name) {
+          setFormErrors((prevErrors) => ({
+            ...prevErrors,
+            [e.target.name]: "Error validating field",
+          }));
+        }
       }
     },
     [formData, validateFn]
   );
 
   const setValues = useCallback((values) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      ...values,
-    }));
+    if (!values || typeof values !== 'object') {
+      console.error("Invalid form values:", values);
+      return;
+    }
+    
+    try {
+      setFormData((prevData) => ({
+        ...prevData,
+        ...values,
+      }));
+    } catch (error) {
+      console.error("Error setting form values:", error);
+      setSubmitError("Failed to update form values");
+    }
   }, []);
 
   const setErrors = useCallback((errors) => {
-    setFormErrors(errors);
+    if (!errors || typeof errors !== 'object') {
+      console.error("Invalid form errors:", errors);
+      return;
+    }
+    
+    try {
+      setFormErrors(errors);
+    } catch (error) {
+      console.error("Error setting form errors:", error);
+    }
   }, []);
 
   const resetForm = useCallback(() => {
-    setFormData(initialValues);
-    setFormErrors({});
-    setIsSubmitting(false);
-    setSubmitError("");
-    setTouched({});
+    try {
+      setFormData(initialValues);
+      setFormErrors({});
+      setIsSubmitting(false);
+      setSubmitError("");
+      setTouched({});
+    } catch (error) {
+      console.error("Error resetting form:", error);
+      setSubmitError("Failed to reset form");
+    }
   }, [initialValues]);
 
   const handleSubmit = useCallback(
     async (e) => {
-      e.preventDefault();
+      if (e && e.preventDefault) {
+        e.preventDefault();
+      }
+      
       setIsSubmitting(true);
       setSubmitError("");
 
       try {
+        // Validate the form data
         if (validateFn) {
-          const errors = validateFn(formData);
+          let errors;
+          try {
+            errors = validateFn(formData);
+          } catch (validationError) {
+            console.error("Form validation error:", validationError);
+            throw new Error("Form validation failed. Please check your input.");
+          }
 
-          if (Object.keys(errors).length > 0) {
+          if (errors && Object.keys(errors).length > 0) {
             setFormErrors(errors);
 
             const allTouched = Object.keys(formData).reduce((acc, key) => {
@@ -117,19 +195,40 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
               return acc;
             }, {});
             setTouched(allTouched);
-            setIsSubmitting(false);
+            
+            if (isMounted.current) {
+              setIsSubmitting(false);
+            }
+            
             return;
           }
         }
 
+        // Submit the form
         if (onSubmit) {
-          await onSubmit(formData);
+          const result = await Promise.resolve(onSubmit(formData));
+          
+          // If result contains an error property, set it as submit error
+          if (result && result.error) {
+            throw new Error(result.error);
+          }
+          
+          // Handle success case if needed
+          return result;
         }
       } catch (error) {
-        setSubmitError(error.message || "An error occurred. Please try again.");
         console.error("Form submission error:", error);
+        
+        if (isMounted.current) {
+          setSubmitError(error.message || "An error occurred. Please try again.");
+        }
+        
+        // Re-throw the error for the caller to handle if needed
+        throw error;
       } finally {
-        setIsSubmitting(false);
+        if (isMounted.current) {
+          setIsSubmitting(false);
+        }
       }
     },
     [formData, onSubmit, validateFn]

@@ -11,8 +11,7 @@ const MuseumInfo = () => {
         What is the Tech Incidents Archive?
       </h3>
       <p className={styles.museumDescription}>
-        A collection of significant technical failures and their impact on
-        modern computing safety standards.
+        A collection of significant technical failures and their impact.
       </p>
       <div className={styles.contributionNote}>
         <p>

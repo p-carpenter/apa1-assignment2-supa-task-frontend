@@ -103,20 +103,31 @@ export function AuthProvider({
   }, [initialUser, initialSession]);
 
   // Authentication methods
-  const handleSignIn = useCallback(async (credentials) => {
-    setIsLoading(true);
-    try {
-      const data = await signIn(credentials);
-      setUser(data.user);
-      setSession(data.session);
-      return data;
-    } catch (error) {
-      console.error("Sign in handler error:", error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+const handleSignIn = useCallback(async (credentials) => {
+  setIsLoading(true);
+  try {
+    const data = await signIn(credentials);
+    setUser(data.user);
+    setSession(data.session);
+    return data;
+  } catch (error) {
+    console.error("Sign in handler error:", error);
+
+    if (error.status === 401) {
+      throw new Error("Invalid email or password. Please try again.");
+    } else if (error.status === 429) {
+      throw new Error("Too many login attempts. Please try again later.");
+    } else if (!navigator.onLine) {
+      throw new Error(
+        "You appear to be offline. Please check your internet connection."
+      );
+    } else {
+      throw new Error(error.message || "Unable to sign in. Please try again.");
     }
-  }, []);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   const handleSignUp = useCallback(async (credentials) => {
     setIsLoading(true);
