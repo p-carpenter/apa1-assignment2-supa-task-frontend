@@ -15,6 +15,31 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
   const [submitError, setSubmitError] = useState("");
   const [touched, setTouched] = useState({});
 
+  /**
+   * Sets a field value directly
+   *
+   * @param {string} name - Field name
+   * @param {any} value - Field value
+   */
+  const setFieldValue = useCallback(
+    (name, value) => {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+
+      if (validateFn) {
+        const newData = { ...formData, [name]: value };
+        const fieldError = validateFn(newData, name);
+        setFormErrors((prevErrors) => ({
+          ...prevErrors,
+          [name]: fieldError[name],
+        }));
+      }
+    },
+    [formData, validateFn]
+  );
+
   const handleChange = useCallback(
     (e) => {
       const { name, value, type, checked } = e.target;
@@ -26,14 +51,17 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
       }));
 
       if (validateFn) {
-        const fieldError = validateFn({ [name]: inputValue }, name);
+        const fieldError = validateFn(
+          { ...formData, [name]: inputValue },
+          name
+        );
         setFormErrors((prevErrors) => ({
           ...prevErrors,
           [name]: fieldError[name],
         }));
       }
     },
-    [validateFn]
+    [formData, validateFn]
   );
 
   const handleBlur = useCallback(
@@ -123,6 +151,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
     handleChange,
     handleBlur,
     handleSubmit,
+    setFieldValue,
     setValues,
     setErrors,
     resetForm,

@@ -1,10 +1,10 @@
-import React, { useState, useReducer } from "react";
+import React, { useState } from "react";
 import { useIncidents } from "../../contexts/IncidentContext";
 import useForm from "../../hooks/forms/useForm";
+import useFileUpload from "../../hooks/forms/useFileUpload";
 import {
   validateMinLength,
   validateDateString,
-  validateImageFile,
   formatDateInput,
   convertDateForStorage,
 } from "../../utils/formValidation";
@@ -24,48 +24,9 @@ const categories = [
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
 
-// File state reducer
-const fileReducer = (state, action) => {
-  switch (action.type) {
-    case "SET_FILE":
-      return {
-        ...state,
-        data: action.payload.data,
-        name: action.payload.name,
-        type: action.payload.type,
-        error: "",
-      };
-    case "CLEAR_FILE":
-      return {
-        data: null,
-        name: null,
-        type: null,
-        error: "",
-      };
-    case "SET_ERROR":
-      return {
-        ...state,
-        error: action.payload,
-        data: null,
-        name: null,
-        type: null,
-      };
-    default:
-      return state;
-  }
-};
-
 const AddIncidentForm = ({ onClose }) => {
   const { setIncidents } = useIncidents();
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
-
-  // Use the fileReducer to manage file state
-  const [fileState, dispatchFile] = useReducer(fileReducer, {
-    data: null,
-    name: null,
-    type: null,
-    error: "",
-  });
 
   // Form validation function
   const validateForm = (data, fieldName = null) => {
@@ -166,91 +127,20 @@ const AddIncidentForm = ({ onClose }) => {
     handleSubmit
   );
 
+  // Initialize file upload hook
+  const { fileState, handleFileChange, clearFile } = useFileUpload({
+    validationOptions: {
+      maxSizeInMB: 2,
+      maxWidth: 863,
+      maxHeight: 768,
+    },
+    setFormErrors: setErrors,
+  });
+
   // Date change handler
   const handleDateChange = (e) => {
     const formattedDate = formatDateInput(e.target.value);
-
-    const syntheticEvent = {
-      target: {
-        name: "incident_date",
-        value: formattedDate,
-      },
-    };
-
-    handleChange(syntheticEvent);
-  };
-
-  // File change handler with validation
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-
-    if (!file) {
-      dispatchFile({ type: "CLEAR_FILE" });
-      setErrors((prev) => ({
-        ...prev,
-        file: "An image file is required when Artifact Type is set to Image.",
-      }));
-      return;
-    }
-
-    try {
-      // Validate the file
-      const fileValidation = await validateImageFile(file);
-
-      if (!fileValidation.isValid) {
-        dispatchFile({
-          type: "SET_ERROR",
-          payload: fileValidation.errorMessage,
-        });
-        setErrors((prev) => ({
-          ...prev,
-          file: fileValidation.errorMessage,
-        }));
-        return;
-      }
-
-      // Read the file
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        dispatchFile({
-          type: "SET_FILE",
-          payload: {
-            data: event.target.result,
-            name: file.name,
-            type: file.type,
-          },
-        });
-
-        // Clear the file error if validation passed
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.file;
-          return newErrors;
-        });
-      };
-
-      reader.onerror = () => {
-        dispatchFile({
-          type: "SET_ERROR",
-          payload: "Error reading file. Please try again.",
-        });
-        setErrors((prev) => ({
-          ...prev,
-          file: "Error reading file. Please try again.",
-        }));
-      };
-
-      reader.readAsDataURL(file);
-    } catch (error) {
-      dispatchFile({
-        type: "SET_ERROR",
-        payload: "Error processing file. Please try again.",
-      });
-      setErrors((prev) => ({
-        ...prev,
-        file: "Error processing file. Please try again.",
-      }));
-    }
+    setFieldValue("incident_date", formattedDate);
   };
 
   // Custom handler for artifactType changes
@@ -262,7 +152,7 @@ const AddIncidentForm = ({ onClose }) => {
 
     // Clear errors based on the new artifact type
     if (value !== "image") {
-      dispatchFile({ type: "CLEAR_FILE" });
+      clearFile();
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.file;
@@ -327,10 +217,10 @@ const AddIncidentForm = ({ onClose }) => {
         errorMsg.includes("image") ||
         errorMsg.includes("upload")
       ) {
-        dispatchFile({
-          type: "SET_ERROR",
-          payload: `Artifact error: ${errorMsg}`,
-        });
+        setErrors((prev) => ({
+          ...prev,
+          file: `Artifact error: ${errorMsg}`,
+        }));
         return { error: errorMsg };
       } else {
         return { error: errorMsg };

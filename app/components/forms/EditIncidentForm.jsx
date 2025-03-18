@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useReducer, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useIncidents } from "../../contexts/IncidentContext";
 import useForm from "../../hooks/forms/useForm";
+import useFileUpload from "../../hooks/forms/useFileUpload";
 import {
   validateMinLength,
   validateDateString,
-  validateImageFile,
   formatDateInput,
   convertDateForStorage,
 } from "../../utils/formValidation";
@@ -23,37 +23,6 @@ const categories = [
 ];
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
-
-// File state reducer
-const fileReducer = (state, action) => {
-  switch (action.type) {
-    case "SET_FILE":
-      return {
-        ...state,
-        data: action.payload.data,
-        name: action.payload.name,
-        type: action.payload.type,
-        error: "",
-      };
-    case "CLEAR_FILE":
-      return {
-        data: null,
-        name: null,
-        type: null,
-        error: "",
-      };
-    case "SET_ERROR":
-      return {
-        ...state,
-        error: action.payload,
-        data: null,
-        name: null,
-        type: null,
-      };
-    default:
-      return state;
-  }
-};
 
 // Helper function to format date from YYYY-MM-DD to DD-MM-YYYY
 const formatDateForDisplay = (dateString) => {
@@ -76,14 +45,6 @@ const formatDateForDisplay = (dateString) => {
 const EditIncidentForm = ({ incident, onClose, onNext }) => {
   const { setIncidents } = useIncidents();
   const [showSeverityInfo, setShowSeverityInfo] = useState(false);
-
-  // Use the fileReducer to manage file state
-  const [fileState, dispatchFile] = useReducer(fileReducer, {
-    data: null,
-    name: null,
-    type: null,
-    error: "",
-  });
 
   // Initial form values
   const getInitialFormValues = useCallback(() => {
@@ -111,83 +72,75 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
   }, [incident]);
 
   // Form validation function
-  const validateForm = useCallback(
-    (data, fieldName = null) => {
-      let errors = {};
+  const validateForm = useCallback((data, fieldName = null) => {
+    let errors = {};
 
-      // If a specific field is provided, only validate that field
-      if (fieldName) {
-        switch (fieldName) {
-          case "name":
-            const nameValidation = validateMinLength(
-              data.name,
-              3,
-              "Incident Name"
-            );
-            if (!nameValidation.isValid)
-              errors.name = nameValidation.errorMessage;
-            break;
+    // If a specific field is provided, only validate that field
+    if (fieldName) {
+      switch (fieldName) {
+        case "name":
+          const nameValidation = validateMinLength(
+            data.name,
+            3,
+            "Incident Name"
+          );
+          if (!nameValidation.isValid)
+            errors.name = nameValidation.errorMessage;
+          break;
 
-          case "description":
-            const descValidation = validateMinLength(
-              data.description,
-              10,
-              "Description"
-            );
-            if (!descValidation.isValid)
-              errors.description = descValidation.errorMessage;
-            break;
+        case "description":
+          const descValidation = validateMinLength(
+            data.description,
+            10,
+            "Description"
+          );
+          if (!descValidation.isValid)
+            errors.description = descValidation.errorMessage;
+          break;
 
-          case "incident_date":
-            const dateValidation = validateDateString(data.incident_date);
-            if (!dateValidation.isValid)
-              errors.incident_date = dateValidation.errorMessage;
-            break;
+        case "incident_date":
+          const dateValidation = validateDateString(data.incident_date);
+          if (!dateValidation.isValid)
+            errors.incident_date = dateValidation.errorMessage;
+          break;
 
-          case "artifactContent":
-            if (data.artifactType === "code" && !data.artifactContent?.trim()) {
-              errors.artifactContent =
-                "HTML Code is required when Artifact Type is set to Code.";
-            }
-            break;
-        }
-        return errors;
+        case "artifactContent":
+          if (data.artifactType === "code" && !data.artifactContent?.trim()) {
+            errors.artifactContent =
+              "HTML Code is required when Artifact Type is set to Code.";
+          }
+          break;
       }
-
-      // Otherwise, validate all fields
-      // Name validation
-      const nameValidation = validateMinLength(data.name, 3, "Incident Name");
-      if (!nameValidation.isValid) errors.name = nameValidation.errorMessage;
-
-      // Date validation
-      const dateValidation = validateDateString(data.incident_date);
-      if (!dateValidation.isValid)
-        errors.incident_date = dateValidation.errorMessage;
-
-      // Description validation
-      const descValidation = validateMinLength(
-        data.description,
-        10,
-        "Description"
-      );
-      if (!descValidation.isValid)
-        errors.description = descValidation.errorMessage;
-
-      // Artifact validation
-      if (data.artifactType === "code" && !data.artifactContent?.trim()) {
-        errors.artifactContent =
-          "HTML Code is required when Artifact Type is set to Code.";
-      }
-
-      // Only validate file if a new file is being uploaded
-      if (data.artifactType === "image" && fileState.data && fileState.error) {
-        errors.file = fileState.error;
-      }
-
       return errors;
-    },
-    [fileState.data, fileState.error]
-  );
+    }
+
+    // Otherwise, validate all fields
+    // Name validation
+    const nameValidation = validateMinLength(data.name, 3, "Incident Name");
+    if (!nameValidation.isValid) errors.name = nameValidation.errorMessage;
+
+    // Date validation
+    const dateValidation = validateDateString(data.incident_date);
+    if (!dateValidation.isValid)
+      errors.incident_date = dateValidation.errorMessage;
+
+    // Description validation
+    const descValidation = validateMinLength(
+      data.description,
+      10,
+      "Description"
+    );
+    if (!descValidation.isValid)
+      errors.description = descValidation.errorMessage;
+
+    // Artifact validation
+    if (data.artifactType === "code" && !data.artifactContent?.trim()) {
+      errors.artifactContent =
+        "HTML Code is required when Artifact Type is set to Code.";
+    }
+
+    return errors;
+  }, []);
 
   // Initialize the form using our custom hook
   const {
@@ -201,93 +154,25 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
     setValues,
   } = useForm(getInitialFormValues(), validateForm, handleSubmit);
 
+  // Initialize file upload hook
+  const { fileState, handleFileChange, clearFile } = useFileUpload({
+    validationOptions: {
+      maxSizeInMB: 2,
+      maxWidth: 863,
+      maxHeight: 768,
+    },
+    setFormErrors: setErrors,
+  });
+
   // Update form values when incident changes
   useEffect(() => {
     setValues(getInitialFormValues());
-    dispatchFile({ type: "CLEAR_FILE" });
-  }, [incident, getInitialFormValues, setValues]);
+    clearFile();
+  }, [incident, getInitialFormValues, setValues, clearFile]);
 
-  // Date change handler
   const handleDateChange = (e) => {
     const formattedDate = formatDateInput(e.target.value);
-
-    const syntheticEvent = {
-      target: {
-        name: "incident_date",
-        value: formattedDate,
-      },
-    };
-
-    handleChange(syntheticEvent);
-  };
-
-  // File change handler with validation
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-
-    if (!file) {
-      dispatchFile({ type: "CLEAR_FILE" });
-      return;
-    }
-
-    try {
-      // Validate the file
-      const fileValidation = await validateImageFile(file);
-
-      if (!fileValidation.isValid) {
-        dispatchFile({
-          type: "SET_ERROR",
-          payload: fileValidation.errorMessage,
-        });
-        setErrors((prev) => ({
-          ...prev,
-          file: fileValidation.errorMessage,
-        }));
-        return;
-      }
-
-      // Read the file
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        dispatchFile({
-          type: "SET_FILE",
-          payload: {
-            data: event.target.result,
-            name: file.name,
-            type: file.type,
-          },
-        });
-
-        // Clear the file error if validation passed
-        setErrors((prev) => {
-          const newErrors = { ...prev };
-          delete newErrors.file;
-          return newErrors;
-        });
-      };
-
-      reader.onerror = () => {
-        dispatchFile({
-          type: "SET_ERROR",
-          payload: "Error reading file. Please try again.",
-        });
-        setErrors((prev) => ({
-          ...prev,
-          file: "Error reading file. Please try again.",
-        }));
-      };
-
-      reader.readAsDataURL(file);
-    } catch (error) {
-      dispatchFile({
-        type: "SET_ERROR",
-        payload: "Error processing file. Please try again.",
-      });
-      setErrors((prev) => ({
-        ...prev,
-        file: "Error processing file. Please try again.",
-      }));
-    }
+    setFieldValue("incident_date", formattedDate);
   };
 
   // Custom handler for artifactType changes
@@ -299,7 +184,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
 
     // Clear errors based on the new artifact type
     if (value !== "image") {
-      dispatchFile({ type: "CLEAR_FILE" });
+      clearFile();
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors.file;
@@ -370,10 +255,10 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
         errorMsg.includes("image") ||
         errorMsg.includes("upload")
       ) {
-        dispatchFile({
-          type: "SET_ERROR",
-          payload: `Artifact error: ${errorMsg}`,
-        });
+        setErrors((prev) => ({
+          ...prev,
+          file: `Artifact error: ${errorMsg}`,
+        }));
         return { error: errorMsg };
       } else {
         return { error: errorMsg };
@@ -533,7 +418,7 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
           <textarea
             id="artifactContent"
             name="artifactContent"
-            className={`${styles.formTextarea} ${formErrors.artifactContent ? styles.inputError : ""}`}
+            className={`${formStyles.formTextarea} ${formErrors.artifactContent ? formStyles.inputError : ""}`}
             value={formData.artifactContent}
             onChange={handleChange}
             placeholder="Enter HTML code here..."
@@ -567,13 +452,13 @@ const EditIncidentForm = ({ incident, onClose, onNext }) => {
               id="file"
               name="file"
               type="file"
-              className={`${formStyles.formInput} ${formErrors.file || fileState.error ? styles.inputError : ""}`}
+              className={`${formStyles.formInput} ${formErrors.file || fileState.error ? formStyles.inputError : ""}`}
               accept="image/*"
               onChange={handleFileChange}
             />
             <small className={formStyles.helperText}>Max: 863x768, 2MB</small>
             {(formErrors.file || fileState.error) && (
-              <div className={styles.formError}>
+              <div className={formStyles.formError}>
                 {formErrors.file || fileState.error}
               </div>
             )}
