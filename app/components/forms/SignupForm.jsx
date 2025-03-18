@@ -17,7 +17,7 @@ function SignupForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { register } = useAuth();
+  const { signUp } = useAuth();
 
   const validateField = (name, value) => {
     let error = null;
@@ -126,7 +126,7 @@ function SignupForm() {
     setIsSubmitting(true);
 
     try {
-      await register({
+      await signUp({
         email: formData.email,
         password: formData.password,
         displayName: formData.email.split("@")[0],

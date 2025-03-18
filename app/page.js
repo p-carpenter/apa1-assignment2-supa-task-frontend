@@ -11,9 +11,8 @@ import { ConsoleWindow, ConsoleSection, CommandOutput } from "./components/ui";
 import { CTAButton } from "./components/ui/buttons";
 import { MuseumInfo, Illustrations, InfoModal } from "./components/ui/homepage";
 
-export default function Home() {
+const Home = () => {
   const { user } = useAuth();
-  const [infoModalOpen, setInfoModalOpen] = useState(false);
 
   const statusItems = [
     "TECH INCIDENTS DATABASE",
@@ -77,61 +76,11 @@ export default function Home() {
             <CTAButton href="/catalog" text="CATALOG" />
           </div>
 
-          <button
-            className={styles.learnMoreLink}
-            onClick={() => setInfoModalOpen(true)}
-          >
-            What is the Tech Incidents Archive?
-          </button>
-
           <Illustrations />
         </ConsoleSection>
       </ConsoleWindow>
-
-      <InfoModal
-        isOpen={infoModalOpen}
-        onClose={() => setInfoModalOpen(false)}
-        title="About the Tech Incidents Archive"
-      >
-        <p>
-          The Tech Incidents Archive is a digital museum dedicated to
-          documenting significant technological failures and their impact on
-          modern computing safety standards.
-        </p>
-        <p>
-          Our collection features case studies of notable incidents including:
-        </p>
-        <ul>
-          <li>
-            Y2K Bug - The millennium bug that threatened to crash computer
-            systems worldwide
-          </li>
-          <li>
-            Challenger Disaster - How software and engineering failures led to
-            tragedy
-          </li>
-          <li>
-            Morris Worm - One of the first recognized computer worms that
-            affected the internet
-          </li>
-          <li>
-            Therac-25 - A radiation therapy machine whose software errors caused
-            patient deaths
-          </li>
-        </ul>
-        <p>
-          By studying these incidents, we can better understand the importance
-          of robust software engineering practices.
-        </p>
-        <div className={styles.modalButtons}>
-          <button
-            className={`${styles.modalButton} ${styles.secondary}`}
-            onClick={() => setInfoModalOpen(false)}
-          >
-            Close
-          </button>
-        </div>
-      </InfoModal>
     </div>
   );
-}
+};
+
+export default Home;

@@ -16,7 +16,7 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { login, loading: authLoading } = useAuth();
+  const { signIn, loading: authLoading } = useAuth();
 
   // Combine component's internal loading state with auth context loading state
   const loading = isSubmitting || authLoading;
@@ -108,7 +108,7 @@ function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await login({
+      await signIn({
         email: formData.email,
         password: formData.password,
       });

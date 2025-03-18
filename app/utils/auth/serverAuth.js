@@ -16,7 +16,7 @@ const EDGE_FUNCTION_BASE_URL = `${SUPABASE_URL}/functions/v1`;
  * @returns {Promise<{user: Object|null, session: Object|null}>} User and session data
  */
 export async function getServerSession() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const accessToken = cookieStore.get(SUPABASE_COOKIES.ACCESS_TOKEN)?.value;
   const refreshToken = cookieStore.get(SUPABASE_COOKIES.REFRESH_TOKEN)?.value;
 
@@ -25,14 +25,17 @@ export async function getServerSession() {
   }
 
   try {
-    const response = await fetch(`${EDGE_FUNCTION_BASE_URL}${EDGE_FUNCTIONS.USER}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: `${SUPABASE_COOKIES.ACCESS_TOKEN}=${accessToken}; ${SUPABASE_COOKIES.REFRESH_TOKEN}=${refreshToken}`,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    });
+    const response = await fetch(
+      `${EDGE_FUNCTION_BASE_URL}${EDGE_FUNCTIONS.USER}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `${SUPABASE_COOKIES.ACCESS_TOKEN}=${accessToken}; ${SUPABASE_COOKIES.REFRESH_TOKEN}=${refreshToken}`,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      }
+    );
 
     if (!response.ok) {
       console.error("Server auth error: HTTP status", response.status);
@@ -51,7 +54,7 @@ export async function getServerSession() {
  * @returns {Promise<Object|null>} Protected data or null if unauthorized
  */
 export async function getProtectedServerData() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const accessToken = cookieStore.get(SUPABASE_COOKIES.ACCESS_TOKEN)?.value;
   const refreshToken = cookieStore.get(SUPABASE_COOKIES.REFRESH_TOKEN)?.value;
 
@@ -60,14 +63,17 @@ export async function getProtectedServerData() {
   }
 
   try {
-    const response = await fetch(`${EDGE_FUNCTION_BASE_URL}${EDGE_FUNCTIONS.VALIDATE}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: `${SUPABASE_COOKIES.ACCESS_TOKEN}=${accessToken}; ${SUPABASE_COOKIES.REFRESH_TOKEN}=${refreshToken}`,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    });
+    const response = await fetch(
+      `${EDGE_FUNCTION_BASE_URL}${EDGE_FUNCTIONS.VALIDATE}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: `${SUPABASE_COOKIES.ACCESS_TOKEN}=${accessToken}; ${SUPABASE_COOKIES.REFRESH_TOKEN}=${refreshToken}`,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        },
+      }
+    );
 
     if (!response.ok) {
       return null;

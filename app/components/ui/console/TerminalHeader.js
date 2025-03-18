@@ -10,7 +10,7 @@ const TerminalHeader = ({
   title = "tech-incidents-catalog",
   showAuthControls = true,
 }) => {
-  const { isAuthenticated, user, logout } = useAuth();
+  const { isAuthenticated, user, signOut } = useAuth();
 
   // Get username from user object, fallback to email if not available
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
@@ -18,7 +18,7 @@ const TerminalHeader = ({
   // Handle logout button click
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
     } catch (error) {
       console.error("Logout error:", error);
     }

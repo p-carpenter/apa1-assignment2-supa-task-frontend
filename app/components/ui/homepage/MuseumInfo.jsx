@@ -1,11 +1,14 @@
 import React from "react";
 import styles from "@/app/Homepage.module.css";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 const MuseumInfo = () => {
+  const { isAuthenticated } = useAuth();
+
   return (
     <div className={styles.museumInfo}>
       <h3 className={styles.museumHeader}>
-        The Digital Archive of Technology's Worst Moments
+        What is the Tech Incidents Archive?
       </h3>
       <p className={styles.museumDescription}>
         A collection of significant technical failures and their impact on
@@ -17,9 +20,12 @@ const MuseumInfo = () => {
           that shaped our industry.
         </p>
         <div className={styles.contributionLink}>
-          <button className={styles.textButton}>
+          <a
+            className={styles.textButton}
+            href={isAuthenticated ? "/catalog" : "/signup"}
+          >
             Contribute to the Archive
-          </button>
+          </a>
         </div>
       </div>
     </div>

@@ -8,10 +8,10 @@ import { Button, CircuitBackground } from "../components/ui";
 import buttonStyles from "../components/ui/buttons/Button.module.css";
 
 /**
- * Providers Component
- * Composes all client-side providers and UI shell elements into a single component
+ * AppShell Component
+ * Provides both global context providers and core UI shell elements
  */
-export default function Providers({ children, initialUser = null, initialSession = null }) {
+export default function AppShell({ children, initialUser = null, initialSession = null }) {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 

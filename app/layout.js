@@ -1,6 +1,6 @@
 import "./globals.css";
 import { getServerSession } from "./utils/auth/serverAuth";
-import Providers from "./contexts/Providers";
+import AppShell from "./contexts/AppShell";
 
 /**
  * Root Layout
@@ -13,9 +13,9 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Providers initialUser={user} initialSession={session}>
+        <AppShell initialUser={user} initialSession={session}>
           {children}
-        </Providers>
+        </AppShell>
       </body>
     </html>
   );

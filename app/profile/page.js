@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import ProfileInfo from "./ProfileInfo";
+import authStyles from "@/app/components/forms/Auth.module.css";
 import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 

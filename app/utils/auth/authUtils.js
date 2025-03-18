@@ -52,12 +52,16 @@ export async function signUp({ email, password, displayName }) {
       body: JSON.stringify({ email, password, displayName }),
     });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || "Failed to sign up");
-    }
-
     const data = await response.json();
+
+    if (!response.ok) {
+      if (data.error === "User already exists") {
+        throw new Error(
+          "An account with this email already exists. Please log in instead."
+        );
+      }
+      throw new Error(data.error || "Failed to sign up");
+    }
 
     // Store in localStorage for persistence
     if (data.user) {
@@ -103,17 +107,45 @@ export async function signOut() {
 }
 
 /**
+ * Get the current user from localStorage without server verification
+ * @returns {Object|null} User data or null
+ */
+export function getStoredUser() {
+  if (typeof window === "undefined") return null;
+
+  const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
+  if (!storedUser) return null;
+
+  try {
+    return {
+      user: JSON.parse(storedUser),
+      session: {
+        token: localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN) || null,
+      },
+    };
+  } catch (e) {
+    console.error("Error parsing stored user:", e);
+    return null;
+  }
+}
+
+/**
  * Get the current user
+ * Only verifies with server if forceRefresh is true
+ * @param {boolean} forceRefresh - Force server verification
  * @returns {Promise<Object>} Authentication data with user and session
  */
-export async function getCurrentUser() {
-  try {
-    // First check localStorage for user data
-    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-    const storedToken = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-    const localData = storedUser ? { user: JSON.parse(storedUser) } : null;
+export async function getCurrentUser(forceRefresh = false) {
+  // First check localStorage
+  const storedData = getStoredUser();
 
-    // Then verify with the server
+  // If we have stored data and don't need to refresh, return it immediately
+  if (storedData?.user && !forceRefresh) {
+    return storedData;
+  }
+
+  // Otherwise verify with the server
+  try {
     const response = await fetch(AUTH_ENDPOINTS.USER, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -121,22 +153,12 @@ export async function getCurrentUser() {
     });
 
     if (!response.ok) {
+      // If unauthorized, clear localStorage as well
       if (response.status === 401) {
-        // If server rejects the auth, but we have localStorage data
-        // Return the local data with a flag indicating refresh needed
-        if (localData) {
-          return {
-            user: localData.user,
-            session: {
-              needs_refresh: true,
-              token: storedToken,
-            },
-          };
-        }
-        return { user: null, session: null };
+        localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
       }
-      const error = await response.json();
-      throw new Error(error.error || "Failed to get user");
+      return { user: null, session: null };
     }
 
     // Server authentication successful
@@ -154,16 +176,14 @@ export async function getCurrentUser() {
   } catch (error) {
     console.error("Get user error:", error);
 
-    // On network error, fall back to localStorage if available
-    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-    const storedToken = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-
-    if (storedUser) {
+    // On network error, fall back to localStorage if available,
+    // but mark session as needing refresh
+    if (storedData) {
       return {
-        user: JSON.parse(storedUser),
+        ...storedData,
         session: {
+          ...storedData.session,
           needs_refresh: true,
-          token: storedToken,
         },
       };
     }

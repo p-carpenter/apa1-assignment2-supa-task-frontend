@@ -1,20 +1,32 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { 
-  signIn, 
-  signUp, 
-  signOut, 
-  getCurrentUser 
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  signIn,
+  signUp,
+  signOut,
+  getCurrentUser,
+  getStoredUser,
 } from "../utils/auth/authUtils";
 import { AUTH_STORAGE_KEYS } from "../utils/auth/auth-config";
+
+/**
+ * Authentication Context
+ * Provides authentication state and methods to the application
+ */
 
 // Create context with default values
 export const AuthContext = createContext({
   user: null,
   session: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   signIn: async () => {},
   signUp: async () => {},
   signOut: async () => {},
@@ -25,57 +37,70 @@ export const AuthContext = createContext({
  * Auth Provider Component
  * Manages authentication state and provides authentication methods
  */
-export function AuthProvider({ children, initialUser = null, initialSession = null }) {
+export function AuthProvider({
+  children,
+  initialUser = null,
+  initialSession = null,
+}) {
   const [user, setUser] = useState(initialUser);
   const [session, setSession] = useState(initialSession);
-  const [isLoading, setIsLoading] = useState(!initialUser);
+  const [isLoading, setIsLoading] = useState(false); // Start with not loading
   const isAuthenticated = Boolean(user);
 
-  // Initialize auth state on mount and when initialUser/Session change
+  // Initialize auth state on mount
   useEffect(() => {
-    // Skip initialization if we already have user data from SSR
-    if (initialUser && initialSession) {
-      setUser(initialUser);
-      setSession(initialSession);
-      setIsLoading(false);
-      return;
-    }
-
-    // Otherwise, try to restore from localStorage or fetch from server
     const initializeAuth = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getCurrentUser();
-        setUser(data.user);
-        setSession(data.session);
-      } catch (error) {
-        console.error("Error initializing auth:", error);
-        setUser(null);
-        setSession(null);
-      } finally {
-        setIsLoading(false);
+      // If we have SSR data, use it directly
+      if (initialUser && initialSession) {
+        setUser(initialUser);
+        setSession(initialSession);
+        return;
+      }
+
+      // First check localStorage (no loading state yet)
+      const storedData = getStoredUser();
+      if (storedData?.user) {
+        // Temporarily set the user from localStorage
+        setUser(storedData.user);
+        setSession(storedData.session);
+
+        // But also validate with the server in the background
+        setIsLoading(true);
+        try {
+          // Verify with server that the session is still valid
+          const serverData = await getCurrentUser(true);
+
+          if (serverData.user) {
+            // Session valid, update with the server data
+            setUser(serverData.user);
+            setSession(serverData.session);
+          } else {
+            // Session invalid, clear the user state
+            console.log("Session validation failed - clearing local state");
+            setUser(null);
+            setSession(null);
+
+            // Also clear localStorage
+            localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+            localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+          }
+        } catch (error) {
+          // On error, assume session is invalid
+          console.error("Session validation error:", error);
+          setUser(null);
+          setSession(null);
+
+          // Also clear localStorage
+          localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+          localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+        } finally {
+          setIsLoading(false);
+        }
       }
     };
 
     initializeAuth();
   }, [initialUser, initialSession]);
-
-  // Sync auth state to localStorage
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    
-    if (user) {
-      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(user));
-    } else {
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-    }
-
-    if (session?.access_token) {
-      localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, session.access_token);
-    } else {
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-    }
-  }, [user, session]);
 
   // Authentication methods
   const handleSignIn = useCallback(async (credentials) => {
@@ -125,7 +150,8 @@ export function AuthProvider({ children, initialUser = null, initialSession = nu
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await getCurrentUser();
+      // Force server verification when explicitly refreshing
+      const data = await getCurrentUser(true);
       setUser(data.user);
       setSession(data.session);
       return data;
@@ -137,7 +163,6 @@ export function AuthProvider({ children, initialUser = null, initialSession = nu
     }
   }, []);
 
-  // Create context value object
   const contextValue = {
     user,
     session,
@@ -150,9 +175,7 @@ export function AuthProvider({ children, initialUser = null, initialSession = nu
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
@@ -162,13 +185,12 @@ export function AuthProvider({ children, initialUser = null, initialSession = nu
  */
 export function useAuth() {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
-  
+
   return context;
 }
 
-// Default export for compatibility with existing code
 export default AuthProvider;
