@@ -32,7 +32,8 @@ const PasswordField = ({
   return (
     <div className={`${styles.formGroup} ${className}`}>
       <label className={styles.formLabel} htmlFor={id || name}>
-        {usePrompt && <span className={terminalStyles.prompt}>$</span>} {label} {required && "*"}
+        {usePrompt && <span className={terminalStyles.prompt}>$</span>} {label}{" "}
+        {required && "*"}
       </label>
       <div className={styles.passwordInputWrapper}>
         <input

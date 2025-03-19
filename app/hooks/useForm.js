@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { processValidationError } from "../utils/errors/errorService";
 
 /**
  * Custom hook for managing form state and validation
@@ -12,11 +13,10 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
   const [formData, setFormData] = useState(initialValues);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
   const [touched, setTouched] = useState({});
   const isMounted = useRef(true);
-  
 
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       isMounted.current = false;
@@ -31,200 +31,179 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
    */
   const setFieldValue = useCallback(
     (name, value) => {
-      try {
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: value,
-        }));
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
 
-        if (validateFn) {
-          const newData = { ...formData, [name]: value };
+      // Run field-level validation if a validate function exists
+      if (validateFn) {
+        const newData = { ...formData, [name]: value };
+        try {
           const fieldError = validateFn(newData, name);
-          if (fieldError && typeof fieldError === 'object') {
+          if (fieldError && typeof fieldError === "object") {
             setFormErrors((prevErrors) => ({
               ...prevErrors,
               [name]: fieldError[name],
             }));
           }
+        } catch (error) {
+          // Ignore validation errors during field change
         }
-      } catch (error) {
-        console.error(`Error setting field value for ${name}:`, error);
-        // Set a generic error for the field
-        setFormErrors((prevErrors) => ({
-          ...prevErrors,
-          [name]: "Error updating field value",
-        }));
       }
     },
     [formData, validateFn]
   );
 
+  /**
+   * Handle form input changes
+   * @param {Event} e - Change event
+   */
   const handleChange = useCallback(
     (e) => {
-      try {
-        const { name, value, type, checked } = e.target;
-        const inputValue = type === "checkbox" ? checked : value;
+      const { name, value, type, checked } = e.target;
+      const inputValue = type === "checkbox" ? checked : value;
 
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: inputValue,
-        }));
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: inputValue,
+      }));
 
-        if (validateFn) {
+      // Run field-level validation if a validate function exists
+      if (validateFn) {
+        try {
           const fieldError = validateFn(
             { ...formData, [name]: inputValue },
             name
           );
-          
-          if (fieldError && typeof fieldError === 'object') {
+
+          if (fieldError && typeof fieldError === "object") {
             setFormErrors((prevErrors) => ({
               ...prevErrors,
               [name]: fieldError[name],
             }));
           }
-        }
-      } catch (error) {
-        console.error("Error handling input change:", error);
-        if (e && e.target && e.target.name) {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            [e.target.name]: "Error updating field",
-          }));
+        } catch (error) {
+          // Ignore validation errors during input change
         }
       }
     },
     [formData, validateFn]
   );
 
+  /**
+   * Handle input blur events
+   * @param {Event} e - Blur event
+   */
   const handleBlur = useCallback(
     (e) => {
-      try {
-        const { name } = e.target;
-        setTouched((prev) => ({ ...prev, [name]: true }));
+      const { name } = e.target;
+      setTouched((prev) => ({ ...prev, [name]: true }));
 
-        if (validateFn) {
+      // Run field-level validation on blur
+      if (validateFn) {
+        try {
           const fieldError = validateFn(formData, name);
-          if (fieldError && typeof fieldError === 'object') {
+          if (fieldError && typeof fieldError === "object") {
             setFormErrors((prevErrors) => ({
               ...prevErrors,
               [name]: fieldError[name],
             }));
           }
-        }
-      } catch (error) {
-        console.error("Error handling input blur:", error);
-        if (e && e.target && e.target.name) {
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            [e.target.name]: "Error validating field",
-          }));
+        } catch (error) {
+          // Ignore validation errors during blur
         }
       }
     },
     [formData, validateFn]
   );
 
+  /**
+   * Set multiple form values at once
+   * @param {Object} values - Values to set
+   */
   const setValues = useCallback((values) => {
-    if (!values || typeof values !== 'object') {
-      console.error("Invalid form values:", values);
+    if (!values || typeof values !== "object") {
       return;
     }
-    
-    try {
-      setFormData((prevData) => ({
-        ...prevData,
-        ...values,
-      }));
-    } catch (error) {
-      console.error("Error setting form values:", error);
-      setSubmitError("Failed to update form values");
-    }
+
+    setFormData((prevData) => ({
+      ...prevData,
+      ...values,
+    }));
   }, []);
 
+  /**
+   * Set form errors directly
+   * @param {Object} errors - Error object
+   */
   const setErrors = useCallback((errors) => {
-    if (!errors || typeof errors !== 'object') {
-      console.error("Invalid form errors:", errors);
+    if (!errors || typeof errors !== "object") {
       return;
     }
-    
-    try {
-      setFormErrors(errors);
-    } catch (error) {
-      console.error("Error setting form errors:", error);
-    }
+
+    setFormErrors(errors);
   }, []);
 
+  /**
+   * Reset the form to its initial state
+   */
   const resetForm = useCallback(() => {
-    try {
-      setFormData(initialValues);
-      setFormErrors({});
-      setIsSubmitting(false);
-      setSubmitError("");
-      setTouched({});
-    } catch (error) {
-      console.error("Error resetting form:", error);
-      setSubmitError("Failed to reset form");
-    }
+    setFormData(initialValues);
+    setFormErrors({});
+    setIsSubmitting(false);
+    setTouched({});
   }, [initialValues]);
 
+  /**
+   * Handle form submission
+   * @param {Event} e - Submit event
+   * @returns {Promise} Result of submission
+   */
   const handleSubmit = useCallback(
     async (e) => {
       if (e && e.preventDefault) {
         e.preventDefault();
       }
-      
+
       setIsSubmitting(true);
-      setSubmitError("");
 
       try {
-        // Validate the form data
+        // Run form validation
         if (validateFn) {
           let errors;
           try {
             errors = validateFn(formData);
           } catch (validationError) {
-            console.error("Form validation error:", validationError);
             throw new Error("Form validation failed. Please check your input.");
           }
 
+          // If there are validation errors, stop submission
           if (errors && Object.keys(errors).length > 0) {
             setFormErrors(errors);
 
+            // Mark all fields as touched
             const allTouched = Object.keys(formData).reduce((acc, key) => {
               acc[key] = true;
               return acc;
             }, {});
             setTouched(allTouched);
-            
-            if (isMounted.current) {
-              setIsSubmitting(false);
-            }
-            
+
+            setIsSubmitting(false);
             return;
           }
         }
 
-
+        // If validation passes, call the submit handler
         if (onSubmit) {
           const result = await Promise.resolve(onSubmit(formData));
-          
-          // If result contains an error property, set it as submit error
-          if (result && result.error) {
-            throw new Error(result.error);
-          }
-          
           return result;
         }
       } catch (error) {
-        console.error("Form submission error:", error);
-        
-        if (isMounted.current) {
-          setSubmitError(error.message || "An error occurred. Please try again.");
-        }
-        
-        // Re-throw the error for the caller to handle if needed
+        // Let the component handle API errors
         throw error;
       } finally {
+        // Only update state if component is still mounted
         if (isMounted.current) {
           setIsSubmitting(false);
         }
@@ -233,6 +212,11 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
     [formData, onSubmit, validateFn]
   );
 
+  /**
+   * Check if a field has an error
+   * @param {string} fieldName - Name of the field
+   * @returns {boolean} True if field has an error
+   */
   const hasError = useCallback(
     (fieldName) => {
       return Boolean(formErrors[fieldName] && touched[fieldName]);
@@ -244,7 +228,6 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
     formData,
     formErrors,
     isSubmitting,
-    submitError,
     touched,
     handleChange,
     handleBlur,

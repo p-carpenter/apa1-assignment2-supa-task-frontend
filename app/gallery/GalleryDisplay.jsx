@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from "react";
-import ArtifactRenderer from "@/app/components/ui/artifacts/ArtifactRenderer";
-import GalleryDisplaySkeleton from "../components/ui/gallery/GalleryDisplaySkeleton";
+import { ArtifactRenderer } from "@/app/components/ui/artifacts";
+import GalleryDisplaySkeleton from "@/app/gallery/GalleryDisplaySkeleton";
 import { useTheme } from "@/app/contexts/ThemeContext";
 import styles from "./GalleryDisplay.module.css";
 import "/public/css-reskins/systemcss/systemcss.css";

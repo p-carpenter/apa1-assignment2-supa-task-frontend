@@ -1,7 +1,7 @@
 import {
   createEndpointHandler,
   fetchFromSupabase,
-} from "@/app/utils/api/apiUtils";
+} from "@/app/utils/api/clientApi";
 
 export const POST = createEndpointHandler(async (req) => {
   const { email, password, token } = await req.json();

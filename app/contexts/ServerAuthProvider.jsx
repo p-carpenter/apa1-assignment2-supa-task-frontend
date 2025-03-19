@@ -1,6 +1,6 @@
 "use server";
 
-import { getServerSession } from "../utils/auth/serverAuth";
+import { getServerSession } from "../utils/auth/server";
 import { AuthProvider } from "./AuthContext";
 
 /**
@@ -10,7 +10,7 @@ import { AuthProvider } from "./AuthContext";
 export default async function ServerAuthProvider({ children }) {
   // Fetch auth data on the server
   const { user, session } = await getServerSession();
-  
+
   // Pass server data to client provider
   return (
     <AuthProvider initialUser={user} initialSession={session}>

@@ -49,10 +49,7 @@ const SeverityLabel = ({ toggleSeverityInfo }) => (
   </>
 );
 
-/**
- * Base component for incident forms (add/edit)
- */
-const BaseIncidentForm = ({
+const IncidentManagementForm = ({
   // Form state
   formData,
   formErrors,
@@ -74,8 +71,6 @@ const BaseIncidentForm = ({
 
   // Error handling
   apiError,
-  onRetry,
-  onDismiss,
 
   // UI customization
   onClose,
@@ -88,13 +83,7 @@ const BaseIncidentForm = ({
 }) => {
   return (
     <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
-      {apiError && (
-        <ApiErrorMessage
-          error={apiError}
-          onRetry={onRetry}
-          onDismiss={onDismiss}
-        />
-      )}
+      {apiError && <ApiErrorMessage error={apiError} />}
 
       <TextField
         id="name"
@@ -254,4 +243,4 @@ const BaseIncidentForm = ({
   );
 };
 
-export default BaseIncidentForm;
+export default IncidentManagementForm;

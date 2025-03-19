@@ -1,37 +1,37 @@
 import {
   createEndpointHandler,
   fetchFromSupabase,
-} from "@/app/utils/api/apiUtils";
+} from "@/app/utils/api/clientApi";
 import { cookies } from "next/headers";
 
 export const POST = createEndpointHandler(async (req) => {
   try {
     const body = await req.json();
-    
+
     if (!body.email || !body.password) {
       return new Response(
         JSON.stringify({ error: "Email and password are required" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    
+
     const { email, password, displayName } = body;
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Invalid email format" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
-    
+
     if (password.length < 6) {
       return new Response(
         JSON.stringify({ error: "Password must be at least 6 characters" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    
+
     const data = await fetchFromSupabase("authentication/signup", "POST", {
       email,
       password,
@@ -47,14 +47,15 @@ export const POST = createEndpointHandler(async (req) => {
       return new Response(
         JSON.stringify({
           error: "User already exists",
-          message: "An account with this email already exists. Please log in instead.",
+          message:
+            "An account with this email already exists. Please log in instead.",
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
     if (data.session) {
-      const cookieStore = cookies();
+      const cookieStore = await cookies();
 
       cookieStore.set("sb-access-token", data.session.access_token, {
         httpOnly: true,
@@ -79,27 +80,28 @@ export const POST = createEndpointHandler(async (req) => {
     );
   } catch (error) {
     console.error("Signup error:", error);
-    
+
     if (error.message && error.message.includes("already exists")) {
       return new Response(
         JSON.stringify({
           error: "User already exists",
-          message: "An account with this email already exists. Please log in instead.",
+          message:
+            "An account with this email already exists. Please log in instead.",
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
-    
+
     if (error.message && error.message.includes("password")) {
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
     }
-    
-    return new Response(
-      JSON.stringify({ error: "Failed to create account" }),
-      { status: error.status || 500, headers: { "Content-Type": "application/json" } }
-    );
+
+    return new Response(JSON.stringify({ error: "Failed to create account" }), {
+      status: error.status || 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 });

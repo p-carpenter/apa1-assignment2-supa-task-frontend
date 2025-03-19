@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { AuthProvider, useAuth } from "@/app/contexts/AuthContext";
 import { handlers } from "../../app/utils/testing/msw-handlers";
 import { server } from "../../app/utils/testing/test-utils";
-import { USER_KEY, TOKEN_KEY } from "@/app/utils/auth/authUtils";
+import { USER_KEY, TOKEN_KEY } from "@/app/utils/auth/client";
 import { http, HttpResponse } from "msw";
 
 // Mock window.localStorage

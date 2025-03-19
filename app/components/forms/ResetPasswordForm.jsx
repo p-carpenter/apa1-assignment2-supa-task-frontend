@@ -16,8 +16,6 @@ const ResetPasswordForm = ({
   isSubmitting,
   errorMessage,
   apiError,
-  onRetry,
-  onDismiss,
   buttonText = "SEND RESET LINK",
 }) => {
   return (
@@ -25,8 +23,6 @@ const ResetPasswordForm = ({
       {apiError ? (
         <ApiErrorMessage
           error={apiError}
-          onRetry={onRetry}
-          onDismiss={onDismiss}
         />
       ) : (
         <FormErrorMessage message={errorMessage} useAuthStyle={true} />

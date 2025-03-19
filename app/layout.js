@@ -1,5 +1,5 @@
 import "./globals.css";
-import { getServerSession } from "./utils/auth/serverAuth";
+import { getServerSession } from "./utils/auth/server";
 import AppShell from "./contexts/AppShell";
 
 /**
@@ -8,7 +8,7 @@ import AppShell from "./contexts/AppShell";
 export default async function RootLayout({ children }) {
   // Fetch authentication data from the server
   const { user, session } = await getServerSession();
-  
+
   return (
     <html lang="en">
       <body>

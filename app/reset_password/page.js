@@ -7,9 +7,10 @@ import Link from "next/link";
 import authStyles from "@/app/components/forms/Auth.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ResetPasswordForm } from "@/app/components/forms";
-import { useForm } from "@/app/hooks/forms/useForm";
-import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
-import { validateAuthForm } from "@/app/utils/formValidation";
+import { useForm } from "@/app/hooks/useForm";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { validateAuthForm } from "@/app/utils/validation/formValidation";
+import { processApiError } from "@/app/utils/errors/errorService";
 
 import {
   ConsoleWindow,
@@ -20,7 +21,6 @@ import {
 export default function ResetPasswordPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
-  const [errorMessage, setErrorMessage] = useState("");
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -31,7 +31,6 @@ export default function ResetPasswordPage() {
   }, [isAuthenticated, loading, router]);
 
   const handleFormSubmit = async (formData) => {
-    setErrorMessage("");
     setApiError(null);
     setSuccessMessage("");
 
@@ -47,24 +46,10 @@ export default function ResetPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Create an error object with appropriate properties
         const error = new Error(data.error || "Something went wrong");
         error.status = response.status;
-
-        switch (response.status) {
-          case 400:
-            error.type = ERROR_TYPES.VALIDATION_ERROR;
-            break;
-          case 404:
-            error.type = ERROR_TYPES.NOT_FOUND;
-            error.message = "No account found with that email address.";
-            break;
-          case 429:
-            error.type = ERROR_TYPES.RATE_LIMITED;
-            error.message = "Too many requests. Please try again later.";
-            break;
-          default:
-            error.type = ERROR_TYPES.UNKNOWN_ERROR;
-        }
+        error.data = data;
 
         throw error;
       }
@@ -75,14 +60,11 @@ export default function ResetPasswordPage() {
 
       resetForm();
     } catch (err) {
-      if (err.type) {
-        setApiError(err);
-      } else {
-        setApiError({
-          type: ERROR_TYPES.UNKNOWN_ERROR,
-          message: err.message || "Failed to process request",
-        });
-      }
+      // Process the error through our centralized error service
+      const standardError = processApiError(err, {
+        defaultMessage: "Failed to process request",
+      });
+      setApiError(standardError);
 
       throw err;
     }
@@ -105,15 +87,6 @@ export default function ResetPasswordPage() {
     "PASSWORD RECOVERY",
     { text: "REQUEST RESET", blink: true },
   ];
-
-  const handleRetry = () => {
-    setApiError(null);
-    handleSubmit(new Event("submit"));
-  };
-
-  const handleDismiss = () => {
-    setApiError(null);
-  };
 
   return (
     <>
@@ -164,10 +137,7 @@ export default function ResetPasswordPage() {
                   handleChange={handleChange}
                   handleSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
-                  errorMessage={errorMessage}
                   apiError={apiError}
-                  onRetry={handleRetry}
-                  onDismiss={handleDismiss}
                 />
               )}
 

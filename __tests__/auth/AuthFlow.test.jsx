@@ -24,7 +24,7 @@ jest.mock("@/app/utils/auth/authUtils", () => ({
   ),
 }));
 
-import * as authUtils from "@/app/utils/auth/authUtils";
+import * as authUtils from "@/app/utils/auth/client";
 
 const localStorageMock = {
   getItem: jest.fn(),

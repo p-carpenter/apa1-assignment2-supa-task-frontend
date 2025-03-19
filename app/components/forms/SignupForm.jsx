@@ -20,8 +20,6 @@ function SignupForm({
   isSubmitting,
   errorMessage,
   apiError,
-  onRetry,
-  onDismiss,
   passwordRequirements,
 }) {
   return (
@@ -34,8 +32,6 @@ function SignupForm({
       {apiError ? (
         <ApiErrorMessage
           error={apiError}
-          onRetry={onRetry}
-          onDismiss={onDismiss}
         />
       ) : (
         <FormErrorMessage message={errorMessage} useAuthStyle={true} />
@@ -66,7 +62,6 @@ function SignupForm({
           error={formErrors.password}
         />
 
-        // simplify?
         {passwordRequirements && passwordRequirements.length > 0 && (
           <div style={{ marginTop: "-10px", marginBottom: "15px" }}>
             {passwordRequirements.map((req) => (

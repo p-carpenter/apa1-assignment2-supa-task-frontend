@@ -1,7 +1,8 @@
 /**
  * Common API utilities for handling requests and responses
  */
-import { handleApiError, ERROR_TYPES } from "./errors/errorHandling";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { ERROR_TYPES } from "../errors/errorTypes";
 
 /**
  * Fetch with standardized error handling to use in calling internal API routes
@@ -35,29 +36,19 @@ export const fetchWithErrorHandling = async (
       );
       error.status = response.status;
       error.data = errorData;
+
+      // Explicitly mark auth-related errors for easier handling
+      if (response.status === 401) {
+        error.type = ERROR_TYPES.AUTH_REQUIRED;
+        error.isAuthError = true;
+      }
+
       throw error;
     }
 
     return await response.json();
   } catch (error) {
-    const standardError = handleApiError(error, errorOptions);
-
-    if (
-      [ERROR_TYPES.AUTH_REQUIRED, ERROR_TYPES.SESSION_EXPIRED].includes(
-        standardError.type
-      ) &&
-      typeof window !== "undefined"
-    ) {
-      // redirect to login page
-      const loginUrl = new URL("/login", window.location.href);
-      standardError.type === ERROR_TYPES.SESSION_EXPIRED
-        ? loginUrl.searchParams.set("error", "session_expired")
-        : loginUrl.searchParams.set("error", "not_authenticated");
-      loginUrl.searchParams.set("from", window.location.pathname);
-
-      // cannot use router.push() here because it's outisde of a hook
-      window.location.href = loginUrl;
-    }
+    const standardError = processApiError(error, errorOptions);
 
     throw standardError;
   }
@@ -85,11 +76,9 @@ export const createEndpointHandler = (handler) => async (req) => {
   } catch (error) {
     console.error(`Handler error:`, error);
 
-    // Map error status codes to standard error types
     let errorMessage = error.message || "Internal Server Error";
     let statusCode = error.status || 500;
 
-    // Standardize error responses
     return new Response(
       JSON.stringify({
         error: errorMessage,
@@ -129,7 +118,6 @@ export const fetchFromSupabase = async (
   };
 
   try {
-    // Check for network connectivity first
     if (typeof window !== "undefined" && !window.navigator.onLine) {
       const offlineError = new Error(
         "No internet connection. Please check your network and try again."
@@ -230,7 +218,6 @@ export const fetchFromSupabase = async (
       throw new Error(`Failed to parse response from ${path}: ${e.message}`);
     }
   } catch (error) {
-    // Add request details to all errors for easier debugging
     if (!error.path) {
       error.path = path;
       error.method = method;

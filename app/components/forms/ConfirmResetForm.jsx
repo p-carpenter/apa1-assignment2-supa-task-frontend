@@ -17,8 +17,6 @@ const ConfirmResetForm = ({
   isSubmitting,
   errorMessage,
   apiError,
-  onRetry,
-  onDismiss,
 }) => {
   const hasFieldErrors = Object.keys(formErrors).some((key) => formErrors[key]);
 
@@ -27,8 +25,6 @@ const ConfirmResetForm = ({
       {apiError ? (
         <ApiErrorMessage
           error={apiError}
-          onRetry={onRetry}
-          onDismiss={onDismiss}
         />
       ) : (
         <FormErrorMessage message={errorMessage} useAuthStyle={true} />

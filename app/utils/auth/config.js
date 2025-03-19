@@ -1,6 +1,5 @@
 /**
  * Authentication configuration constants
- * Centralizes all auth-related configuration in one file
  */
 
 // Local storage keys for auth data persistence
@@ -16,6 +15,8 @@ export const AUTH_ENDPOINTS = {
   SIGNOUT: "/api/auth/signout",
   USER: "/api/auth/user",
   PROTECTED: "/api/auth/protected",
+  PASSWORD_RECOVERY: "/api/auth/password-recovery",
+  PASSWORD_RECOVERY_CONFIRM: "/api/auth/password-recovery/confirm",
 };
 
 // Supabase cookie names

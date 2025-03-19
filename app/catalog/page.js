@@ -204,6 +204,14 @@ const Catalog = () => {
   const hasFilteredIncidents =
     filteredIncidents && filteredIncidents.length > 0;
 
+  const closeAddModal = () => {
+    setShowAddModal(false);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+  };
+
   return (
     <>
       <div className={layoutStyles.archiveContainer}>
@@ -287,12 +295,11 @@ const Catalog = () => {
         </ConsoleWindow>
       </div>
 
-      {/* Incident Modals Component */}
       <IncidentModals
         showAddModal={showAddModal}
-        closeAddModal={() => setShowAddModal(false)}
+        closeAddModal={closeAddModal}
         showEditModal={showEditModal}
-        closeEditModal={() => setShowEditModal(false)}
+        closeEditModal={closeEditModal}
         selectedIncidents={selectedIncidents}
         currentEditIndex={currentEditIndex}
         moveToNextEdit={moveToNextEdit}

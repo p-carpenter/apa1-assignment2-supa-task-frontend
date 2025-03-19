@@ -8,9 +8,9 @@ import authStyles from "@/app/components/forms/Auth.module.css";
 import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ConfirmResetForm } from "@/app/components/forms";
-import { useForm } from "@/app/hooks/forms/useForm";
-import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
-import { validateAuthForm } from "@/app/utils/formValidation";
+import { useForm } from "@/app/hooks/useForm";
+import { validateAuthForm } from "@/app/utils/validation/formValidation";
+import { processApiError } from "@/app/utils/errors/errorService";
 
 import {
   ConsoleWindow,
@@ -23,7 +23,6 @@ export default function ConfirmResetPage() {
   const router = useRouter();
 
   const [token, setToken] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -53,7 +52,6 @@ export default function ConfirmResetPage() {
   }, [isAuthenticated, loading, router, token]);
 
   const handleFormSubmit = async (formData) => {
-    setErrorMessage("");
     setApiError(null);
     setSuccessMessage("");
 
@@ -73,25 +71,10 @@ export default function ConfirmResetPage() {
       const data = await response.json();
 
       if (!response.ok) {
+        // Create an error object with appropriate properties
         const error = new Error(data.error || "Something went wrong");
         error.status = response.status;
-
-        switch (response.status) {
-          case 400:
-            error.type = ERROR_TYPES.VALIDATION_ERROR;
-            break;
-          case 401:
-            error.type = ERROR_TYPES.INVALID_CREDENTIALS;
-            error.message =
-              "Invalid or expired token. Please request a new password reset link.";
-            break;
-          case 404:
-            error.type = ERROR_TYPES.NOT_FOUND;
-            error.message = "No account found with that email address.";
-            break;
-          default:
-            error.type = ERROR_TYPES.UNKNOWN_ERROR;
-        }
+        error.data = data;
 
         throw error;
       }
@@ -100,14 +83,11 @@ export default function ConfirmResetPage() {
         "Your password has been successfully reset. You can now login with your new password."
       );
     } catch (err) {
-      if (err.type) {
-        setApiError(err);
-      } else {
-        setApiError({
-          type: ERROR_TYPES.UNKNOWN_ERROR,
-          message: err.message || "Failed to process request",
-        });
-      }
+      // Process the error through our centralized error service
+      const standardError = processApiError(err, {
+        defaultMessage: "Failed to reset password",
+      });
+      setApiError(standardError);
 
       throw err;
     }
@@ -118,6 +98,7 @@ export default function ConfirmResetPage() {
     password: "",
     confirmPassword: "",
   };
+
   const validateFormFunction = (data, fieldName) =>
     validateAuthForm(data, fieldName, {
       options: { requirePasswordConfirmation: true },
@@ -131,15 +112,6 @@ export default function ConfirmResetPage() {
     "PASSWORD RECOVERY",
     { text: "RESET PASSWORD", blink: true },
   ];
-
-  const handleRetry = () => {
-    setApiError(null);
-    handleSubmit(new Event("submit"));
-  };
-
-  const handleDismiss = () => {
-    setApiError(null);
-  };
 
   if (
     typeof window !== "undefined" &&
@@ -211,10 +183,7 @@ export default function ConfirmResetPage() {
                   handleChange={handleChange}
                   handleSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
-                  errorMessage={errorMessage}
                   apiError={apiError}
-                  onRetry={handleRetry}
-                  onDismiss={handleDismiss}
                 />
               )}
 

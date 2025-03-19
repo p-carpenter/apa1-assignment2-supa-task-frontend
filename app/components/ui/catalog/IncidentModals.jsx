@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 import Modal from "../modals/Modal";
-import BaseIncidentForm from "../../forms/BaseIncidentForm";
+import BaseIncidentForm from "../../forms/IncidentManagementForm";
 import { useIncidents } from "../../../contexts/IncidentContext";
-import useForm from "../../../hooks/forms/useForm";
-import useFileUpload from "../../../hooks/forms/useFileUpload";
+import useForm from "../../../hooks/useForm";
+import useFileUpload from "../../../hooks/useFileUpload";
+import { validateIncidentForm } from "../../../utils/validation/formValidation";
 import {
-  validateIncidentForm,
   formatDateInput,
   formatDateForDisplay,
   parseDate,
-} from "../../../utils/formValidation";
+} from "@/app/utils/formatting/dateUtils";
 import {
   handleAddNewIncident,
   handleUpdateIncident,
 } from "../../../catalog/crudHandlers";
-import { handleApiError } from "../../../utils/api/errors/errorHandling";
+import { processApiError } from "../../../utils/errors/errorService";
 
 /**
  * Component for incident-related modals (add/edit) with form logic
@@ -43,6 +43,7 @@ const IncidentModals = ({
     handleSubmit: submitAddForm,
     setErrors: setAddFormErrors,
     setFieldValue: setAddFormFieldValue,
+    resetForm: resetAddForm,
   } = useForm(
     {
       name: "",
@@ -71,20 +72,17 @@ const IncidentModals = ({
     setFormErrors: setAddFormErrors,
   });
 
-  // Error handler for add form
   const updateAddFormErrors = (modifyFn) => {
     const currentErrors = { ...addFormErrors };
     const updatedErrors = modifyFn(currentErrors);
     setAddFormErrors(updatedErrors);
   };
 
-  // Date change handler for add form
   const handleAddFormDateChange = (e) => {
     const formattedDate = formatDateInput(e.target.value);
     setAddFormFieldValue("incident_date", formattedDate);
   };
 
-  // Artifact type change handler for add form
   const handleAddFormArtifactTypeChange = (e) => {
     const { value } = e.target;
     handleAddFormChange(e);
@@ -108,13 +106,19 @@ const IncidentModals = ({
     }
   };
 
-  // Toggle severity info for add form
   const toggleAddFormSeverityInfo = (e) => {
     e.preventDefault();
     setAddFormShowSeverityInfo(!addFormShowSeverityInfo);
   };
 
-  // Submit handler for add form
+  const handleCloseAddModal = () => {
+    resetAddForm();
+    clearAddFile();
+    setAddFormApiError(null);
+    setAddFormShowSeverityInfo(false);
+    closeAddModal();
+  };
+
   async function handleAddFormSubmit(data) {
     try {
       setAddFormApiError(null);
@@ -143,12 +147,14 @@ const IncidentModals = ({
       }
 
       setIncidents(result);
+      resetAddForm();
+      clearAddFile();
       closeAddModal();
     } catch (error) {
       console.error("Error adding incident:", error);
 
-      // Use standardized error handling
-      const standardError = handleApiError(error, {
+      // Process the error through our centralized error service
+      const standardError = processApiError(error, {
         defaultMessage: "Failed to add incident. Please try again.",
       });
 
@@ -158,10 +164,9 @@ const IncidentModals = ({
         error.message.includes("image") ||
         error.message.includes("upload")
       ) {
-        updateAddFormErrors((prevErrors) => ({
-          ...prevErrors,
-          file: `Artifact error: ${error.message}`,
-        }));
+        const updatedErrors = { ...addFormErrors };
+        updatedErrors.file = `Artifact error: ${error.message}`;
+        setAddFormErrors(updatedErrors);
       } else {
         setAddFormApiError(standardError);
       }
@@ -170,22 +175,11 @@ const IncidentModals = ({
     }
   }
 
-  // Retry and dismiss handlers for add form
-  const handleAddFormRetry = () => {
-    setAddFormApiError(null);
-    submitAddForm(new Event("submit"));
-  };
-
-  const handleAddFormDismiss = () => {
-    setAddFormApiError(null);
-  };
-
   // ===== Edit Form State and Handlers =====
   const [editFormApiError, setEditFormApiError] = useState(null);
   const [editFormShowSeverityInfo, setEditFormShowSeverityInfo] =
     useState(false);
 
-  // Get initial form values for edit form
   const getInitialEditFormValues = () => {
     if (!selectedIncidents || !selectedIncidents[currentEditIndex]) {
       return {
@@ -211,7 +205,6 @@ const IncidentModals = ({
     };
   };
 
-  // Edit form setup with useForm hook
   const {
     formData: editFormData,
     formErrors: editFormErrors,
@@ -221,13 +214,13 @@ const IncidentModals = ({
     setErrors: setEditFormErrors,
     setFieldValue: setEditFormFieldValue,
     setValues: setEditFormValues,
+    resetForm: resetEditForm,
   } = useForm(
     getInitialEditFormValues(),
     validateIncidentForm,
     handleEditFormSubmit
   );
 
-  // File upload for edit form
   const {
     fileState: editFileState,
     handleFileChange: handleEditFileChange,
@@ -241,14 +234,12 @@ const IncidentModals = ({
     setFormErrors: setEditFormErrors,
   });
 
-  // Error handler for edit form
   const updateEditFormErrors = (modifyFn) => {
     const currentErrors = { ...editFormErrors };
     const updatedErrors = modifyFn(currentErrors);
     setEditFormErrors(updatedErrors);
   };
 
-  // Reset form values when currentEditIndex changes
   React.useEffect(() => {
     if (showEditModal && selectedIncidents && selectedIncidents.length > 0) {
       setEditFormValues(getInitialEditFormValues());
@@ -257,13 +248,11 @@ const IncidentModals = ({
     }
   }, [currentEditIndex, showEditModal, selectedIncidents]);
 
-  // Date change handler for edit form
   const handleEditFormDateChange = (e) => {
     const formattedDate = formatDateInput(e.target.value);
     setEditFormFieldValue("incident_date", formattedDate);
   };
 
-  // Artifact type change handler for edit form
   const handleEditFormArtifactTypeChange = (e) => {
     const { value } = e.target;
     handleEditFormChange(e);
@@ -287,13 +276,19 @@ const IncidentModals = ({
     }
   };
 
-  // Toggle severity info for edit form
   const toggleEditFormSeverityInfo = (e) => {
     e.preventDefault();
     setEditFormShowSeverityInfo(!editFormShowSeverityInfo);
   };
 
-  // Submit handler for edit form
+  const handleCloseEditModal = () => {
+    resetEditForm();
+    clearEditFile();
+    setEditFormApiError(null);
+    setEditFormShowSeverityInfo(false);
+    closeEditModal();
+  };
+
   async function handleEditFormSubmit(data) {
     try {
       setEditFormApiError(null);
@@ -317,7 +312,6 @@ const IncidentModals = ({
         payload.fileName = editFileState.name;
         payload.fileType = editFileState.type;
       }
-
       const result = await handleUpdateIncident(payload);
 
       if (typeof result === "string") {
@@ -329,21 +323,19 @@ const IncidentModals = ({
     } catch (error) {
       console.error("Error updating incident:", error);
 
-      // Use standardized error handling
-      const standardError = handleApiError(error, {
+      // Process the error through our centralized error service
+      const standardError = processApiError(error, {
         defaultMessage: "Failed to update incident. Please try again.",
       });
 
-      // Special handling for file/image errors
       if (
         error.message.includes("file") ||
         error.message.includes("image") ||
         error.message.includes("upload")
       ) {
-        updateEditFormErrors((prevErrors) => ({
-          ...prevErrors,
-          file: `Artifact error: ${error.message}`,
-        }));
+        const updatedErrors = { ...editFormErrors };
+        updatedErrors.file = `Artifact error: ${error.message}`;
+        setEditFormErrors(updatedErrors);
       } else {
         setEditFormApiError(standardError);
       }
@@ -352,23 +344,13 @@ const IncidentModals = ({
     }
   }
 
-  // Retry and dismiss handlers for edit form
-  const handleEditFormRetry = () => {
-    setEditFormApiError(null);
-    submitEditForm(new Event("submit"));
-  };
-
-  const handleEditFormDismiss = () => {
-    setEditFormApiError(null);
-  };
-
   return (
     <>
       {/* Add New Incident Modal */}
       {showAddModal && (
         <Modal
           isOpen={showAddModal}
-          onClose={closeAddModal}
+          onClose={handleCloseAddModal}
           title="Add New Technical Incident"
           size="large"
         >
@@ -390,10 +372,8 @@ const IncidentModals = ({
             toggleSeverityInfo={toggleAddFormSeverityInfo}
             // Error handling
             apiError={addFormApiError}
-            onRetry={handleAddFormRetry}
-            onDismiss={handleAddFormDismiss}
             // UI customization
-            onClose={closeAddModal}
+            onClose={handleCloseAddModal}
             submitLabel="Add Incident"
             loadingLabel="Adding..."
             // Edit mode specific props
@@ -406,7 +386,7 @@ const IncidentModals = ({
       {showEditModal && selectedIncidents.length > 0 && (
         <Modal
           isOpen={showEditModal}
-          onClose={closeEditModal}
+          onClose={handleCloseEditModal}
           title={`Edit Incident (${currentEditIndex + 1}/${selectedIncidents.length})`}
           size="large"
         >
@@ -428,10 +408,8 @@ const IncidentModals = ({
             toggleSeverityInfo={toggleEditFormSeverityInfo}
             // Error handling
             apiError={editFormApiError}
-            onRetry={handleEditFormRetry}
-            onDismiss={handleEditFormDismiss}
             // UI customization
-            onClose={closeEditModal}
+            onClose={handleCloseEditModal}
             submitLabel={`Save ${currentEditIndex === selectedIncidents.length - 1 ? "Changes" : "& Continue"}`}
             loadingLabel="Saving..."
             // Edit mode specific props

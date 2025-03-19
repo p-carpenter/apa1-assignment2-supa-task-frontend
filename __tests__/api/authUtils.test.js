@@ -7,7 +7,7 @@ import {
   getCurrentUser,
   getProtectedData,
   addProtectedData,
-} from "@/app/utils/auth/authUtils";
+} from "@/app/utils/auth/client";
 
 // Set environment variables
 process.env.SUPABASE_ANON_KEY = "test-anon-key";

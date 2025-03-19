@@ -1,40 +1,32 @@
-/**
- * Form validation utility functions
- */
-import { formatDateForDisplay, parseDate } from "./formatting/dateUtils";
+import { formatDateForDisplay, parseDate } from "../formatting/dateUtils";
 
 /**
- * Validates a date string in DD-MM-YYYY format
- * @param {string} dateString - Date string in DD-MM-YYYY format
- * @param {object} options - Validation options
- * @param {Date} options.minDate - Minimum allowed date
- * @param {Date} options.maxDate - Maximum allowed date
- * @returns {object} - Validation result {isValid, errorMessage}
+ * Validates a date string in DD-MM-YYYY format.
+ *
+ * @param {string} dateString - Date string in DD-MM-YYYY format.
+ * @param {object} [options={}] - Validation options.
+ * @param {Date} [options.minDate=new Date(1980, 0, 1)] - Minimum allowed date.
+ * @param {Date} [options.maxDate=new Date(2029, 11, 31)] - Maximum allowed date.
+ * @returns {object} - Validation result { isValid, errorMessage }.
  */
 export const validateDateString = (dateString, options = {}) => {
-  const { minDate = new Date(1980, 0, 1), maxDate = new Date(2029, 11, 31) } =
-    options;
+  const {
+    minDate = new Date(Date.UTC(1980, 0, 1)),
+    maxDate = new Date(Date.UTC(2029, 11, 31)),
+  } = options;
 
-  // Required check
   if (!dateString?.trim()) {
-    return {
-      isValid: false,
-      errorMessage: "Date is required.",
-    };
+    return { isValid: false, errorMessage: "Date is required." };
   }
 
-  // Format check
-  const dateRegex = /^(\d{2})-(\d{2})-(\d{4})$/;
-  if (!dateRegex.test(dateString)) {
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(dateString)) {
     return {
       isValid: false,
       errorMessage: "Please enter a valid date in DD-MM-YYYY format.",
     };
   }
 
-  // Use parseDate to validate and create date object
   const inputDate = parseDate(dateString);
-
   if (!inputDate) {
     return {
       isValid: false,
@@ -42,7 +34,6 @@ export const validateDateString = (dateString, options = {}) => {
     };
   }
 
-  // Range check
   if (inputDate < minDate) {
     return {
       isValid: false,
@@ -113,7 +104,6 @@ export const validateImageFile = (file, options = {}) => {
     };
   }
 
-  // Return a Promise only for dimension checks
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -254,7 +244,7 @@ export const validateHtmlContent = (content, requireHtmlTag = true) => {
     };
   }
 
-  if (requireHtmlTag && !content.includes("<html>")) {
+  if (requireHtmlTag && !content.includes("<html")) {
     return {
       isValid: false,
       errorMessage: "HTML code should include a <html> tag.",
@@ -289,6 +279,10 @@ export const createFormValidator = (schema) => {
     // Validate all fields in the schema
     Object.entries(schema).forEach(([field, fieldSchema]) => {
       if (fieldSchema.conditional && !fieldSchema.conditional(data)) {
+        return;
+      }
+
+      if (!fieldSchema.required && !data[field]) {
         return;
       }
 
@@ -331,7 +325,7 @@ const validateField = (data, fieldName, fieldSchema) => {
       return validateEmail(value);
 
     case "password":
-      return validatePassword(value, fieldSchema.options);
+      return validatePassword(value, data, fieldSchema.options);
 
     case "confirmPassword":
       return validatePassword(value, data, fieldSchema.options);

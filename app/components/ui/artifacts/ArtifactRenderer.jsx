@@ -1,6 +1,4 @@
-// app/components/ui/artifacts/ArtifactRenderer.jsx
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useIframe } from "@/app/hooks/ui";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./ArtifactRenderer.module.css";
 
 const ArtifactRenderer = ({
@@ -13,20 +11,68 @@ const ArtifactRenderer = ({
   containerId = "artifact-container",
   paddingSize = "auto",
 }) => {
-  const { iframeRef, dimensions } = useIframe({
-    maxWidth,
-    maxHeight,
-    minHeight,
-    preferredHeight: artifact?.preferredHeight || 500,
-    content: artifact?.artifactContent,
+  const [iframeDimensions, setIframeDimensions] = useState({
+    width: maxWidth,
+    height: Math.min(
+      maxHeight,
+      Math.max(minHeight, artifact?.preferredHeight || 500)
+    ),
   });
 
+  const iframeRef = useRef(null);
   const [needsPadding, setNeedsPadding] = useState(false);
   const containerRef = useRef(null);
   const contentRef = useRef(null);
 
-  // Memoized function to detect if padding is needed
-  const detectPaddingNeeds = useCallback(() => {
+  // Handle iframe dimensions adjustment
+  useEffect(() => {
+    if (!iframeRef.current || artifact?.artifactType !== "code") return;
+
+    const iframe = iframeRef.current;
+    iframe.setAttribute("scrolling", "auto");
+
+    const handleLoad = () => {
+      try {
+        const iframeDoc =
+          iframe.contentDocument || iframe.contentWindow.document;
+        const iframeBody = iframeDoc.body;
+
+        const contentHeight = Math.max(
+          iframeBody.scrollHeight,
+          iframeBody.offsetHeight,
+          iframeBody.clientHeight
+        );
+
+        const contentWidth = Math.max(
+          iframeBody.scrollWidth,
+          iframeBody.offsetWidth,
+          iframeBody.clientWidth
+        );
+
+        if (contentHeight > 0 && contentWidth > 0) {
+          iframe.style.height = `${contentHeight}px`;
+          iframe.style.width = `${contentWidth}px`;
+
+          setIframeDimensions({
+            width: contentWidth,
+            height: contentHeight,
+          });
+        }
+      } catch (err) {
+        console.warn("Could not adjust iframe dimensions:", err);
+      }
+    };
+
+    iframe.onload = handleLoad;
+
+    // Try to adjust dimensions if content was already loaded
+    if (iframe.contentDocument?.readyState === "complete") {
+      handleLoad();
+    }
+  }, [artifact, maxWidth, maxHeight, minHeight]);
+
+  // Calculate padding based on content size
+  useEffect(() => {
     if (!containerRef.current || !contentRef.current) return;
 
     if (paddingSize !== "auto") {
@@ -60,11 +106,7 @@ const ArtifactRenderer = ({
         );
       }
     }
-  }, [artifact, paddingSize]);
-
-  useEffect(() => {
-    detectPaddingNeeds();
-  }, [artifact, dimensions, detectPaddingNeeds]);
+  }, [artifact, iframeDimensions, paddingSize]);
 
   const renderArtifactContent = () => {
     if (!artifact) return <div>No artifact available</div>;

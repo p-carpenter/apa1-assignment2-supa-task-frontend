@@ -1,11 +1,11 @@
 import {
   withAuth,
   getSupabaseAuthHeaders,
-} from "@/app/utils/api/authMiddleware";
+} from "@/app/utils/auth/server/authMiddleware";
 import {
   createEndpointHandler,
   fetchFromSupabase,
-} from "@/app/utils/api/apiUtils";
+} from "@/app/utils/api/clientApi";
 
 export const GET = createEndpointHandler(
   withAuth(async (req) => {

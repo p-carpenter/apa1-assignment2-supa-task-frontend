@@ -34,7 +34,6 @@ describe("SignupForm", () => {
 
     render(<SignupForm />);
 
-    // Initialize form elements for all tests
     emailInput = screen.getByRole("textbox", { name: /\$ email/i });
     passwordInput = screen.getByLabelText(/\$ password/i);
     confirmPasswordInput = screen.getByLabelText(/\$ confirm password/i);

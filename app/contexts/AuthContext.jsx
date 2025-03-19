@@ -13,9 +13,10 @@ import {
   signOut,
   getCurrentUser,
   getStoredUser,
-} from "../utils/auth/authUtils";
-import { AUTH_STORAGE_KEYS } from "../utils/auth/auth-config";
-import { handleApiError, ERROR_TYPES } from "../utils/api/errors/errorHandling";
+} from "../utils/auth/client";
+import { AUTH_STORAGE_KEYS } from "../utils/auth/config";
+import { ERROR_TYPES } from "../utils/errors/errorTypes";
+import { processApiError } from "../utils/errors/errorService";
 
 /**
  * Authentication Context
@@ -34,7 +35,6 @@ export const AuthContext = createContext({
 });
 
 /**
- * Auth Provider Component
  * Manages authentication state and provides authentication methods
  */
 export function AuthProvider({
@@ -44,28 +44,30 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState(initialUser);
   const [session, setSession] = useState(initialSession);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const isAuthenticated = Boolean(user);
 
   useEffect(() => {
-    const initializeAuth = async () => {
+    const initialiseAuth = async () => {
       // If we have SSR data, use it directly
       if (initialUser && initialSession) {
         setUser(initialUser);
         setSession(initialSession);
+        setIsLoading(false);
         return;
       }
 
-      // First check localStorage (no loading state yet)
+      // Check localStorage for immediate UI feedback
       const storedData = getStoredUser();
       if (storedData?.user) {
         // Temporarily set the user from localStorage
         setUser(storedData.user);
         setSession(storedData.session);
+      }
 
-        // Validate with the server in the background
-        setIsLoading(true);
-        try {
+      try {
+        // Only try server verification if there's localStorage data
+        if (storedData?.user) {
           // Verify with server that the session is still valid
           const serverData = await getCurrentUser(true);
 
@@ -73,51 +75,65 @@ export function AuthProvider({
             setUser(serverData.user);
             setSession(serverData.session);
           } else {
-            console.log("Session validation failed - clearing local state");
             setUser(null);
             setSession(null);
-
             localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
             localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
           }
-        } catch (error) {
-          console.error("Session validation error:", error);
+        } else {
           setUser(null);
           setSession(null);
+        }
+      } catch (error) {
+        console.warn("Session verification failed:", error);
 
+        const standardError = processApiError(error);
+
+        // If we get auth errors, clear everything
+        if (
+          standardError.type === ERROR_TYPES.AUTH_REQUIRED ||
+          standardError.type === ERROR_TYPES.SESSION_EXPIRED
+        ) {
+          setUser(null);
+          setSession(null);
           localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-        } finally {
-          setIsLoading(false);
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    initializeAuth();
+    initialiseAuth();
   }, [initialUser, initialSession]);
 
-  // Authentication methods
   const handleSignIn = useCallback(async (credentials) => {
     setIsLoading(true);
+
     try {
+      if (!credentials.email || !credentials.password) {
+        console.error("Missing credentials");
+        const validationError = {
+          type: ERROR_TYPES.VALIDATION_ERROR,
+          message: "Email and password are required",
+          details: {
+            email: !credentials.email ? "Email is required" : "",
+            password: !credentials.password ? "Password is required" : "",
+          },
+        };
+        throw validationError;
+      }
+
       const data = await signIn(credentials);
       setUser(data.user);
       setSession(data.session);
       return data;
     } catch (error) {
-      console.error("Sign in handler error:", error);
-
-      handleApiError(error, {
+      const standardError = processApiError(error, {
         defaultMessage: "Unable to sign in. Please try again.",
       });
 
-      // TODO: Not sure if I want to throw errors here. I'm already returning it to thr user.
-      // const enhancedError = new Error(standardError.message);
-      // enhancedError.type = standardError.type;
-      // enhancedError.status = standardError.status;
-      // enhancedError.details = standardError.details;
-
-      // throw enhancedError;
+      throw standardError;
     } finally {
       setIsLoading(false);
     }
@@ -133,16 +149,11 @@ export function AuthProvider({
     } catch (error) {
       console.error("Sign up handler error:", error);
 
-      handleApiError(error, {
+      const standardError = processApiError(error, {
         defaultMessage: "Unable to create account. Please try again.",
       });
 
-      // const enhancedError = new Error(standardError.message);
-      // enhancedError.type = standardError.type;
-      // enhancedError.status = standardError.status;
-      // enhancedError.details = standardError.details;
-
-      // throw enhancedError;
+      throw standardError;
     } finally {
       setIsLoading(false);
     }
@@ -157,20 +168,16 @@ export function AuthProvider({
     } catch (error) {
       console.error("Sign out handler error:", error);
 
-      const standardError = handleApiError(error, {
+      const standardError = processApiError(error, {
         defaultMessage:
           "Error during sign out, but local session has been cleared.",
       });
 
-      // TODO: I don't think throwing an error for auth errors is necessary
-      if (
-        // standardError.type !== ERROR_TYPES.AUTH_REQUIRED &&
-        standardError.type !== ERROR_TYPES.NETWORK_ERROR
-      ) {
-        const enhancedError = new Error(standardError.message);
-        enhancedError.type = standardError.type;
-        enhancedError.status = standardError.status;
-        throw enhancedError;
+      setUser(null);
+      setSession(null);
+
+      if (standardError.type !== ERROR_TYPES.NETWORK_ERROR) {
+        throw standardError;
       }
     } finally {
       setIsLoading(false);
@@ -188,16 +195,11 @@ export function AuthProvider({
     } catch (error) {
       console.error("Refresh user error:", error);
 
-      const standardError = handleApiError(error, {
+      const standardError = processApiError(error, {
         defaultMessage: "Unable to refresh user information. Please try again.",
       });
 
-      // const enhancedError = new Error(standardError.message);
-      // enhancedError.type = standardError.type;
-      // enhancedError.status = standardError.status;
-      // enhancedError.details = standardError.details;
-
-      // throw enhancedError;
+      throw standardError;
     } finally {
       setIsLoading(false);
     }

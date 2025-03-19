@@ -1,4 +1,4 @@
-import styles from "./GalleryDisplay.module.css";
+import styles from "@/app/gallery/GalleryDisplay.module.css";
 
 const GalleryDisplaySkeleton = () => {
   return (

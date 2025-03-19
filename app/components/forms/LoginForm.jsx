@@ -12,6 +12,7 @@ import {
   PromptLabel,
 } from "./fields";
 
+
 function LoginForm({
   formData,
   formErrors,
@@ -20,11 +21,7 @@ function LoginForm({
   isSubmitting,
   errorMessage,
   apiError,
-  onRetry,
-  onDismiss,
 }) {
-  const loading = isSubmitting;
-
   return (
     <div className={authStyles.formContainer}>
       <div className={authStyles.header}>
@@ -37,8 +34,6 @@ function LoginForm({
       <FormErrorMessage
         error={apiError}
         message={errorMessage}
-        onRetry={onRetry}
-        onDismiss={onDismiss}
         useAuthStyle={true}
       />
 
@@ -56,7 +51,7 @@ function LoginForm({
           value={formData.email}
           onChange={handleChange}
           placeholder="user@example.com"
-          disabled={loading}
+          disabled={isSubmitting}
           error={formErrors.email}
         />
 
@@ -67,7 +62,7 @@ function LoginForm({
           value={formData.password}
           onChange={handleChange}
           error={formErrors.password}
-          disabled={loading}
+          disabled={isSubmitting}
           helperText="Password must be at least 8 characters and include one number, one special character, and one uppercase letter."
         />
 
@@ -76,7 +71,7 @@ function LoginForm({
           loadingLabel="AUTHENTICATING..."
           useAuthStyle={true}
           testId="login-button"
-          isSubmitting={loading}
+          isSubmitting={isSubmitting}
         />
       </form>
 

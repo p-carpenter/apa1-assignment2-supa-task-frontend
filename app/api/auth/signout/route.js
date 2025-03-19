@@ -1,7 +1,7 @@
 import {
   createEndpointHandler,
   fetchFromSupabase,
-} from "@/app/utils/api/apiUtils";
+} from "@/app/utils/api/clientApi";
 import { cookies } from "next/headers";
 
 export const POST = createEndpointHandler(async (req) => {
@@ -37,25 +37,28 @@ export const POST = createEndpointHandler(async (req) => {
         });
       } catch (error) {
         // Log but don't fail the operation if Supabase signout fails
-        console.warn("Supabase signout failed, but cookies have been cleared:", error.message);
+        console.warn(
+          "Supabase signout failed, but cookies have been cleared:",
+          error.message
+        );
       }
     } else {
       console.log("No auth tokens found, skipping Supabase signout");
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error in signout:", error);
-    
+
     // Still return success as we want the frontend to clear its state
     // This avoids UI showing logged in when session is actually invalid
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        warning: "Signout partially completed with errors"
+        warning: "Signout partially completed with errors",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );

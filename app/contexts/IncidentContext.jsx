@@ -9,11 +9,7 @@ import {
   useEffect,
   useRef,
 } from "react";
-import {
-  handleApiError,
-  getErrorMessage,
-  ERROR_TYPES,
-} from "../utils/api/errors/errorHandling";
+import { processApiError, getErrorMessage } from "../utils/errors/errorService";
 
 const IncidentContext = createContext(null);
 
@@ -136,12 +132,12 @@ export const IncidentProvider = ({
     } catch (error) {
       console.error("Failed to fetch incidents:", error);
 
-      // Use your existing error handling system
-      const standardError = handleApiError(error, {
+      // Process the error using our central error service
+      const standardError = processApiError(error, {
         defaultMessage: "Failed to load incidents. Please refresh the page.",
       });
 
-      setError(standardError.message);
+      setError(getErrorMessage(standardError));
 
       // Implement retry with exponential backoff
       if (retryCount.current < maxRetries) {

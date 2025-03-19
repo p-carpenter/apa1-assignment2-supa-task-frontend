@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Button from "../buttons/Button";
-import "./gallery-variables.css";
-import "./GalleryNavButtons.styles.css";
+import Button from "../components/ui/buttons/Button";
+import styles from "./GalleryNavButtons.module.css";
 
 const GalleryNavButtons = ({
   onPreviousClick,
@@ -74,38 +73,12 @@ const GalleryNavButtons = ({
     }
   };
 
-  const getNextPrevYears = () => {
-    if (
-      !incidentYears ||
-      !Array.isArray(incidentYears) ||
-      incidentYears.length <= 1
-    ) {
-      return { nextYear: null, prevYear: null };
-    }
-
-    const currentIndex = incidentYears.indexOf(currentIncidentYear);
-    if (currentIndex === -1) return { nextYear: null, prevYear: null };
-
-    const nextIndex = (currentIndex + 1) % incidentYears.length;
-    const prevIndex =
-      (currentIndex - 1 + incidentYears.length) % incidentYears.length;
-
-    return {
-      nextYear: incidentYears[nextIndex],
-      prevYear: incidentYears[prevIndex],
-    };
-  };
-
-  const { nextYear, prevYear } = getNextPrevYears();
   const transformValue = calculateTransform();
 
   return (
     <>
-      {/* Timeline container with fixed width and Catalog button side by side */}
-      <div className="timeline-container">
-        {/* Container for the timeline that slides */}
-        <div className="timeline-inner-container">
-          {/* Inner timeline that slides left/right */}
+      <div className={styles.timelineContainer}>
+        <div className={styles.timelineInnerContainer}>
           <div
             ref={timelineInnerRef}
             className="timeline-inner"
@@ -122,14 +95,14 @@ const GalleryNavButtons = ({
                 return (
                   <button
                     key={year}
-                    className={`year-button ${isCurrentYear ? "year-button--active" : ""}`}
+                    className={`${styles.yearButton} ${isCurrentYear ? `${styles.activeYearButton}` : ""}`}
                     onClick={() => handleYearClick(year)}
                     title={count > 1 ? `${count} incidents in ${year}` : ""}
                   >
                     {year}
                     {/* Show indicator for multiple incidents */}
                     {count > 1 && (
-                      <span className="incident-count">
+                      <span className={styles.incidentCount}>
                         {isCurrentYear
                           ? `${currentIncidentIndexInYear + 1}/${count}`
                           : count}
@@ -139,7 +112,7 @@ const GalleryNavButtons = ({
                 );
               })
             ) : (
-              <span className="year-placeholder">No years available</span>
+              <span className={styles.yearPlaceholder}>No years available</span>
             )}
           </div>
         </div>
@@ -147,9 +120,9 @@ const GalleryNavButtons = ({
         <Button href="/catalog" label="Catalog" icon="" />
       </div>
 
-      <div className="gallery-nav-buttons">
+      <div className={styles.navButtonsContainer}>
         <button
-          className="gallery-nav-button"
+          className={styles.navButton}
           onClick={onPreviousClick}
           aria-label="Previous artifact"
         >
@@ -157,7 +130,7 @@ const GalleryNavButtons = ({
         </button>
 
         <button
-          className="gallery-nav-button"
+          className={styles.navButton}
           onClick={onNextClick}
           aria-label="Next artifact"
         >

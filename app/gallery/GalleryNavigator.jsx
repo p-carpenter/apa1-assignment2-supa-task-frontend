@@ -2,7 +2,7 @@
 
 import { useIncidents } from "@/app/contexts/IncidentContext";
 import { useTheme } from "@/app/contexts/ThemeContext";
-import GalleryNavButtons from "@/app/components/ui/gallery/GalleryNavButtons";
+import GalleryNavButtons from "@/app/gallery/GalleryNavButtons";
 import GalleryDisplay from "@/app/gallery/GalleryDisplay";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";

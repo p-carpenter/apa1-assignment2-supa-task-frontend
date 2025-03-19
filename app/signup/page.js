@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
-import { useForm } from "@/app/hooks/forms/useForm";
+import { useForm } from "@/app/hooks/useForm";
 import { SignupForm } from "@/app/components/forms";
 import authStyles from "@/app/components/forms/Auth.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
-import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
-import { validateAuthForm } from "@/app/utils/formValidation";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { validateAuthForm } from "@/app/utils/validation/formValidation";
+import { processApiError } from "@/app/utils/errors/errorService";
 
 import {
   ConsoleWindow,
@@ -17,17 +17,10 @@ import {
 } from "../components/ui/console";
 
 export default function SignupPage() {
-  const { isAuthenticated, loading: authLoading, signUp } = useAuth();
-  const router = useRouter();
+  const { isLoading: authLoading, signUp } = useAuth();
   const [apiError, setApiError] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
   const [passwordRequirements, setPasswordRequirements] = useState([]);
-
-  useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      router.push("/profile");
-    }
-  }, [isAuthenticated, authLoading, router]);
+  const submissionInProgress = useRef(false);
 
   const updatePasswordRequirements = (password) => {
     if (!password) {
@@ -75,27 +68,67 @@ export default function SignupPage() {
   };
 
   const handleFormSubmit = async (formData) => {
-    setErrorMessage("");
+    if (submissionInProgress.current) {
+      console.log("Submission already in progress, ignoring");
+      return;
+    }
+
+    submissionInProgress.current = true;
+    console.log("Starting signup form submission");
+
     setApiError(null);
 
     try {
-      await signUp({
+      const passwordReqs = [];
+      const password = formData.password || "";
+
+      if (password.length < 8) passwordReqs.push("at least 8 characters");
+      if (!/\d/.test(password)) passwordReqs.push("at least one number");
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password))
+        passwordReqs.push("at least one special character");
+      if (!/[A-Z]/.test(password))
+        passwordReqs.push("at least one uppercase letter");
+
+      if (passwordReqs.length > 0) {
+        const validationError = {
+          type: ERROR_TYPES.VALIDATION_ERROR,
+          message: `Password must contain ${passwordReqs.join(", ")}`,
+          details: {
+            password: `Password must contain ${passwordReqs.join(", ")}`,
+          },
+        };
+        console.error("Password requirements error:", validationError);
+        throw validationError;
+      }
+
+      const result = await signUp({
         email: formData.email,
         password: formData.password,
         displayName: formData.email.split("@")[0],
       });
 
-      window.location.href = "/login?signupSuccess=true";
+      console.log("Sign up successful:", result);
+
+      setApiError({
+        type: "success",
+        message:
+          "Account created successfully! Please check your inbox for a confirmation email.",
+      });
+
+      return result;
     } catch (err) {
-      if (err.type) {
-        setApiError(err);
-      } else {
-        setApiError({
-          type: ERROR_TYPES.UNKNOWN_ERROR,
-          message: err.message || "Failed to create account",
-        });
-      }
-      throw err;
+      console.error("Signup form error:", err);
+
+      // Process the error through our centralized error service
+      const standardError = processApiError(err, {
+        defaultMessage: "Failed to create account",
+      });
+      setApiError(standardError);
+
+      throw err; // Rethrow to let useForm handle isSubmitting state
+    } finally {
+      console.log("Signup form submission completed");
+      submissionInProgress.current = false;
     }
   };
 
@@ -126,15 +159,6 @@ export default function SignupPage() {
     "USER REGISTRATION",
     { text: "NEW ACCOUNT CREATION", blink: true },
   ];
-
-  const handleRetry = () => {
-    setApiError(null);
-    handleSubmit(new Event("submit"));
-  };
-
-  const handleDismiss = () => {
-    setApiError(null);
-  };
 
   return (
     <>
@@ -167,11 +191,8 @@ export default function SignupPage() {
               formErrors={formErrors}
               handleChange={customHandleChange}
               handleSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              errorMessage={errorMessage}
+              isSubmitting={isSubmitting || authLoading}
               apiError={apiError}
-              onRetry={handleRetry}
-              onDismiss={handleDismiss}
               passwordRequirements={passwordRequirements}
             />
           </ConsoleSection>

@@ -1,8 +1,8 @@
 "use client";
 
-import { AUTH_STORAGE_KEYS, AUTH_ENDPOINTS } from "./auth-config";
-import { ERROR_TYPES } from "../api/errors/errorHandling";
-import { fetchWithErrorHandling } from "../api/apiUtils";
+import { AUTH_STORAGE_KEYS, AUTH_ENDPOINTS } from "../config";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { fetchWithErrorHandling } from "../../api/clientApi";
 
 /**
  * Sign in a user with email and password
@@ -74,7 +74,6 @@ export async function signUp({ email, password, displayName }) {
       }
     );
 
-    // Validate the response contains required data
     if (!data.user) {
       const validationError = new Error(
         "Invalid response from authentication server"
@@ -111,7 +110,6 @@ export async function signUp({ email, password, displayName }) {
  */
 export async function signOut() {
   try {
-    // Network connectivity check for direct localStorage clearing
     if (typeof window !== "undefined" && !window.navigator.onLine) {
       // If offline, just clear local state
       localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
@@ -141,7 +139,6 @@ export async function signOut() {
 
       return response;
     } catch (error) {
-      // Even if the server request fails, still clear local storage
       localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
       localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
 
@@ -210,14 +207,11 @@ export async function getCurrentUser(forceRefresh = false) {
   // Check localStorage
   const storedData = getStoredUser();
 
-  // If we have stored data and don't need to refresh, return it immediately
   if (storedData?.user && !forceRefresh) {
     return storedData;
   }
 
-  // Otherwise verify with the server
   try {
-    // Network connectivity check
     if (typeof window !== "undefined" && !window.navigator.onLine) {
       // Return stored data with warning if offline
       if (storedData) {
@@ -238,93 +232,90 @@ export async function getCurrentUser(forceRefresh = false) {
       throw offlineError;
     }
 
-    try {
-      const data = await fetchWithErrorHandling(
-        AUTH_ENDPOINTS.USER,
-        {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        },
-        {
-          defaultMessage: "Failed to verify authentication",
-        }
-      );
-
-      if (!data || !data.user) {
-        const invalidError = new Error(
-          "Invalid response from authentication server"
-        );
-        invalidError.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
-        throw invalidError;
+    const data = await fetchWithErrorHandling(
+      AUTH_ENDPOINTS.USER,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      },
+      {
+        defaultMessage: "Failed to verify authentication",
       }
+    );
 
-      // Update localStorage with fresh data
-      try {
-        localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
-        if (data.session?.access_token) {
-          localStorage.setItem(
-            AUTH_STORAGE_KEYS.TOKEN,
-            data.session.access_token
-          );
-        }
-      } catch (storageError) {
-        console.warn(
-          "Failed to update localStorage with fresh user data:",
-          storageError
-        );
-      }
+    if (!data || !data.user) {
+      // Clear localStorage here to ensure consistency
+      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
 
-      return data;
-    } catch (error) {
-      // Handle auth errors specially when verifying user
-      if (
-        error.type === ERROR_TYPES.AUTH_REQUIRED ||
-        error.type === ERROR_TYPES.PERMISSION_DENIED
-      ) {
-        localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-        localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-
-        return {
-          user: null,
-          session: null,
-          error: error.message,
-        };
-      }
-
-      // For server errors, fall back to stored data
-      if (error.type === ERROR_TYPES.SERVICE_UNAVAILABLE && storedData) {
-        return {
-          ...storedData,
-          session: {
-            ...storedData.session,
-            needs_refresh: true,
-            warning: "Server error - using stored credentials",
-          },
-        };
-      }
-
-      // For timeouts, fall back to stored data with warning
-      if (
-        (error.type === ERROR_TYPES.TIMEOUT ||
-          error.type === ERROR_TYPES.NETWORK_ERROR) &&
-        storedData
-      ) {
-        return {
-          ...storedData,
-          session: {
-            ...storedData.session,
-            needs_refresh: true,
-            warning: `${error.type} - using stored credentials`,
-          },
-        };
-      }
-
-      throw error;
+      return { user: null, session: null };
     }
+
+    // Update localStorage with fresh data
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
+      if (data.session?.access_token) {
+        localStorage.setItem(
+          AUTH_STORAGE_KEYS.TOKEN,
+          data.session.access_token
+        );
+      }
+    } catch (storageError) {
+      console.warn(
+        "Failed to update localStorage with fresh user data:",
+        storageError
+      );
+    }
+
+    return data;
   } catch (error) {
     console.error("Get user error:", error);
 
+    // Handle auth errors by clearing localStorage to ensure consistency
+    if (
+      error.type === ERROR_TYPES.AUTH_REQUIRED ||
+      error.type === ERROR_TYPES.SESSION_EXPIRED ||
+      error.type === ERROR_TYPES.PERMISSION_DENIED
+    ) {
+      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
+      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+
+      return {
+        user: null,
+        session: null,
+        error: error.message,
+      };
+    }
+
+    if (error.type === ERROR_TYPES.SERVICE_UNAVAILABLE && storedData) {
+      return {
+        ...storedData,
+        session: {
+          ...storedData.session,
+          needs_refresh: true,
+          warning: "Server error - using stored credentials",
+        },
+      };
+    }
+
+    // For timeouts, fall back to stored data with warning
+    if (
+      (error.type === ERROR_TYPES.TIMEOUT ||
+        error.type === ERROR_TYPES.NETWORK_ERROR) &&
+      storedData
+    ) {
+      return {
+        ...storedData,
+        session: {
+          ...storedData.session,
+          needs_refresh: true,
+          warning: `${error.type} - using stored credentials`,
+        },
+      };
+    }
+
+    // If we have stored data for other errors, return it with warning
     if (storedData) {
       return {
         ...storedData,
@@ -370,7 +361,6 @@ export async function getProtectedData() {
  * @returns {Promise<Object>} Response from the server
  */
 export async function addProtectedData(data) {
-  // Input validation
   if (!data || typeof data !== "object") {
     const validationError = new Error("Invalid data. Expected an object.");
     validationError.type = ERROR_TYPES.VALIDATION_ERROR;

@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { SUPABASE_COOKIES, EDGE_FUNCTIONS } from "./auth-config";
+import { SUPABASE_COOKIES, EDGE_FUNCTIONS } from "../config";
 
 /**
  * Server-side authentication utilities
