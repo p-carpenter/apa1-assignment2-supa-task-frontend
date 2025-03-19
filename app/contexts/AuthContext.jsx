@@ -6,22 +6,11 @@ import {
   useState,
   useEffect,
   useCallback,
+  useMemo,
 } from "react";
-import {
-  signIn,
-  signUp,
-  signOut,
-  getCurrentUser,
-  getStoredUser,
-} from "../utils/auth/client";
-import { AUTH_STORAGE_KEYS } from "../utils/auth/config";
+import { signIn, signUp, signOut, getCurrentUser } from "../utils/auth/client";
 import { ERROR_TYPES } from "../utils/errors/errorTypes";
 import { processApiError } from "../utils/errors/errorService";
-
-/**
- * Authentication Context
- * Provides authentication state and methods to the application
- */
 
 export const AuthContext = createContext({
   user: null,
@@ -45,6 +34,7 @@ export function AuthProvider({
   const [user, setUser] = useState(initialUser);
   const [session, setSession] = useState(initialSession);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const isAuthenticated = Boolean(user);
 
   useEffect(() => {
@@ -57,47 +47,38 @@ export function AuthProvider({
         return;
       }
 
-      // Check localStorage for immediate UI feedback
-      const storedData = getStoredUser();
-      if (storedData?.user) {
-        // Temporarily set the user from localStorage
-        setUser(storedData.user);
-        setSession(storedData.session);
-      }
-
       try {
-        // Only try server verification if there's localStorage data
-        if (storedData?.user) {
-          // Verify with server that the session is still valid
-          const serverData = await getCurrentUser(true);
+        // Verify with server that session is valid
+        const data = await getCurrentUser();
 
-          if (serverData.user) {
-            setUser(serverData.user);
-            setSession(serverData.session);
-          } else {
-            setUser(null);
-            setSession(null);
-            localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-            localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-          }
+        if (data.user) {
+          setUser(data.user);
+          setSession(data.session);
         } else {
           setUser(null);
           setSession(null);
+
+          // If specific error, store it
+          if (data.error) {
+            setError({
+              message: data.error,
+              type: data.errorType || ERROR_TYPES.UNKNOWN_ERROR,
+            });
+          }
         }
       } catch (error) {
         console.warn("Session verification failed:", error);
 
         const standardError = processApiError(error);
+        setError(standardError);
 
-        // If we get auth errors, clear everything
+        // If auth errors, clear user state
         if (
           standardError.type === ERROR_TYPES.AUTH_REQUIRED ||
           standardError.type === ERROR_TYPES.SESSION_EXPIRED
         ) {
           setUser(null);
           setSession(null);
-          localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-          localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
         }
       } finally {
         setIsLoading(false);
@@ -109,6 +90,7 @@ export function AuthProvider({
 
   const handleSignIn = useCallback(async (credentials) => {
     setIsLoading(true);
+    setError(null);
 
     try {
       if (!credentials.email || !credentials.password) {
@@ -133,6 +115,7 @@ export function AuthProvider({
         defaultMessage: "Unable to sign in. Please try again.",
       });
 
+      setError(standardError);
       throw standardError;
     } finally {
       setIsLoading(false);
@@ -141,6 +124,8 @@ export function AuthProvider({
 
   const handleSignUp = useCallback(async (credentials) => {
     setIsLoading(true);
+    setError(null);
+
     try {
       const data = await signUp(credentials);
       setUser(data.user);
@@ -153,6 +138,7 @@ export function AuthProvider({
         defaultMessage: "Unable to create account. Please try again.",
       });
 
+      setError(standardError);
       throw standardError;
     } finally {
       setIsLoading(false);
@@ -161,10 +147,13 @@ export function AuthProvider({
 
   const handleSignOut = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
+
     try {
-      await signOut();
+      const result = await signOut();
       setUser(null);
       setSession(null);
+      return result;
     } catch (error) {
       console.error("Sign out handler error:", error);
 
@@ -173,9 +162,11 @@ export function AuthProvider({
           "Error during sign out, but local session has been cleared.",
       });
 
+      // Always clear user state on signout attempt regardless of errors
       setUser(null);
       setSession(null);
 
+      setError(standardError);
       if (standardError.type !== ERROR_TYPES.NETWORK_ERROR) {
         throw standardError;
       }
@@ -186,11 +177,19 @@ export function AuthProvider({
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
+
     try {
-      // Force server verification when explicitly refreshing
       const data = await getCurrentUser(true);
-      setUser(data.user);
-      setSession(data.session);
+
+      if (data.user) {
+        setUser(data.user);
+        setSession(data.session);
+      } else {
+        setUser(null);
+        setSession(null);
+      }
+
       return data;
     } catch (error) {
       console.error("Refresh user error:", error);
@@ -199,22 +198,38 @@ export function AuthProvider({
         defaultMessage: "Unable to refresh user information. Please try again.",
       });
 
+      setError(standardError);
       throw standardError;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const contextValue = {
-    user,
-    session,
-    isAuthenticated,
-    isLoading,
-    signIn: handleSignIn,
-    signUp: handleSignUp,
-    signOut: handleSignOut,
-    refreshUser,
-  };
+  // Use memoized context value to prevent unnecessary re-renders
+  const contextValue = useMemo(
+    () => ({
+      user,
+      session,
+      isAuthenticated,
+      isLoading,
+      error,
+      signIn: handleSignIn,
+      signUp: handleSignUp,
+      signOut: handleSignOut,
+      refreshUser,
+    }),
+    [
+      user,
+      session,
+      isAuthenticated,
+      isLoading,
+      error,
+      handleSignIn,
+      handleSignUp,
+      handleSignOut,
+      refreshUser,
+    ]
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>

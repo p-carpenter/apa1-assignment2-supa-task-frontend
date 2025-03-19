@@ -2,8 +2,9 @@ import {
   createEndpointHandler,
   fetchFromSupabase,
 } from "@/app/utils/api/clientApi";
-import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
 import { cookies } from "next/headers";
+import { AUTH_CONFIG } from "@/app/utils/auth/config";
 
 export const POST = createEndpointHandler(async (req) => {
   try {
@@ -53,7 +54,7 @@ export const POST = createEndpointHandler(async (req) => {
       cookieStore.set("sb-access-token", data.session.access_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 3600,
+        maxAge: AUTH_CONFIG.tokenExpiration.access,
         path: "/",
         sameSite: "lax",
       });
@@ -61,7 +62,7 @@ export const POST = createEndpointHandler(async (req) => {
       cookieStore.set("sb-refresh-token", data.session.refresh_token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        maxAge: 7776000,
+        maxAge: AUTH_CONFIG.tokenExpiration.refresh,
         path: "/",
         sameSite: "lax",
       });
@@ -76,7 +77,13 @@ export const POST = createEndpointHandler(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ user: data.user, session: data.session }),
+      JSON.stringify({
+        user: data.user,
+        session: {
+          // Only include non-sensitive session data
+          expires_at: data.session.expires_at,
+        },
+      }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {

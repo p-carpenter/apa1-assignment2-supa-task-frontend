@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { SUPABASE_COOKIES, EDGE_FUNCTIONS } from "../config";
+import { AUTH_COOKIE_NAMES, EDGE_FUNCTIONS } from "../config";
 
 /**
  * Server-side authentication utilities
@@ -17,8 +17,8 @@ const EDGE_FUNCTION_BASE_URL = `${SUPABASE_URL}/functions/v1`;
  */
 export async function getServerSession() {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get(SUPABASE_COOKIES.ACCESS_TOKEN)?.value;
-  const refreshToken = cookieStore.get(SUPABASE_COOKIES.REFRESH_TOKEN)?.value;
+  const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
 
   if (!accessToken || !refreshToken) {
     return { user: null, session: null };
@@ -31,7 +31,7 @@ export async function getServerSession() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Cookie: `${SUPABASE_COOKIES.ACCESS_TOKEN}=${accessToken}; ${SUPABASE_COOKIES.REFRESH_TOKEN}=${refreshToken}`,
+          Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
       }
@@ -55,8 +55,8 @@ export async function getServerSession() {
  */
 export async function getProtectedServerData() {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get(SUPABASE_COOKIES.ACCESS_TOKEN)?.value;
-  const refreshToken = cookieStore.get(SUPABASE_COOKIES.REFRESH_TOKEN)?.value;
+  const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
 
   if (!accessToken || !refreshToken) {
     return null;
@@ -69,7 +69,7 @@ export async function getProtectedServerData() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Cookie: `${SUPABASE_COOKIES.ACCESS_TOKEN}=${accessToken}; ${SUPABASE_COOKIES.REFRESH_TOKEN}=${refreshToken}`,
+          Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
           Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
         },
       }

@@ -1,14 +1,6 @@
 /**
  * Authentication configuration constants
  */
-
-// Local storage keys for auth data persistence
-export const AUTH_STORAGE_KEYS = {
-  TOKEN: "auth_token",
-  USER: "auth_user",
-};
-
-// API endpoints for authentication
 export const AUTH_ENDPOINTS = {
   SIGNIN: "/api/auth/signin",
   SIGNUP: "/api/auth/signup",
@@ -19,14 +11,37 @@ export const AUTH_ENDPOINTS = {
   PASSWORD_RECOVERY_CONFIRM: "/api/auth/password-recovery/confirm",
 };
 
-// Supabase cookie names
-export const SUPABASE_COOKIES = {
+/**
+ * Edge function endpoints
+ */
+export const EDGE_FUNCTIONS = {
+  USER: "/authentication/user",
+  VALIDATE: "/validate-auth",
+};
+
+/**
+ * Cookie for authentication
+ */
+export const AUTH_COOKIE_NAMES = {
   ACCESS_TOKEN: "sb-access-token",
   REFRESH_TOKEN: "sb-refresh-token",
 };
 
-// Edge function endpoints
-export const EDGE_FUNCTIONS = {
-  USER: "/authentication/user",
-  VALIDATE: "/validate-auth",
+/**
+ * Authentication configuration
+ */
+export const AUTH_CONFIG = {
+  // Cookie settings
+  cookieOptions: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    path: "/",
+    sameSite: "lax",
+  },
+
+  // Token expiration times in seconds
+  tokenExpiration: {
+    access: 3600, // 1 hour
+    refresh: 7776000, // 90 days
+  },
 };

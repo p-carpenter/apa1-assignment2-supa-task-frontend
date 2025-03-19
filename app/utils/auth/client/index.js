@@ -1,6 +1,6 @@
 "use client";
 
-import { AUTH_STORAGE_KEYS, AUTH_ENDPOINTS } from "../config";
+import { AUTH_ENDPOINTS } from "../config";
 import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 import { fetchWithErrorHandling } from "../../api/clientApi";
 
@@ -28,23 +28,6 @@ export async function signIn({ email, password }) {
       const error = new Error("Invalid response from authentication server");
       error.type = ERROR_TYPES.SERVICE_UNAVAILABLE;
       throw error;
-    }
-
-    // Store in localStorage for persistence
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
-      if (data.session?.access_token) {
-        localStorage.setItem(
-          AUTH_STORAGE_KEYS.TOKEN,
-          data.session.access_token
-        );
-      }
-    } catch (storageError) {
-      console.warn(
-        "Failed to store authentication in localStorage:",
-        storageError
-      );
-      // Continue anyway as cookies are the primary auth method
     }
 
     return data;
@@ -82,21 +65,6 @@ export async function signUp({ email, password, displayName }) {
       throw validationError;
     }
 
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
-      if (data.session?.access_token) {
-        localStorage.setItem(
-          AUTH_STORAGE_KEYS.TOKEN,
-          data.session.access_token
-        );
-      }
-    } catch (storageError) {
-      console.warn(
-        "Failed to store authentication in localStorage:",
-        storageError
-      );
-    }
-
     return data;
   } catch (error) {
     console.error("Sign up error:", error);
@@ -111,9 +79,7 @@ export async function signUp({ email, password, displayName }) {
 export async function signOut() {
   try {
     if (typeof window !== "undefined" && !window.navigator.onLine) {
-      // If offline, just clear local state
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
+      // If offline, inform about uncleared server session
       return {
         success: true,
         warning: "Offline signout - server session may still be active",
@@ -133,15 +99,8 @@ export async function signOut() {
         }
       );
 
-      // Clear local storage regardless of server response
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-
       return response;
     } catch (error) {
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-
       // For network or timeout errors, consider it a success with warning
       if (
         error.type === ERROR_TYPES.NETWORK_ERROR ||
@@ -149,7 +108,7 @@ export async function signOut() {
       ) {
         return {
           success: true,
-          warning: `${error.type} during signout, but local state has been cleared`,
+          warning: `${error.type} during signout, but you have been signed out locally`,
         };
       }
 
@@ -162,70 +121,15 @@ export async function signOut() {
 }
 
 /**
- * Get the current user from localStorage without server verification
- * @returns {Object|null} User data or null
- */
-export function getStoredUser() {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const storedUser = localStorage.getItem(AUTH_STORAGE_KEYS.USER);
-    if (!storedUser) return null;
-
-    const user = JSON.parse(storedUser);
-    const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-
-    // Basic validation of stored user data
-    if (!user || typeof user !== "object" || !user.id) {
-      console.warn("Invalid user data in localStorage, clearing");
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-      return null;
-    }
-
-    return {
-      user,
-      session: {
-        token: token || null,
-      },
-    };
-  } catch (e) {
-    console.error("Error parsing stored user:", e);
-    localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-    localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-    return null;
-  }
-}
-
-/**
  * Get the current user
- * Only verifies with server if forceRefresh is true
  * @param {boolean} forceRefresh - Force server verification
  * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function getCurrentUser(forceRefresh = false) {
-  // Check localStorage
-  const storedData = getStoredUser();
-
-  if (storedData?.user && !forceRefresh) {
-    return storedData;
-  }
-
   try {
     if (typeof window !== "undefined" && !window.navigator.onLine) {
-      // Return stored data with warning if offline
-      if (storedData) {
-        return {
-          ...storedData,
-          session: {
-            ...storedData.session,
-            warning: "Offline mode - using stored credentials",
-          },
-        };
-      }
-
       const offlineError = new Error(
-        "No internet connection and no stored user data"
+        "No internet connection. Authentication status cannot be verified."
       );
       offlineError.type = ERROR_TYPES.NETWORK_ERROR;
       offlineError.isOffline = true;
@@ -245,42 +149,19 @@ export async function getCurrentUser(forceRefresh = false) {
     );
 
     if (!data || !data.user) {
-      // Clear localStorage here to ensure consistency
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-
       return { user: null, session: null };
-    }
-
-    // Update localStorage with fresh data
-    try {
-      localStorage.setItem(AUTH_STORAGE_KEYS.USER, JSON.stringify(data.user));
-      if (data.session?.access_token) {
-        localStorage.setItem(
-          AUTH_STORAGE_KEYS.TOKEN,
-          data.session.access_token
-        );
-      }
-    } catch (storageError) {
-      console.warn(
-        "Failed to update localStorage with fresh user data:",
-        storageError
-      );
     }
 
     return data;
   } catch (error) {
     console.error("Get user error:", error);
 
-    // Handle auth errors by clearing localStorage to ensure consistency
+    // Handle auth errors
     if (
       error.type === ERROR_TYPES.AUTH_REQUIRED ||
       error.type === ERROR_TYPES.SESSION_EXPIRED ||
       error.type === ERROR_TYPES.PERMISSION_DENIED
     ) {
-      localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-      localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
-
       return {
         user: null,
         session: null,
@@ -288,47 +169,13 @@ export async function getCurrentUser(forceRefresh = false) {
       };
     }
 
-    if (error.type === ERROR_TYPES.SERVICE_UNAVAILABLE && storedData) {
-      return {
-        ...storedData,
-        session: {
-          ...storedData.session,
-          needs_refresh: true,
-          warning: "Server error - using stored credentials",
-        },
-      };
-    }
-
-    // For timeouts, fall back to stored data with warning
-    if (
-      (error.type === ERROR_TYPES.TIMEOUT ||
-        error.type === ERROR_TYPES.NETWORK_ERROR) &&
-      storedData
-    ) {
-      return {
-        ...storedData,
-        session: {
-          ...storedData.session,
-          needs_refresh: true,
-          warning: `${error.type} - using stored credentials`,
-        },
-      };
-    }
-
-    // If we have stored data for other errors, return it with warning
-    if (storedData) {
-      return {
-        ...storedData,
-        session: {
-          ...storedData.session,
-          needs_refresh: true,
-          warning:
-            "Error during authentication check - using stored credentials",
-        },
-      };
-    }
-
-    return { user: null, session: null };
+    // For network or service unavailable errors, return null with error info
+    return {
+      user: null,
+      session: null,
+      error: error.message,
+      errorType: error.type,
+    };
   }
 }
 
