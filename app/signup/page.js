@@ -119,13 +119,12 @@ export default function SignupPage() {
     } catch (err) {
       console.error("Signup form error:", err);
 
-      // Process the error through our centralized error service
       const standardError = processApiError(err, {
         defaultMessage: "Failed to create account",
       });
       setApiError(standardError);
 
-      throw err; // Rethrow to let useForm handle isSubmitting state
+      throw err;
     } finally {
       console.log("Signup form submission completed");
       submissionInProgress.current = false;

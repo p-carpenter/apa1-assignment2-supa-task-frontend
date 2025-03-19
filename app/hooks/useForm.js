@@ -36,19 +36,23 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         [name]: value,
       }));
 
-      // Run field-level validation if a validate function exists
       if (validateFn) {
         const newData = { ...formData, [name]: value };
+
         try {
-          const fieldError = validateFn(newData, name);
-          if (fieldError && typeof fieldError === "object") {
+          const fieldErrors = validateFn(newData, name) || {};
+          if (Object.keys(fieldErrors).length > 0) {
             setFormErrors((prevErrors) => ({
               ...prevErrors,
-              [name]: fieldError[name],
+              ...fieldErrors,
             }));
           }
         } catch (error) {
-          // Ignore validation errors during field change
+          console.warn("Field validation error:", error);
+          setFormErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: "Validation failed",
+          }));
         }
       }
     },
@@ -69,22 +73,23 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         [name]: inputValue,
       }));
 
-      // Run field-level validation if a validate function exists
       if (validateFn) {
         try {
-          const fieldError = validateFn(
-            { ...formData, [name]: inputValue },
-            name
-          );
+          const fieldErrors =
+            validateFn({ ...formData, [name]: inputValue }, name) || {};
 
-          if (fieldError && typeof fieldError === "object") {
+          if (Object.keys(fieldErrors).length > 0) {
             setFormErrors((prevErrors) => ({
               ...prevErrors,
-              [name]: fieldError[name],
+              ...fieldErrors,
             }));
           }
         } catch (error) {
-          // Ignore validation errors during input change
+          console.warn("Field validation error:", error);
+          setFormErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: "Validation failed",
+          }));
         }
       }
     },
@@ -100,18 +105,22 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
       const { name } = e.target;
       setTouched((prev) => ({ ...prev, [name]: true }));
 
-      // Run field-level validation on blur
       if (validateFn) {
         try {
-          const fieldError = validateFn(formData, name);
-          if (fieldError && typeof fieldError === "object") {
+          const fieldErrors = validateFn(formData, name) || {};
+
+          if (Object.keys(fieldErrors).length > 0) {
             setFormErrors((prevErrors) => ({
               ...prevErrors,
-              [name]: fieldError[name],
+              ...fieldErrors,
             }));
           }
         } catch (error) {
-          // Ignore validation errors during blur
+          console.warn("Field validation error:", error);
+          setFormErrors((prevErrors) => ({
+            ...prevErrors,
+            [name]: "Validation failed",
+          }));
         }
       }
     },
@@ -169,41 +178,39 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
       setIsSubmitting(true);
 
       try {
-        // Run form validation
         if (validateFn) {
-          let errors;
+          let errors = {};
+
           try {
-            errors = validateFn(formData);
+            errors = validateFn(formData) || {};
           } catch (validationError) {
-            throw new Error("Form validation failed. Please check your input.");
+            console.warn("Form validation error:", validationError);
+            errors = {
+              _form: "Form validation failed. Please check your input.",
+            };
           }
 
-          // If there are validation errors, stop submission
-          if (errors && Object.keys(errors).length > 0) {
+          if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
 
-            // Mark all fields as touched
             const allTouched = Object.keys(formData).reduce((acc, key) => {
               acc[key] = true;
               return acc;
             }, {});
-            setTouched(allTouched);
 
+            setTouched(allTouched);
             setIsSubmitting(false);
             return;
           }
         }
 
-        // If validation passes, call the submit handler
         if (onSubmit) {
           const result = await Promise.resolve(onSubmit(formData));
           return result;
         }
       } catch (error) {
-        // Let the component handle API errors
         throw error;
       } finally {
-        // Only update state if component is still mounted
         if (isMounted.current) {
           setIsSubmitting(false);
         }

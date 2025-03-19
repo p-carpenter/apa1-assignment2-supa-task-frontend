@@ -1,17 +1,21 @@
-import {
-  createEndpointHandler,
-  fetchFromSupabase,
-} from "@/app/utils/api/clientApi";
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
 import { cookies } from "next/headers";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-export const POST = createEndpointHandler(async (req) => {
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+export async function POST(req) {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get("sb-access-token")?.value;
   const refreshToken = cookieStore.get("sb-refresh-token")?.value;
 
-  // Always clear cookies regardless of what happens with the API call
   try {
-    // Clear cookies
     cookieStore.set("sb-access-token", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -27,7 +31,6 @@ export const POST = createEndpointHandler(async (req) => {
       sameSite: "lax",
     });
 
-    // If we have tokens, attempt to sign out from Supabase
     if (accessToken && refreshToken) {
       try {
         await fetchFromSupabase("authentication/signout", "POST", null, {
@@ -36,7 +39,6 @@ export const POST = createEndpointHandler(async (req) => {
           Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
         });
       } catch (error) {
-        // Log but don't fail the operation if Supabase signout fails
         console.warn(
           "Supabase signout failed, but cookies have been cleared:",
           error.message
@@ -46,21 +48,26 @@ export const POST = createEndpointHandler(async (req) => {
       console.log("No auth tokens found, skipping Supabase signout");
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
   } catch (error) {
     console.error("Error in signout:", error);
 
-    // Still return success as we want the frontend to clear its state
-    // This avoids UI showing logged in when session is actually invalid
+    const standardError = processApiError(error);
+
     return new Response(
       JSON.stringify({
         success: true,
         warning: "Signout partially completed with errors",
+        error: standardError.message,
+        timestamp: new Date().toISOString(),
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: CORS_HEADERS }
     );
   }
-});
+}

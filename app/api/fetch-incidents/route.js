@@ -1,16 +1,22 @@
-import {
-  createEndpointHandler,
-  fetchFromSupabase,
-} from "@/app/utils/api/clientApi";
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-export const GET = createEndpointHandler(async (req) => {
+// Handle OPTIONS requests for CORS
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+export async function GET(req) {
   try {
     const url = new URL(req.url);
     const limit = url.searchParams.get("limit");
     const offset = url.searchParams.get("offset");
     const category = url.searchParams.get("category");
 
-    // Construct API path with any params
     let path = "tech-incidents";
     const queryParams = new URLSearchParams();
 
@@ -26,35 +32,34 @@ export const GET = createEndpointHandler(async (req) => {
     const data = await fetchFromSupabase(path, "GET");
 
     if (!data || !Array.isArray(data)) {
-      return new Response(
-        JSON.stringify({ error: "Invalid response format from server" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control": "max-age=60, stale-while-revalidate=300",
-      },
-    });
-  } catch (error) {
-    console.error("Fetch incidents error:", error);
-
-    if (error.status === 404) {
-      return new Response(
-        JSON.stringify({ error: "Incidents resource not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
+      throw new Error("Invalid response format from server");
     }
 
     return new Response(
-      JSON.stringify({ error: "Failed to fetch incidents" }),
+      JSON.stringify({
+        data,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
+  } catch (error) {
+    console.error("Fetch incidents error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to fetch incidents",
+    });
+
+    return new Response(
+      JSON.stringify({
+        error: standardError.message,
+        errorType: standardError.type,
+        details: standardError.details,
+        timestamp: new Date().toISOString(),
+      }),
       {
-        status: error.status || 500,
-        headers: { "Content-Type": "application/json" },
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
   }
-});
+}

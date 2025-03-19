@@ -154,20 +154,21 @@ export async function getCurrentUser(forceRefresh = false) {
 
     return data;
   } catch (error) {
-    console.error("Get user error:", error);
+    // Removing these errors because sign in is not mandatory
+    // console.error("Get user error:", error);
 
-    // Handle auth errors
-    if (
-      error.type === ERROR_TYPES.AUTH_REQUIRED ||
-      error.type === ERROR_TYPES.SESSION_EXPIRED ||
-      error.type === ERROR_TYPES.PERMISSION_DENIED
-    ) {
-      return {
-        user: null,
-        session: null,
-        error: error.message,
-      };
-    }
+    // // Handle auth errors
+    // if (
+    //   error.type === ERROR_TYPES.AUTH_REQUIRED ||
+    //   error.type === ERROR_TYPES.SESSION_EXPIRED ||
+    //   error.type === ERROR_TYPES.PERMISSION_DENIED
+    // ) {
+    //   return {
+    //     user: null,
+    //     session: null,
+    //     error: error.message,
+    //   };
+    // }
 
     // For network or service unavailable errors, return null with error info
     return {

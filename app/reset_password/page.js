@@ -46,12 +46,11 @@ export default function ResetPasswordPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Create an error object with appropriate properties
-        const error = new Error(data.error || "Something went wrong");
-        error.status = response.status;
-        error.data = data;
-
-        throw error;
+        throw {
+          status: response.status,
+          data: data,
+          message: data.error || "Something went wrong",
+        };
       }
 
       setSuccessMessage(
@@ -60,13 +59,10 @@ export default function ResetPasswordPage() {
 
       resetForm();
     } catch (err) {
-      // Process the error through our centralized error service
       const standardError = processApiError(err, {
         defaultMessage: "Failed to process request",
       });
       setApiError(standardError);
-
-      throw err;
     }
   };
 

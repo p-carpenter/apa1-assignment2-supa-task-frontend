@@ -1,100 +1,67 @@
-import {
-  createEndpointHandler,
-  fetchFromSupabase,
-} from "@/app/utils/api/clientApi";
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-export const PUT = createEndpointHandler(async (req) => {
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+export async function PUT(req) {
   try {
     const requestData = await req.json();
 
-    if (!requestData.id) {
-      return new Response(
-        JSON.stringify({ error: "Incident ID is required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    if (!requestData.id || !requestData.updates) {
+      throw new Error("Incident ID and updates are required");
     }
 
-    if (!requestData.update || Object.keys(requestData.update).length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No update data provided" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const { id, updates } = requestData;
 
-    const { id, update, fileData, fileName, fileType } = requestData;
+    let payload = { id, updates };
 
-    const payload = { id, update };
-
-    if (update.artifactType === "image" && fileData) {
-      payload.fileData = fileData;
-      payload.fileName = fileName || "unknown.jpg";
-      payload.fileType = fileType || "image/jpeg";
+    if (updates.artifactType === "image" && requestData.fileData) {
+      payload.fileData = requestData.fileData;
+      payload.fileName = requestData.fileName || "unknown.jpg";
+      payload.fileType = requestData.fileType || "image/jpeg";
 
       if (typeof payload.fileData === "string") {
-        const base64Size = payload.fileData.length * 0.75; // approximate size
+        const base64Size = payload.fileData.length * 0.75;
         if (base64Size > 5 * 1024 * 1024) {
-          return new Response(
-            JSON.stringify({ error: "File size exceeds 5MB limit" }),
-            { status: 413, headers: { "Content-Type": "application/json" } }
-          );
+          throw new Error("File size exceeds 5MB limit");
         }
       }
     }
 
-    console.log(`🛠 Updating incident ${id}`);
-
+    console.log(`Updating incident ID: ${id}`);
     const data = await fetchFromSupabase("tech-incidents", "PUT", payload);
 
-    if (!data) {
-      return new Response(
-        JSON.stringify({ error: "Update succeeded but no data returned" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        data,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
   } catch (error) {
     console.error("Update incident error:", error);
 
-    if (error.status === 404) {
-      return new Response(JSON.stringify({ error: "Incident not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (error.status === 403) {
-      return new Response(
-        JSON.stringify({
-          error: "You don't have permission to update this incident",
-        }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    if (error.status === 413) {
-      return new Response(JSON.stringify({ error: "File too large" }), {
-        status: 413,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (error.status === 400) {
-      return new Response(
-        JSON.stringify({ error: error.message || "Invalid update data" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to update incident",
+    });
 
     return new Response(
-      JSON.stringify({ error: "Failed to update incident" }),
+      JSON.stringify({
+        error: standardError.message,
+        errorType: standardError.type,
+        details: standardError.details,
+        timestamp: new Date().toISOString(),
+      }),
       {
-        status: error.status || 500,
-        headers: { "Content-Type": "application/json" },
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
   }
-});
+}

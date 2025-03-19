@@ -71,25 +71,21 @@ export default function ConfirmResetPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Create an error object with appropriate properties
-        const error = new Error(data.error || "Something went wrong");
-        error.status = response.status;
-        error.data = data;
-
-        throw error;
+        throw {
+          status: response.status,
+          data: data,
+          message: data.error || "Something went wrong",
+        };
       }
 
       setSuccessMessage(
         "Your password has been successfully reset. You can now login with your new password."
       );
     } catch (err) {
-      // Process the error through our centralized error service
       const standardError = processApiError(err, {
         defaultMessage: "Failed to reset password",
       });
       setApiError(standardError);
-
-      throw err;
     }
   };
 
@@ -99,13 +95,21 @@ export default function ConfirmResetPage() {
     confirmPassword: "",
   };
 
-  const validateFormFunction = (data, fieldName) =>
-    validateAuthForm(data, fieldName, {
-      options: { requirePasswordConfirmation: true },
-    });
-
   const { formData, formErrors, isSubmitting, handleChange, handleSubmit } =
-    useForm(initialFormState, validateFormFunction, handleFormSubmit);
+    useForm(
+      initialFormState,
+      (data, fieldName) =>
+        validateAuthForm(data, fieldName, {
+          options: {
+            requirePasswordConfirmation: true,
+            minLength: 8,
+            requireUppercase: true,
+            requireNumbers: true,
+            requireSpecial: true,
+          },
+        }),
+      handleFormSubmit
+    );
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",

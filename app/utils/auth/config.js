@@ -45,3 +45,13 @@ export const AUTH_CONFIG = {
     refresh: 7776000, // 90 days
   },
 };
+
+/**
+ * CORS headers for API routes
+ */
+export const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Authorization, Content-Type",
+  "Content-Type": "application/json",
+};

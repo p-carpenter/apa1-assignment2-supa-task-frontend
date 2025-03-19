@@ -2,7 +2,7 @@
  * Common API utilities for handling requests and responses
  */
 import { processApiError } from "@/app/utils/errors/errorService";
-import { ERROR_TYPES } from "../errors/errorTypes";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 
 /**
  * Fetch with standardized error handling to use in calling internal API routes
@@ -37,61 +37,14 @@ export const fetchWithErrorHandling = async (
       error.status = response.status;
       error.data = errorData;
 
-      // Explicitly mark auth-related errors for easier handling
-      if (response.status === 401) {
-        error.type = ERROR_TYPES.AUTH_REQUIRED;
-        error.isAuthError = true;
-      }
-
       throw error;
     }
 
     return await response.json();
   } catch (error) {
     const standardError = processApiError(error, errorOptions);
-
+    standardError.isProcessed = true;
     throw standardError;
-  }
-};
-
-/**
- * Create a standard API endpoint handler with CORS and error handling
- *
- * @param {Function} handler - The API route handler function
- * @returns {Function} - The wrapped handler with error and CORS handling
- */
-export const createEndpointHandler = (handler) => async (req) => {
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-  };
-
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
-
-  try {
-    return await handler(req, corsHeaders);
-  } catch (error) {
-    console.error(`Handler error:`, error);
-
-    let errorMessage = error.message || "Internal Server Error";
-    let statusCode = error.status || 500;
-
-    return new Response(
-      JSON.stringify({
-        error: errorMessage,
-        timestamp: new Date().toISOString(),
-      }),
-      {
-        status: statusCode,
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "application/json",
-        },
-      }
-    );
   }
 };
 
@@ -123,6 +76,7 @@ export const fetchFromSupabase = async (
         "No internet connection. Please check your network and try again."
       );
       offlineError.isOffline = true;
+      offlineError.type = ERROR_TYPES.NETWORK_ERROR;
       throw offlineError;
     }
 
@@ -130,9 +84,7 @@ export const fetchFromSupabase = async (
       throw new Error("API path is required for Supabase requests");
     }
 
-    if (
-      !["GET", "POST", "PUT", "DELETE", "PATCH"].includes(method.toUpperCase())
-    ) {
+    if (!["GET", "POST", "PUT", "DELETE"].includes(method.toUpperCase())) {
       throw new Error(`Invalid HTTP method: ${method}`);
     }
 
@@ -159,48 +111,10 @@ export const fetchFromSupabase = async (
       error.status = response.status;
       error.path = path;
       error.method = method;
+      error.data = errorData;
 
-      switch (response.status) {
-        case 400:
-          error.type = "VALIDATION_ERROR";
-          error.message =
-            errorData.error || "Invalid data format or parameters";
-          break;
-        case 401:
-          error.type = "UNAUTHORIZED";
-          error.message = "Authentication required. Please sign in again.";
-          break;
-        case 403:
-          error.type = "FORBIDDEN";
-          error.message = "You do not have permission to perform this action";
-          break;
-        case 404:
-          error.type = "NOT_FOUND";
-          error.message = `Resource not found: ${path}`;
-          break;
-        case 409:
-          error.type = "CONFLICT";
-          error.message =
-            "The requested operation conflicts with the current state";
-          break;
-        case 413:
-          error.type = "PAYLOAD_TOO_LARGE";
-          error.message = "The file you're trying to upload is too large";
-          break;
-        case 429:
-          error.type = "RATE_LIMITED";
-          error.message = "Too many requests. Please try again later";
-          break;
-        case 500:
-        case 502:
-        case 503:
-        case 504:
-          error.type = "SERVER_ERROR";
-          error.message = "Server error. Please try again later";
-          break;
-      }
-
-      throw error;
+      const processedError = processApiError(error);
+      throw processedError;
     }
 
     // Handle successful but empty responses
@@ -223,16 +137,10 @@ export const fetchFromSupabase = async (
       error.method = method;
     }
 
-    // Log all errors with request details
     console.error(`Supabase API Request Failed (${method} ${path}):`, error);
 
-    if (error.name === "TypeError" && error.message.includes("fetch")) {
-      const enhancedError = new Error(
-        `Network error while connecting to Supabase. Please check your connection.`
-      );
-      enhancedError.originalError = error;
-      enhancedError.type = "NETWORK_ERROR";
-      throw enhancedError;
+    if (!error.isProcessed) {
+      throw processApiError(error);
     }
 
     throw error;

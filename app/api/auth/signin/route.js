@@ -1,52 +1,16 @@
-import {
-  createEndpointHandler,
-  fetchFromSupabase,
-} from "@/app/utils/api/clientApi";
-import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { cookies } from "next/headers";
-import { AUTH_CONFIG } from "@/app/utils/auth/config";
+import { AUTH_CONFIG, CORS_HEADERS } from "@/app/utils/auth/config";
 
-export const POST = createEndpointHandler(async (req) => {
+export const POST = async (req) => {
   try {
     const body = await req.json();
-
-    if (!body.email || !body.password) {
-      return new Response(
-        JSON.stringify({
-          error: "Email and password are required",
-          errorType: ERROR_TYPES.VALIDATION_ERROR,
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
     const { email, password } = body;
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid email format",
-          errorType: ERROR_TYPES.VALIDATION_ERROR,
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
 
     const data = await fetchFromSupabase("authentication/signin", "POST", {
       email,
       password,
     });
-
-    if (!data || !data.user) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid authentication response",
-          errorType: ERROR_TYPES.SERVICE_UNAVAILABLE,
-        }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
 
     if (data.session) {
       const cookieStore = await cookies();
@@ -66,58 +30,34 @@ export const POST = createEndpointHandler(async (req) => {
         path: "/",
         sameSite: "lax",
       });
-    } else {
+
       return new Response(
         JSON.stringify({
-          error: "Authentication succeeded but no session was created",
-          errorType: ERROR_TYPES.SERVICE_UNAVAILABLE,
+          user: data.user,
+          session: { expires_at: data.session.expires_at },
+          timestamp: new Date().toISOString(),
         }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 200, headers: CORS_HEADERS }
       );
+    } else {
+      throw new Error("Authentication succeeded but no session was created");
     }
-
-    return new Response(
-      JSON.stringify({
-        user: data.user,
-        session: {
-          // Only include non-sensitive session data
-          expires_at: data.session.expires_at,
-        },
-      }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
   } catch (error) {
     console.error("Signin error:", error);
 
-    if (error.status === 401) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid email or password",
-          errorType: ERROR_TYPES.INVALID_CREDENTIALS,
-        }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    if (error.status === 429) {
-      return new Response(
-        JSON.stringify({
-          error: "Too many login attempts, please try again later",
-          errorType: ERROR_TYPES.RATE_LIMITED,
-        }),
-        { status: 429, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const standardError = processApiError(error);
 
     return new Response(
       JSON.stringify({
-        error: "Authentication failed",
-        errorType: ERROR_TYPES.UNKNOWN_ERROR,
+        error: standardError.message,
+        errorType: standardError.type,
+        details: standardError.details,
+        timestamp: new Date().toISOString(),
       }),
       {
-        status: error.status || 500,
-        headers: { "Content-Type": "application/json" },
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
   }
-});
+};

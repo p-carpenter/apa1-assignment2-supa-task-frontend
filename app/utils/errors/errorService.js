@@ -79,7 +79,6 @@ export const processApiError = (error, options = {}) => {
 
   // Check for "User already exists" error
   if (error.status === 400) {
-    // Check various places where the message might be
     const errorDetails = error.details || error.data?.details;
     const errorMessage = error.message || error.data?.error || "";
 

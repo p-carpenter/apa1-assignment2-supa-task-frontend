@@ -1,25 +1,49 @@
-import {
-  createEndpointHandler,
-  fetchFromSupabase,
-} from "@/app/utils/api/clientApi";
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-export const POST = createEndpointHandler(async (req) => {
-  const { email } = await req.json();
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
 
-  if (!email) {
-    return new Response(JSON.stringify({ error: "Email is required" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
+export async function POST(req) {
+  try {
+    const { email } = await req.json();
 
-  await fetchFromSupabase("password-recovery", "POST", { email });
-
-  return new Response(
-    JSON.stringify({ message: "Password reset instructions sent" }),
-    {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
+    if (!email) {
+      throw new Error("Email is required");
     }
-  );
-});
+
+    await fetchFromSupabase("password-recovery", "POST", { email });
+
+    return new Response(
+      JSON.stringify({
+        message: "Password reset instructions sent",
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
+  } catch (error) {
+    console.error("Password recovery error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to send password reset instructions",
+    });
+
+    return new Response(
+      JSON.stringify({
+        error: standardError.message,
+        errorType: standardError.type,
+        details: standardError.details,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: standardError.status,
+        headers: CORS_HEADERS,
+      }
+    );
+  }
+}

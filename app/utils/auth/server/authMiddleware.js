@@ -48,18 +48,4 @@ export const withAuth = (handler) => async (req) => {
   }
 };
 
-/**
- * Helper to add auth headers to Supabase requests
- *
- * @param {Object} req - Request with auth data
- * @returns {Object} - Headers with auth information
- */
-export const getSupabaseAuthHeaders = (req) => {
-  const { accessToken } = req.auth;
 
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${accessToken}`,
-    Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${req.auth.refreshToken}`,
-  };
-};

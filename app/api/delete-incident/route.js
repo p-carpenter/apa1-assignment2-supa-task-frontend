@@ -1,72 +1,51 @@
-import {
-  createEndpointHandler,
-  fetchFromSupabase,
-} from "@/app/utils/api/clientApi";
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-export const DELETE = createEndpointHandler(async (req) => {
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+}
+
+export async function DELETE(req) {
   try {
-    const body = await req.json();
+    const url = new URL(req.url);
+    const id = url.searchParams.get("id");
 
-    if (!body.ids) {
-      return new Response(
-        JSON.stringify({ error: "Incident IDs are required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
+    if (!id) {
+      throw new Error("Incident ID is required");
     }
 
-    const { ids } = body;
+    console.log(`🗑️ Deleting incident ID: ${id}`);
+    const data = await fetchFromSupabase(`tech-incidents?id=${id}`, "DELETE");
 
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No valid incident IDs provided" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate that all IDs are in the correct format
-    const validIds = ids.every(
-      (id) => typeof id === "string" || typeof id === "number"
+    return new Response(
+      JSON.stringify({
+        success: true,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
     );
-    if (!validIds) {
-      return new Response(
-        JSON.stringify({ error: "Invalid ID format in the provided list" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log(`🗑 Attempting to delete ${ids.length} incidents:`, ids);
-
-    const data = await fetchFromSupabase("tech-incidents", "DELETE", { ids });
-
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
   } catch (error) {
     console.error("Delete incident error:", error);
 
-    if (error.status === 404) {
-      return new Response(
-        JSON.stringify({ error: "One or more incidents not found" }),
-        { status: 404, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    if (error.status === 403) {
-      return new Response(
-        JSON.stringify({
-          error: "You don't have permission to delete these incidents",
-        }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
-    }
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to delete incident",
+    });
 
     return new Response(
-      JSON.stringify({ error: "Failed to delete incidents" }),
+      JSON.stringify({
+        error: standardError.message,
+        errorType: standardError.type,
+        details: standardError.details,
+        timestamp: new Date().toISOString(),
+      }),
       {
-        status: error.status || 500,
-        headers: { "Content-Type": "application/json" },
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
   }
-});
+}
