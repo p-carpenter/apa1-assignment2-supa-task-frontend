@@ -1,6 +1,7 @@
 /**
  * Form validation utility functions
  */
+import { formatDateForDisplay, parseDate } from "./formatting/dateUtils";
 
 /**
  * Validates a date string in DD-MM-YYYY format
@@ -11,10 +12,8 @@
  * @returns {object} - Validation result {isValid, errorMessage}
  */
 export const validateDateString = (dateString, options = {}) => {
-  const {
-    minDate = new Date(1980, 0, 1),
-    maxDate = new Date(2029, 11, 31),
-  } = options;
+  const { minDate = new Date(1980, 0, 1), maxDate = new Date(2029, 11, 31) } =
+    options;
 
   // Required check
   if (!dateString?.trim()) {
@@ -33,18 +32,10 @@ export const validateDateString = (dateString, options = {}) => {
     };
   }
 
-  // Date validity check
-  const match = dateString.match(dateRegex);
-  const day = parseInt(match[1], 10);
-  const month = parseInt(match[2], 10) - 1;
-  const year = parseInt(match[3], 10);
-  const inputDate = new Date(year, month, day);
+  // Use parseDate to validate and create date object
+  const inputDate = parseDate(dateString);
 
-  if (
-    inputDate.getFullYear() !== year ||
-    inputDate.getMonth() !== month ||
-    inputDate.getDate() !== day
-  ) {
+  if (!inputDate) {
     return {
       isValid: false,
       errorMessage: "This date doesn't exist in the calendar.",
@@ -67,53 +58,6 @@ export const validateDateString = (dateString, options = {}) => {
   }
 
   return { isValid: true, errorMessage: "" };
-};
-
-/**
- * Formats a Date object for display in DD-MM-YYYY format
- * @param {Date} date - Date object
- * @returns {string} - Formatted date string
- */
-const formatDateForDisplay = (date) => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}-${month}-${year}`;
-};
-
-/**
- * Converts a date string from DD-MM-YYYY to YYYY-MM-DD format
- * @param {string} dateString - Date string in DD-MM-YYYY format
- * @returns {string} - Date string in YYYY-MM-DD format
- */
-export const convertDateForStorage = (dateString) => {
-  if (!dateString) return "";
-  const [day, month, year] = dateString.split("-");
-  return `${year}-${month}-${day}`;
-};
-
-/**
- * Formats a date string for input in the expected DD-MM-YYYY format
- * @param {string} input - Partial or complete date input
- * @returns {string} - Formatted date string with automatic hyphen insertion
- */
-export const formatDateInput = (input) => {
-  // Allow typing with hyphens automatically added
-  let formattedDate = input;
-  const digits = input.replace(/\D/g, "");
-
-  if (digits.length <= 2) {
-    formattedDate = digits;
-  } else if (digits.length <= 4) {
-    formattedDate = `${digits.substring(0, 2)}-${digits.substring(2)}`;
-  } else if (digits.length <= 8) {
-    formattedDate = `${digits.substring(0, 2)}-${digits.substring(2, 4)}-${digits.substring(
-      4,
-      8
-    )}`;
-  }
-
-  return formattedDate;
 };
 
 /**
@@ -151,41 +95,26 @@ export const validateMinLength = (value, minLength, fieldName) => {
  * @returns {Promise<object>} - Validation result {isValid, errorMessage}
  */
 export const validateImageFile = (file, options = {}) => {
+  const { maxSizeInMB = 2, maxWidth = 863, maxHeight = 768 } = options;
+
+  if (!file) {
+    return { isValid: false, errorMessage: "An image file is required." };
+  }
+
+  if (!file.type.startsWith("image/")) {
+    return { isValid: false, errorMessage: "Selected file is not an image." };
+  }
+
+  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+  if (file.size > maxSizeInBytes) {
+    return {
+      isValid: false,
+      errorMessage: `Image size must be less than ${maxSizeInMB}MB.`,
+    };
+  }
+
+  // Return a Promise only for dimension checks
   return new Promise((resolve) => {
-    const {
-      maxSizeInMB = 2,
-      maxWidth = 863,
-      maxHeight = 768,
-    } = options;
-
-    if (!file) {
-      resolve({
-        isValid: false,
-        errorMessage: "An image file is required.",
-      });
-      return;
-    }
-
-    // Check file type
-    if (!file.type.startsWith("image/")) {
-      resolve({
-        isValid: false,
-        errorMessage: "Selected file is not an image.",
-      });
-      return;
-    }
-
-    // Check file size
-    const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-    if (file.size > maxSizeInBytes) {
-      resolve({
-        isValid: false,
-        errorMessage: `Image size must be less than ${maxSizeInMB}MB.`,
-      });
-      return;
-    }
-
-    // Check image dimensions
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
@@ -235,8 +164,8 @@ export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return {
-      isValid: false, 
-      errorMessage: "Please enter a valid email address."
+      isValid: false,
+      errorMessage: "Please enter a valid email address.",
     };
   }
 
@@ -246,19 +175,22 @@ export const validateEmail = (email) => {
 /**
  * Validates a password
  * @param {string} password - Password to validate
+ * @param {object} data - Form data for validating password field against confirm password field if present
  * @param {object} options - Validation options
  * @param {number} options.minLength - Minimum password length
  * @param {boolean} options.requireUppercase - Whether to require uppercase letters
  * @param {boolean} options.requireNumbers - Whether to require numbers
  * @param {boolean} options.requireSpecial - Whether to require special characters
+ * @param {boolean} options.requirePasswordConfirmation - Whether to require a matching confirm password field
  * @returns {object} - Validation result {isValid, errorMessage}
  */
-export const validatePassword = (password, options = {}) => {
+export const validatePassword = (password, data = {}, options = {}) => {
   const {
     minLength = 8,
     requireUppercase = true,
     requireNumbers = true,
     requireSpecial = false,
+    requirePasswordConfirmation = false,
   } = options;
 
   if (!password) {
@@ -296,5 +228,196 @@ export const validatePassword = (password, options = {}) => {
     };
   }
 
+  if (requirePasswordConfirmation) {
+    if (data.confirmPassword && password !== data.confirmPassword) {
+      return {
+        isValid: false,
+        errorMessage: "Passwords do not match.",
+      };
+    }
+  }
+
   return { isValid: true, errorMessage: "" };
 };
+
+/**
+ * Validates HTML artifact content
+ * @param {string} content - HTML content to validate
+ * @param {boolean} requireHtmlTag - Whether to require <html> tag
+ * @returns {object} - Validation result {isValid, errorMessage}
+ */
+export const validateHtmlContent = (content, requireHtmlTag = true) => {
+  if (!content?.trim()) {
+    return {
+      isValid: false,
+      errorMessage: "HTML Code is required when Artifact Type is set to Code.",
+    };
+  }
+
+  if (requireHtmlTag && !content.includes("<html>")) {
+    return {
+      isValid: false,
+      errorMessage: "HTML code should include a <html> tag.",
+    };
+  }
+
+  return { isValid: true, errorMessage: "" };
+};
+
+/**
+ * Creates a form validation function based on a schema
+ * @param {Object} schema - Validation schema with field rules
+ * @returns {Function} - Validation function that validates against the schema
+ */
+export const createFormValidator = (schema) => {
+  return (data, fieldName = null) => {
+    const errors = {};
+
+    // Validate just a single field if specified
+    if (fieldName) {
+      const fieldSchema = schema[fieldName];
+      if (!fieldSchema) return errors;
+
+      const fieldValidation = validateField(data, fieldName, fieldSchema);
+      if (fieldValidation.errorMessage) {
+        errors[fieldName] = fieldValidation.errorMessage;
+      }
+
+      return errors;
+    }
+
+    // Validate all fields in the schema
+    Object.entries(schema).forEach(([field, fieldSchema]) => {
+      if (fieldSchema.conditional && !fieldSchema.conditional(data)) {
+        return;
+      }
+
+      const fieldValidation = validateField(data, field, fieldSchema);
+      if (fieldValidation.errorMessage) {
+        errors[field] = fieldValidation.errorMessage;
+      }
+    });
+
+    return errors;
+  };
+};
+
+/**
+ * Validates a field against its schema
+ * @param {Object} data - Form data
+ * @param {string} fieldName - Name of the field
+ * @param {Object} fieldSchema - Schema for the field
+ * @returns {Object} - Validation result
+ */
+const validateField = (data, fieldName, fieldSchema) => {
+  const value = data[fieldName];
+
+  switch (fieldSchema.type) {
+    case "text":
+    case "string":
+      if (fieldSchema.required || fieldSchema.minLength) {
+        return validateMinLength(
+          value,
+          fieldSchema.minLength || 1,
+          fieldSchema.label || fieldName
+        );
+      }
+      break;
+
+    case "date":
+      return validateDateString(value, fieldSchema.options);
+
+    case "email":
+      return validateEmail(value);
+
+    case "password":
+      return validatePassword(value, fieldSchema.options);
+
+    case "confirmPassword":
+      return validatePassword(value, data, fieldSchema.options);
+
+    case "html":
+      if (fieldSchema.required) {
+        return validateHtmlContent(value, fieldSchema.requireHtmlTag);
+      }
+      break;
+
+    case "image":
+      if (fieldSchema.required && !data.fileState?.data) {
+        return {
+          isValid: false,
+          errorMessage:
+            fieldSchema.errorMessage || "An image file is required.",
+        };
+      }
+      break;
+
+    case "custom":
+      if (fieldSchema.validate) {
+        return fieldSchema.validate(value, data);
+      }
+      break;
+  }
+
+  return { isValid: true, errorMessage: "" };
+};
+
+/**
+ * Incident form schema for both Add and Edit forms
+ */
+export const incidentFormSchema = {
+  name: {
+    type: "text",
+    minLength: 3,
+    label: "Incident Name",
+    required: true,
+  },
+  incident_date: {
+    type: "date",
+    required: true,
+    options: {
+      minDate: new Date(1980, 0, 1),
+      maxDate: new Date(2029, 11, 31),
+    },
+  },
+  description: {
+    type: "text",
+    minLength: 10,
+    label: "Description",
+    required: true,
+  },
+  artifactContent: {
+    type: "html",
+    required: true,
+    requireHtmlTag: true,
+    conditional: (data) => data.artifactType === "code",
+    errorMessage:
+      "HTML code is required when Artifact Type is set to Code. Remember to add a <html> tag.",
+  },
+  file: {
+    type: "image",
+    required: true,
+    conditional: (data) => data.artifactType === "image",
+    errorMessage:
+      "An image file is required when Artifact Type is set to Image.",
+  },
+};
+
+export const AuthFormSchema = {
+  email: {
+    type: "email",
+    required: true,
+  },
+  password: {
+    type: "password",
+    required: true,
+  },
+  confirmPassword: {
+    type: "confirmPassword",
+    required: false,
+  },
+};
+
+// Pre-built validator for incident forms
+export const validateIncidentForm = createFormValidator(incidentFormSchema);
+export const validateAuthForm = createFormValidator(AuthFormSchema);

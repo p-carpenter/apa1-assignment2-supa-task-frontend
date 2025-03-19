@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import GalleryNavButtons from "@/app/components/ui/gallery-navigation/GalleryNavButtons";
+import GalleryNavButtons from "@/app/components/ui/gallery/GalleryNavButtons";
 
 jest.mock("next/link", () => {
   return ({ href, children, className }) => (

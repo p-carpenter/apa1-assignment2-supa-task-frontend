@@ -21,7 +21,8 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push("/login"); // Redirect to login if not authenticated
+      const from = encodeURIComponent(window.location.pathname);
+      router.push(`/login?from=${from}`);
     }
   }, [user, loading, router]);
 

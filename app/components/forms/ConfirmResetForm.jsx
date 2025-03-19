@@ -5,7 +5,7 @@ import {
   PasswordField,
   FormButtons,
   FormErrorMessage,
-  PromptLabel
+  PromptLabel,
 } from "./fields";
 import authStyles from "./Auth.module.css";
 
@@ -20,13 +20,12 @@ const ConfirmResetForm = ({
   onRetry,
   onDismiss,
 }) => {
-  // Check if we have field validation errors
-  const hasFieldErrors = Object.keys(formErrors).some(key => formErrors[key]);
-  
+  const hasFieldErrors = Object.keys(formErrors).some((key) => formErrors[key]);
+
   return (
     <>
       {apiError ? (
-        <ApiErrorMessage 
+        <ApiErrorMessage
           error={apiError}
           onRetry={onRetry}
           onDismiss={onDismiss}
@@ -34,12 +33,9 @@ const ConfirmResetForm = ({
       ) : (
         <FormErrorMessage message={errorMessage} useAuthStyle={true} />
       )}
-      
-      {/* Show field validation errors if present */}
-      {hasFieldErrors && (
-        <FormValidationError fieldErrors={formErrors} />
-      )}
-      
+
+      {hasFieldErrors && <FormValidationError fieldErrors={formErrors} />}
+
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField
           id="email"

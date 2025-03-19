@@ -3,7 +3,6 @@ import { getServerSession } from "./utils/auth/serverAuth";
 import AppShell from "./contexts/AppShell";
 
 /**
- * Root Layout
  * Entry point for the application
  */
 export default async function RootLayout({ children }) {

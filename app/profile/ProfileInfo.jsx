@@ -9,7 +9,6 @@ import layoutStyles from "@/app/components/layouts/Layout.module.css";
 export default function ProfileInfo() {
   const { user, signOut } = useAuth();
 
-  // Get username from user object, fallback to email if not available
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
   const handleLogout = async () => {

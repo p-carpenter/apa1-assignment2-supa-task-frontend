@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
+import { useForm } from "@/app/hooks/forms/useForm";
 import { LoginForm } from "@/app/components/forms";
 import authStyles from "@/app/components/forms/Auth.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
+import { validateAuthForm } from "@/app/utils/formValidation";
 
 import {
   ConsoleWindow,
@@ -15,14 +17,14 @@ import {
 } from "../components/ui/console";
 
 export default function LoginPage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading: authLoading, signIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [signupSuccessMessage, setSignupSuccessMessage] = useState("");
   const [apiError, setApiError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    // Check for signupSuccess parameter
     const signupSuccess = searchParams.get("signupSuccess");
     if (signupSuccess === "true") {
       setSignupSuccessMessage(
@@ -30,7 +32,6 @@ export default function LoginPage() {
       );
     }
 
-    // Check for error parameters
     const errorType = searchParams.get("error");
     if (errorType) {
       let errorMessage = "An error occurred during authentication.";
@@ -55,33 +56,51 @@ export default function LoginPage() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push("/profile");
+    if (!authLoading && isAuthenticated) {
+      const from = searchParams.get("from") || "/profile";
+      router.push(from);
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, authLoading, router, searchParams]);
 
-  // Define status items for the console footer
+  const handleFormSubmit = async (formData) => {
+    setErrorMessage("");
+    setApiError(null);
+
+    try {
+      await signIn({
+        email: formData.email,
+        password: formData.password,
+      });
+      // Redirect is handled by useEffect above
+    } catch (err) {
+      if (err.type) {
+        setApiError(err);
+      } else {
+        setErrorMessage(err.message || "Failed to sign in");
+      }
+      throw err;
+    }
+  };
+
+  const initialFormState = {
+    email: "",
+    password: "",
+  };
+  const validateFormFunction = (data, fieldName) =>
+    validateAuthForm(data, fieldName);
+
+  const { formData, formErrors, isSubmitting, handleChange, handleSubmit } =
+    useForm(initialFormState, validateFormFunction, handleFormSubmit);
+
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "USER AUTHENTICATION",
     { text: "AWAITING CREDENTIALS", blink: true },
   ];
 
-  const handleLoginError = (error) => {
-    if (error.type) {
-      // Already a standardized error
-      setApiError(error);
-    } else {
-      // Create a standardized error
-      setApiError({
-        type: ERROR_TYPES.UNKNOWN_ERROR,
-        message: error.message || "Authentication failed",
-      });
-    }
-  };
-
   const handleRetry = () => {
     setApiError(null);
+    handleSubmit(new Event("submit"));
   };
 
   const handleDismiss = () => {
@@ -117,7 +136,6 @@ export default function LoginPage() {
                 PLEASE ENTER YOUR CREDENTIALS
               </div>
 
-              {/* Display signup success message if present */}
               {signupSuccessMessage && (
                 <div
                   className={`${terminalStyles.outputText} ${terminalStyles.success}`}
@@ -135,8 +153,13 @@ export default function LoginPage() {
             </CommandOutput>
 
             <LoginForm
+              formData={formData}
+              formErrors={formErrors}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              errorMessage={errorMessage}
               apiError={apiError}
-              onError={handleLoginError}
               onRetry={handleRetry}
               onDismiss={handleDismiss}
             />

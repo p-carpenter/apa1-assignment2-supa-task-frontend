@@ -34,7 +34,7 @@ export const withAuth = (handler) => async (req) => {
 
     return handler(req);
   } catch (error) {
-    console.error("❌ Auth middleware error:", error);
+    console.error("Auth middleware error:", error);
     return new Response(
       JSON.stringify({
         error: "Authentication Error",

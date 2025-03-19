@@ -15,13 +15,13 @@ import {
   getStoredUser,
 } from "../utils/auth/authUtils";
 import { AUTH_STORAGE_KEYS } from "../utils/auth/auth-config";
+import { handleApiError, ERROR_TYPES } from "../utils/api/errors/errorHandling";
 
 /**
  * Authentication Context
  * Provides authentication state and methods to the application
  */
 
-// Create context with default values
 export const AuthContext = createContext({
   user: null,
   session: null,
@@ -44,10 +44,9 @@ export function AuthProvider({
 }) {
   const [user, setUser] = useState(initialUser);
   const [session, setSession] = useState(initialSession);
-  const [isLoading, setIsLoading] = useState(false); // Start with not loading
+  const [isLoading, setIsLoading] = useState(false);
   const isAuthenticated = Boolean(user);
 
-  // Initialize auth state on mount
   useEffect(() => {
     const initializeAuth = async () => {
       // If we have SSR data, use it directly
@@ -64,33 +63,28 @@ export function AuthProvider({
         setUser(storedData.user);
         setSession(storedData.session);
 
-        // But also validate with the server in the background
+        // Validate with the server in the background
         setIsLoading(true);
         try {
           // Verify with server that the session is still valid
           const serverData = await getCurrentUser(true);
 
           if (serverData.user) {
-            // Session valid, update with the server data
             setUser(serverData.user);
             setSession(serverData.session);
           } else {
-            // Session invalid, clear the user state
             console.log("Session validation failed - clearing local state");
             setUser(null);
             setSession(null);
 
-            // Also clear localStorage
             localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
             localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
           }
         } catch (error) {
-          // On error, assume session is invalid
           console.error("Session validation error:", error);
           setUser(null);
           setSession(null);
 
-          // Also clear localStorage
           localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
           localStorage.removeItem(AUTH_STORAGE_KEYS.TOKEN);
         } finally {
@@ -103,31 +97,31 @@ export function AuthProvider({
   }, [initialUser, initialSession]);
 
   // Authentication methods
-const handleSignIn = useCallback(async (credentials) => {
-  setIsLoading(true);
-  try {
-    const data = await signIn(credentials);
-    setUser(data.user);
-    setSession(data.session);
-    return data;
-  } catch (error) {
-    console.error("Sign in handler error:", error);
+  const handleSignIn = useCallback(async (credentials) => {
+    setIsLoading(true);
+    try {
+      const data = await signIn(credentials);
+      setUser(data.user);
+      setSession(data.session);
+      return data;
+    } catch (error) {
+      console.error("Sign in handler error:", error);
 
-    if (error.status === 401) {
-      throw new Error("Invalid email or password. Please try again.");
-    } else if (error.status === 429) {
-      throw new Error("Too many login attempts. Please try again later.");
-    } else if (!navigator.onLine) {
-      throw new Error(
-        "You appear to be offline. Please check your internet connection."
-      );
-    } else {
-      throw new Error(error.message || "Unable to sign in. Please try again.");
+      handleApiError(error, {
+        defaultMessage: "Unable to sign in. Please try again.",
+      });
+
+      // TODO: Not sure if I want to throw errors here. I'm already returning it to thr user.
+      // const enhancedError = new Error(standardError.message);
+      // enhancedError.type = standardError.type;
+      // enhancedError.status = standardError.status;
+      // enhancedError.details = standardError.details;
+
+      // throw enhancedError;
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
+  }, []);
 
   const handleSignUp = useCallback(async (credentials) => {
     setIsLoading(true);
@@ -138,7 +132,17 @@ const handleSignIn = useCallback(async (credentials) => {
       return data;
     } catch (error) {
       console.error("Sign up handler error:", error);
-      throw error;
+
+      handleApiError(error, {
+        defaultMessage: "Unable to create account. Please try again.",
+      });
+
+      // const enhancedError = new Error(standardError.message);
+      // enhancedError.type = standardError.type;
+      // enhancedError.status = standardError.status;
+      // enhancedError.details = standardError.details;
+
+      // throw enhancedError;
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +156,22 @@ const handleSignIn = useCallback(async (credentials) => {
       setSession(null);
     } catch (error) {
       console.error("Sign out handler error:", error);
-      throw error;
+
+      const standardError = handleApiError(error, {
+        defaultMessage:
+          "Error during sign out, but local session has been cleared.",
+      });
+
+      // TODO: I don't think throwing an error for auth errors is necessary
+      if (
+        // standardError.type !== ERROR_TYPES.AUTH_REQUIRED &&
+        standardError.type !== ERROR_TYPES.NETWORK_ERROR
+      ) {
+        const enhancedError = new Error(standardError.message);
+        enhancedError.type = standardError.type;
+        enhancedError.status = standardError.status;
+        throw enhancedError;
+      }
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +187,17 @@ const handleSignIn = useCallback(async (credentials) => {
       return data;
     } catch (error) {
       console.error("Refresh user error:", error);
-      throw error;
+
+      const standardError = handleApiError(error, {
+        defaultMessage: "Unable to refresh user information. Please try again.",
+      });
+
+      // const enhancedError = new Error(standardError.message);
+      // enhancedError.type = standardError.type;
+      // enhancedError.status = standardError.status;
+      // enhancedError.details = standardError.details;
+
+      // throw enhancedError;
     } finally {
       setIsLoading(false);
     }

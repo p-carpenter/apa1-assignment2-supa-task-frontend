@@ -4,7 +4,7 @@ import {
   TextField,
   FormButtons,
   FormErrorMessage,
-  PromptLabel
+  PromptLabel,
 } from "./fields";
 import authStyles from "./Auth.module.css";
 
@@ -23,7 +23,7 @@ const ResetPasswordForm = ({
   return (
     <>
       {apiError ? (
-        <ApiErrorMessage 
+        <ApiErrorMessage
           error={apiError}
           onRetry={onRetry}
           onDismiss={onDismiss}
@@ -31,7 +31,7 @@ const ResetPasswordForm = ({
       ) : (
         <FormErrorMessage message={errorMessage} useAuthStyle={true} />
       )}
-      
+
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField
           id="email"

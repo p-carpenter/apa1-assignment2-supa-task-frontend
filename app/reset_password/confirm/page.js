@@ -10,12 +10,13 @@ import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ConfirmResetForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/forms/useForm";
 import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
+import { validateAuthForm } from "@/app/utils/formValidation";
 
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-} from "../..ui/components/ui/console";
+} from "../../components/ui/console";
 
 export default function ConfirmResetPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -29,17 +30,10 @@ export default function ConfirmResetPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const hash = window.location.hash;
-      console.log("Hash:", hash);
 
       if (hash && hash.includes("access_token=")) {
         const extractedToken = hash.replace("#access_token=", "");
-        console.log(
-          "Token found in hash:",
-          extractedToken.substring(0, 10) + "..."
-        );
         setToken(extractedToken);
-      } else {
-        console.log("No token found in hash");
       }
     }
   }, []);
@@ -54,88 +48,9 @@ export default function ConfirmResetPage() {
       !token &&
       !window.location.hash.includes("access_token")
     ) {
-      console.log("No token found, redirecting to reset_password");
       router.push("/reset_password");
     }
   }, [isAuthenticated, loading, router, token]);
-
-  const validateField = (name, value) => {
-    let error = null;
-
-    switch (name) {
-      case "email":
-        if (!value.trim()) {
-          error = "Email is required.";
-        } else {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(value)) {
-            error = "Please enter a valid email address.";
-          }
-        }
-        break;
-
-      case "password":
-        if (!value.trim()) {
-          error = "Password is required.";
-        } else if (value.length < 8) {
-          error = "Password must be at least 8 characters long.";
-        } else {
-          const hasNumber = /[0-9]/.test(value);
-          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
-            value
-          );
-          const hasUpperCase = /[A-Z]/.test(value);
-
-          if (!hasNumber) {
-            error = "Password must contain at least one number.";
-          } else if (!hasSpecialChar) {
-            error = "Password must contain at least one special character.";
-          } else if (!hasUpperCase) {
-            error = "Password must contain at least one uppercase letter.";
-          }
-        }
-        break;
-
-      case "confirmPassword":
-        if (!value.trim()) {
-          error = "Please confirm your password.";
-        } else if (value !== formData.password) {
-          error = "Passwords do not match.";
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    return error;
-  };
-
-  const validateForm = (data, fieldName) => {
-    const errors = {};
-
-    if (fieldName) {
-      const error = validateField(fieldName, data[fieldName]);
-      if (error) errors[fieldName] = error;
-      return errors;
-    }
-
-    for (const field of ["email", "password", "confirmPassword"]) {
-      const error = validateField(field, data[field]);
-      if (error) errors[field] = error;
-    }
-
-    return errors;
-  };
-
-  const handleRetry = () => {
-    setApiError(null);
-    handleSubmit(new Event("submit"));
-  };
-
-  const handleDismiss = () => {
-    setApiError(null);
-  };
 
   const handleFormSubmit = async (formData) => {
     setErrorMessage("");
@@ -198,28 +113,33 @@ export default function ConfirmResetPage() {
     }
   };
 
-  const {
-    formData,
-    formErrors,
-    isSubmitting,
-    handleChange,
-    handleSubmit,
-    hasError,
-  } = useForm(
-    {
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-    validateForm,
-    handleFormSubmit
-  );
+  const initialFormState = {
+    email: "",
+    password: "",
+    confirmPassword: "",
+  };
+  const validateFormFunction = (data, fieldName) =>
+    validateAuthForm(data, fieldName, {
+      options: { requirePasswordConfirmation: true },
+    });
+
+  const { formData, formErrors, isSubmitting, handleChange, handleSubmit } =
+    useForm(initialFormState, validateFormFunction, handleFormSubmit);
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "PASSWORD RECOVERY",
     { text: "RESET PASSWORD", blink: true },
   ];
+
+  const handleRetry = () => {
+    setApiError(null);
+    handleSubmit(new Event("submit"));
+  };
+
+  const handleDismiss = () => {
+    setApiError(null);
+  };
 
   if (
     typeof window !== "undefined" &&
@@ -291,7 +211,6 @@ export default function ConfirmResetPage() {
                   handleChange={handleChange}
                   handleSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
-                  hasError={hasError}
                   errorMessage={errorMessage}
                   apiError={apiError}
                   onRetry={handleRetry}

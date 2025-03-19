@@ -16,7 +16,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
   const [touched, setTouched] = useState({});
   const isMounted = useRef(true);
   
-  // Set isMounted to false when the component unmounts
+
   useEffect(() => {
     return () => {
       isMounted.current = false;
@@ -204,7 +204,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
           }
         }
 
-        // Submit the form
+
         if (onSubmit) {
           const result = await Promise.resolve(onSubmit(formData));
           
@@ -213,7 +213,6 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
             throw new Error(result.error);
           }
           
-          // Handle success case if needed
           return result;
         }
       } catch (error) {

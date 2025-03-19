@@ -1,7 +1,7 @@
 /**
  * Common API utilities for handling requests and responses
  */
-import { handleApiError, ERROR_TYPES, shouldRedirectToLogin } from './errors/errorHandling';
+import { handleApiError, ERROR_TYPES } from "./errors/errorHandling";
 
 /**
  * Fetch with standardized error handling to use in calling internal API routes
@@ -12,7 +12,11 @@ import { handleApiError, ERROR_TYPES, shouldRedirectToLogin } from './errors/err
  * @returns {Promise<any>} - The response data
  * @throws {Error} - If the response is not ok
  */
-export const fetchWithErrorHandling = async (url, options = {}, errorOptions = {}) => {
+export const fetchWithErrorHandling = async (
+  url,
+  options = {},
+  errorOptions = {}
+) => {
   try {
     const response = await fetch(url, options);
 
@@ -36,18 +40,25 @@ export const fetchWithErrorHandling = async (url, options = {}, errorOptions = {
 
     return await response.json();
   } catch (error) {
-    // Use the centralized error handler
     const standardError = handleApiError(error, errorOptions);
-    
-    // Handle authentication errors that require redirect
-    if (shouldRedirectToLogin(standardError.type) && typeof window !== 'undefined') {
-      // Could redirect to login or trigger a global auth context method
-      console.log('Authentication error - user needs to sign in again');
-      
-      // You might want to dispatch an event or call a context method instead
-      // For example: authContext.handleAuthError();
+
+    if (
+      [ERROR_TYPES.AUTH_REQUIRED, ERROR_TYPES.SESSION_EXPIRED].includes(
+        standardError.type
+      ) &&
+      typeof window !== "undefined"
+    ) {
+      // redirect to login page
+      const loginUrl = new URL("/login", window.location.href);
+      standardError.type === ERROR_TYPES.SESSION_EXPIRED
+        ? loginUrl.searchParams.set("error", "session_expired")
+        : loginUrl.searchParams.set("error", "not_authenticated");
+      loginUrl.searchParams.set("from", window.location.pathname);
+
+      // cannot use router.push() here because it's outisde of a hook
+      window.location.href = loginUrl;
     }
-    
+
     throw standardError;
   }
 };
@@ -77,7 +88,7 @@ export const createEndpointHandler = (handler) => async (req) => {
     // Map error status codes to standard error types
     let errorMessage = error.message || "Internal Server Error";
     let statusCode = error.status || 500;
-    
+
     // Standardize error responses
     return new Response(
       JSON.stringify({
@@ -226,7 +237,7 @@ export const fetchFromSupabase = async (
     }
 
     // Log all errors with request details
-    console.error(`❌ Supabase API Request Failed (${method} ${path}):`, error);
+    console.error(`Supabase API Request Failed (${method} ${path}):`, error);
 
     if (error.name === "TypeError" && error.message.includes("fetch")) {
       const enhancedError = new Error(

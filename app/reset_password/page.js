@@ -9,6 +9,7 @@ import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ResetPasswordForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/forms/useForm";
 import { ERROR_TYPES } from "@/app/utils/api/errors/errorHandling";
+import { validateAuthForm } from "@/app/utils/formValidation";
 
 import {
   ConsoleWindow,
@@ -28,45 +29,6 @@ export default function ResetPasswordPage() {
       router.push("/profile");
     }
   }, [isAuthenticated, loading, router]);
-
-  const validateEmail = (email) => {
-    if (!email.trim()) {
-      return "Email is required.";
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return "Please enter a valid email address.";
-    }
-
-    return null;
-  };
-
-  const validateForm = (data, fieldName) => {
-    const errors = {};
-
-    if (fieldName) {
-      if (fieldName === "email") {
-        const error = validateEmail(data.email);
-        if (error) errors.email = error;
-      }
-      return errors;
-    }
-
-    const emailError = validateEmail(data.email);
-    if (emailError) errors.email = emailError;
-
-    return errors;
-  };
-
-  const handleRetry = () => {
-    setApiError(null);
-    handleSubmit(new Event("submit"));
-  };
-
-  const handleDismiss = () => {
-    setApiError(null);
-  };
 
   const handleFormSubmit = async (formData) => {
     setErrorMessage("");
@@ -122,10 +84,13 @@ export default function ResetPasswordPage() {
         });
       }
 
-      throw err; // Re-throw for useForm to handle
+      throw err;
     }
   };
 
+  const initialFormState = { email: "" };
+  const validateFormFunction = (data, fieldName) =>
+    validateAuthForm(data, fieldName);
   const {
     formData,
     formErrors,
@@ -133,14 +98,22 @@ export default function ResetPasswordPage() {
     handleChange,
     handleSubmit,
     resetForm,
-    hasError,
-  } = useForm({ email: "" }, validateForm, handleFormSubmit);
+  } = useForm(initialFormState, validateFormFunction, handleFormSubmit);
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "PASSWORD RECOVERY",
     { text: "REQUEST RESET", blink: true },
   ];
+
+  const handleRetry = () => {
+    setApiError(null);
+    handleSubmit(new Event("submit"));
+  };
+
+  const handleDismiss = () => {
+    setApiError(null);
+  };
 
   return (
     <>
@@ -191,7 +164,6 @@ export default function ResetPasswordPage() {
                   handleChange={handleChange}
                   handleSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
-                  hasError={hasError}
                   errorMessage={errorMessage}
                   apiError={apiError}
                   onRetry={handleRetry}

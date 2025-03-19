@@ -9,6 +9,11 @@ import {
   useEffect,
   useRef,
 } from "react";
+import {
+  handleApiError,
+  getErrorMessage,
+  ERROR_TYPES,
+} from "../utils/api/errors/errorHandling";
 
 const IncidentContext = createContext(null);
 
@@ -80,39 +85,48 @@ export const IncidentProvider = ({
     try {
       // Network connectivity check
       if (typeof window !== "undefined" && !window.navigator.onLine) {
-        throw new Error("You appear to be offline. Please check your internet connection.");
+        throw new Error(
+          "You appear to be offline. Please check your internet connection."
+        );
       }
 
       console.log("Fetching incidents from API...");
-      
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-      
+
       const response = await fetch("/api/fetch-incidents", {
-        signal: controller.signal
+        signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Error fetching incidents: ${response.status}`);
+        throw new Error(
+          errorData.error || `Error fetching incidents: ${response.status}`
+        );
       }
 
       const data = await response.json();
-      
+
       // Validate the response data
       if (!data || !Array.isArray(data)) {
-        throw new Error("Invalid response format: expected an array of incidents");
+        throw new Error(
+          "Invalid response format: expected an array of incidents"
+        );
       }
-      
+
       console.log(`Fetched ${data.length} incidents successfully`);
 
       // Save to session storage to prevent refetching on browser refresh
       try {
         sessionStorage.setItem("incidents", JSON.stringify(data));
       } catch (storageError) {
-        console.warn("Failed to save incidents to session storage:", storageError);
+        console.warn(
+          "Failed to save incidents to session storage:",
+          storageError
+        );
       }
 
       setIncidents(data);
@@ -121,42 +135,36 @@ export const IncidentProvider = ({
       return data;
     } catch (error) {
       console.error("Failed to fetch incidents:", error);
-      
-      // Set user-friendly error message
-      let errorMessage = "Failed to load incidents. Please try refreshing the page.";
-      
-      if (error.name === "AbortError") {
-        errorMessage = "Request timed out. Please try again.";
-      } else if (error.message.includes("offline")) {
-        errorMessage = "You appear to be offline. Please check your internet connection.";
-      } else if (error.message.includes("Invalid response format")) {
-        errorMessage = "We received unexpected data from the server. Please refresh the page.";
-      } else if (error.status === 403 || error.status === 401) {
-        errorMessage = "You don't have permission to view incidents. Please sign in again.";
-      } else if (error.status >= 500) {
-        errorMessage = "Our servers are currently experiencing issues. Please try again later.";
-      }
-      
-      setError(errorMessage);
-      
+
+      // Use your existing error handling system
+      const standardError = handleApiError(error, {
+        defaultMessage: "Failed to load incidents. Please refresh the page.",
+      });
+
+      setError(standardError.message);
+
       // Implement retry with exponential backoff
       if (retryCount.current < maxRetries) {
         const backoffTime = Math.pow(2, retryCount.current) * 1000; // Exponential backoff
-        console.log(`Retrying in ${backoffTime}ms (attempt ${retryCount.current + 1}/${maxRetries})...`);
-        
+        console.log(
+          `Retrying in ${backoffTime}ms (attempt ${retryCount.current + 1}/${maxRetries})...`
+        );
+
         setTimeout(() => {
           retryCount.current += 1;
           fetchIncidents();
         }, backoffTime);
       }
-      
+
       // Try to get data from session storage as fallback
       try {
         const cachedData = sessionStorage.getItem("incidents");
         if (cachedData) {
           const parsedData = JSON.parse(cachedData);
           if (Array.isArray(parsedData) && parsedData.length > 0) {
-            console.log(`Loaded ${parsedData.length} incidents from session storage as fallback`);
+            console.log(
+              `Loaded ${parsedData.length} incidents from session storage as fallback`
+            );
             setIncidents(parsedData);
             setError(null); // Clear error as we have data
             // We don't set hasInitialFetchRef to true so it will try to fetch fresh data on next attempt
@@ -165,7 +173,7 @@ export const IncidentProvider = ({
       } catch (storageError) {
         console.error("Error accessing session storage:", storageError);
       }
-      
+
       return [];
     } finally {
       setIsLoading(false);
@@ -206,7 +214,7 @@ export const IncidentProvider = ({
     if (activeFilter) {
       result = result.filter(
         (incident) =>
-          incident && 
+          incident &&
           incident.category &&
           incident.category.toLowerCase() === activeFilter.toLowerCase()
       );
@@ -216,13 +224,12 @@ export const IncidentProvider = ({
       const query = searchQuery.toLowerCase().trim();
       result = result.filter((incident) => {
         if (!incident) return false;
-        
+
         return (
           (incident.name && incident.name.toLowerCase().includes(query)) ||
           (incident.description &&
             incident.description.toLowerCase().includes(query)) ||
-          (incident.category && 
-            incident.category.toLowerCase().includes(query))
+          (incident.category && incident.category.toLowerCase().includes(query))
         );
       });
     }
@@ -241,39 +248,43 @@ export const IncidentProvider = ({
     );
   }, []);
 
-  const handleIncidentNavigation = useCallback((newIndex) => {
-    if (!Array.isArray(incidents) || incidents.length === 0) {
-      console.warn("Cannot navigate: incidents array is empty or invalid");
-      return;
-    }
-    
-    if (newIndex < 0 || newIndex >= incidents.length) {
-      console.warn(`Invalid index: ${newIndex}. Valid range is 0-${incidents.length - 1}`);
-      return;
-    }
-
-    try {
-      const nextIncident = incidents[newIndex];
-      if (!nextIncident) {
-        console.warn(`No incident found at index ${newIndex}`);
+  const handleIncidentNavigation = useCallback(
+    (newIndex) => {
+      if (!Array.isArray(incidents) || incidents.length === 0) {
+        console.warn("Cannot navigate: incidents array is empty or invalid");
         return;
       }
-      
-      setCurrentIncidentIndex(newIndex);
-      setDisplayedIncident(nextIncident);
 
-      // Extract year and decade
-      if (nextIncident.incident_date) {
-        const year = new Date(nextIncident.incident_date).getFullYear();
-        const decade = calculateDecadeFromYear(year);
-        setCurrentDecade(decade);
-      } else {
-        console.warn("Incident has no date:", nextIncident);
+      if (newIndex < 0 || newIndex >= incidents.length) {
+        console.warn(
+          `Invalid index: ${newIndex}. Valid range is 0-${incidents.length - 1}`
+        );
+        return;
       }
-    } catch (error) {
-      console.error("Error during incident navigation:", error);
-    }
-  }, [incidents, calculateDecadeFromYear]);
+
+      try {
+        const nextIncident = incidents[newIndex];
+        if (!nextIncident) {
+          console.warn(`No incident found at index ${newIndex}`);
+          return;
+        }
+
+        setCurrentIncidentIndex(newIndex);
+        setDisplayedIncident(nextIncident);
+
+        if (nextIncident.incident_date) {
+          const year = new Date(nextIncident.incident_date).getFullYear();
+          const decade = calculateDecadeFromYear(year);
+          setCurrentDecade(decade);
+        } else {
+          console.warn("Incident has no date:", nextIncident);
+        }
+      } catch (error) {
+        console.error("Error during incident navigation:", error);
+      }
+    },
+    [incidents, calculateDecadeFromYear]
+  );
 
   const navigateToRoot = useCallback(() => {
     try {

@@ -20,7 +20,7 @@
 
 /* The timeline section that shows the years */
 .timeline-inner-container {
-  width: 300px; /* Width for 5 year buttons (50px each) + gaps (10px each) */
+  width: 300px;
   overflow: hidden;
 }
 
@@ -60,7 +60,7 @@
     0 4px 15px rgba(73, 107, 99, 0.15),
     0 1px 3px rgba(107, 92, 76, 0.2);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: absolute; /* Changed from relative to absolute */
+  position: absolute;
   top: 0;
   transform: translateY(-50%);
 }
@@ -91,7 +91,7 @@
   box-shadow:
     0 6px 20px rgba(73, 107, 99, 0.2),
     0 2px 5px rgba(107, 92, 76, 0.15);
-  transform: translateY(-52%); /* Adjusted for the hover state */
+  transform: translateY(-52%);
 }
 
 .gallery-nav-button::after {
@@ -119,32 +119,12 @@
 
 .gallery-nav-button:active {
   box-shadow: 0 2px 5px rgba(73, 107, 99, 0.1);
-  transform: translateY(-49%); /* Adjusted for the active state */
+  transform: translateY(-49%);
 }
 
 .gallery-nav-button:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--color-accent-light, rgba(124, 107, 78, 0.3));
-}
-
-/* Year pagination styling */
-.gallery-year-pagination {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  display: flex;
-  justify-content: center;
-  gap: 5px;
-  padding: 5px;
-  background-color: #c0c0c0; /* Classic Win95 gray */
-  border: 2px solid;
-  border-color: #dfdfdf #555 #555 #dfdfdf;
-  box-shadow: 1px 1px 0;
-  will-change: transform, opacity;
-  min-width: 200px;
-  min-height: 30px;
 }
 
 /* Placeholder for when no years are available */
