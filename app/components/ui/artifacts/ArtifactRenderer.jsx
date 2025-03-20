@@ -65,7 +65,6 @@ const ArtifactRenderer = ({
 
     iframe.onload = handleLoad;
 
-    // Try to adjust dimensions if content was already loaded
     if (iframe.contentDocument?.readyState === "complete") {
       handleLoad();
     }
@@ -178,7 +177,7 @@ const ArtifactRenderer = ({
   };
 
   const isTransparent =
-    className.includes("artifact_transparent") ||
+    className.includes("artifactTransparent") ||
     className.includes("artifact-transparent");
 
   const containerClasses = [
@@ -190,7 +189,6 @@ const ArtifactRenderer = ({
         ? styles.transparentImage
         : styles.transparent
       : "",
-    className, // keep original classes for backward compatibility
   ]
     .filter(Boolean)
     .join(" ");

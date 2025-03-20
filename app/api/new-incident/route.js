@@ -1,13 +1,9 @@
 import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
-import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: CORS_HEADERS,
-  });
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
 export async function POST(req) {
@@ -15,7 +11,7 @@ export async function POST(req) {
     const requestData = await req.json();
 
     if (!requestData.addition || !requestData.addition.name) {
-      throw new Error("Incident data with name is required");
+      throw new Error("Incident data with a name is required");
     }
 
     const incidentData = requestData.addition;
@@ -34,19 +30,14 @@ export async function POST(req) {
       }
     }
 
-    console.log("Sending new incident to Supabase");
     const data = await fetchFromSupabase("tech-incidents", "POST", payload);
 
     return new Response(
-      JSON.stringify({
-        data,
-        timestamp: new Date().toISOString(),
-      }),
+      JSON.stringify({ data, timestamp: new Date().toISOString() }),
       { status: 201, headers: CORS_HEADERS }
     );
   } catch (error) {
     console.error("New incident error:", error);
-
     const standardError = processApiError(error, {
       defaultMessage: "Failed to create incident",
     });
@@ -58,10 +49,7 @@ export async function POST(req) {
         details: standardError.details,
         timestamp: new Date().toISOString(),
       }),
-      {
-        status: standardError.status,
-        headers: CORS_HEADERS,
-      }
+      { status: standardError.status || 500, headers: CORS_HEADERS }
     );
   }
 }

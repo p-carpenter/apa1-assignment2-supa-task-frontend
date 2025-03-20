@@ -23,36 +23,31 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
     };
   }, []);
 
-  /**
-   * Sets a field value directly
-   *
-   * @param {string} name - Field name
-   * @param {any} value - Field value
-   */
   const setFieldValue = useCallback(
     (name, value) => {
-      setFormData((prevData) => ({
-        ...prevData,
-        [name]: value,
-      }));
+      setFormData((prevData) => ({ ...prevData, [name]: value }));
 
       if (validateFn) {
         const newData = { ...formData, [name]: value };
 
         try {
           const fieldErrors = validateFn(newData, name) || {};
-          if (Object.keys(fieldErrors).length > 0) {
-            setFormErrors((prevErrors) => ({
-              ...prevErrors,
-              ...fieldErrors,
-            }));
-          }
+
+          // Update errors to add new ones and remove fixed ones
+          setFormErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+
+            delete newErrors[name];
+
+
+            if (fieldErrors[name]) {
+              newErrors[name] = fieldErrors[name];
+            }
+
+            return newErrors;
+          });
         } catch (error) {
-          console.warn("Field validation error:", error);
-          setFormErrors((prevErrors) => ({
-            ...prevErrors,
-            [name]: "Validation failed",
-          }));
+          console.warn("Unexpected validation function error:", error);
         }
       }
     },
@@ -78,12 +73,17 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
           const fieldErrors =
             validateFn({ ...formData, [name]: inputValue }, name) || {};
 
-          if (Object.keys(fieldErrors).length > 0) {
-            setFormErrors((prevErrors) => ({
-              ...prevErrors,
-              ...fieldErrors,
-            }));
-          }
+          setFormErrors((prevErrors) => {
+            const newErrors = { ...prevErrors };
+
+            delete newErrors[name];
+
+            if (fieldErrors[name]) {
+              newErrors[name] = fieldErrors[name];
+            }
+
+            return newErrors;
+          });
         } catch (error) {
           console.warn("Field validation error:", error);
           setFormErrors((prevErrors) => ({

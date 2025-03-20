@@ -31,62 +31,55 @@ export const IncidentProvider = ({
   const retryCount = useRef(0);
   const maxRetries = 3;
 
-  // Auto-fetch incidents on initial mount
   useEffect(() => {
-    // If we already have data in initialIncidents prop
-    if (initialIncidents && initialIncidents.length > 0) {
+    if (hasInitialFetchRef.current) return;
+
+    if (initialIncidents.length > 0) {
       setIncidents(initialIncidents);
-      hasInitialFetchRef.current = true;
       setIsLoading(false);
+      hasInitialFetchRef.current = true;
       return;
     }
 
-    // If we've already fetched data, don't fetch again
-    if (hasInitialFetchRef.current) {
-      return;
-    }
-
-    // Try to get data from session storage
-    try {
-      const sessionData = sessionStorage.getItem("incidents");
-      if (sessionData) {
-        const parsedData = JSON.parse(sessionData);
-        if (parsedData && Array.isArray(parsedData) && parsedData.length > 0) {
-          console.log(
-            `Loaded ${parsedData.length} incidents from session storage`
-          );
-          setIncidents(parsedData);
-          hasInitialFetchRef.current = true;
-          setIsLoading(false);
-          return;
+    const loadFromSessionStorage = () => {
+      try {
+        const sessionData = sessionStorage.getItem("incidents");
+        if (sessionData) {
+          const parsedData = JSON.parse(sessionData);
+          if (Array.isArray(parsedData) && parsedData.length > 0) {
+            setIncidents(parsedData);
+            setIsLoading(false);
+            hasInitialFetchRef.current = true;
+            return true;
+          }
         }
+      } catch (error) {
+        console.error(
+          processApiError(error, {
+            defaultMessage: "Error parsing session storage data",
+          })
+        );
       }
-    } catch (error) {
-      console.error("Error accessing session storage:", error);
-    }
+      return false;
+    };
 
-    // If no data found, fetch from API
-    fetchIncidents();
-  }, [initialIncidents]);
+    if (!loadFromSessionStorage()) {
+      fetchIncidents();
+    }
+  }, []);
 
   const fetchIncidents = useCallback(async () => {
-    // Using ref to prevent refetching
-    if (hasInitialFetchRef.current) {
-      return incidents;
-    }
+    if (hasInitialFetchRef.current) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Network connectivity check
       if (typeof window !== "undefined" && !window.navigator.onLine) {
         throw new Error(
           "You appear to be offline. Please check your internet connection."
         );
       }
-
-      console.log("Fetching incidents from API...");
 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
@@ -99,25 +92,21 @@ export const IncidentProvider = ({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error || `Error fetching incidents: ${response.status}`
-        );
+        throw processApiError(errorData, {
+          defaultMessage: "Something went wrong when fetching incidents.",
+        });
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      // Validate the response data
-      if (!data || !Array.isArray(data)) {
-        throw new Error(
-          "Invalid response format: expected an array of incidents"
-        );
+      if (!result?.data || !Array.isArray(result.data)) {
+        console.warn("No incidents found in API response.");
+        setIncidents([]);
+        return;
       }
 
-      console.log(`Fetched ${data.length} incidents successfully`);
-
-      // Save to session storage to prevent refetching on browser refresh
       try {
-        sessionStorage.setItem("incidents", JSON.stringify(data));
+        sessionStorage.setItem("incidents", JSON.stringify(result.data));
       } catch (storageError) {
         console.warn(
           "Failed to save incidents to session storage:",
@@ -125,56 +114,36 @@ export const IncidentProvider = ({
         );
       }
 
-      setIncidents(data);
+      setIncidents(result.data);
       hasInitialFetchRef.current = true;
-      retryCount.current = 0; // Reset retry count on success
-      return data;
     } catch (error) {
-      console.error("Failed to fetch incidents:", error);
+      console.error("Failed to fetch incidents:", processApiError(error));
 
-      // Process the error using our central error service
-      const standardError = processApiError(error, {
-        defaultMessage: "Failed to load incidents. Please refresh the page.",
-      });
+      setError(
+        getErrorMessage(
+          processApiError(error, {
+            defaultMessage: "Failed to load incidents.",
+          })
+        )
+      );
 
-      setError(getErrorMessage(standardError));
-
-      // Implement retry with exponential backoff
-      if (retryCount.current < maxRetries) {
-        const backoffTime = Math.pow(2, retryCount.current) * 1000; // Exponential backoff
-        console.log(
-          `Retrying in ${backoffTime}ms (attempt ${retryCount.current + 1}/${maxRetries})...`
-        );
-
-        setTimeout(() => {
-          retryCount.current += 1;
-          fetchIncidents();
-        }, backoffTime);
-      }
-
-      // Try to get data from session storage as fallback
+      // Try to load from session storage as a fallback
       try {
         const cachedData = sessionStorage.getItem("incidents");
         if (cachedData) {
           const parsedData = JSON.parse(cachedData);
           if (Array.isArray(parsedData) && parsedData.length > 0) {
-            console.log(
-              `Loaded ${parsedData.length} incidents from session storage as fallback`
-            );
             setIncidents(parsedData);
-            setError(null); // Clear error as we have data
-            // We don't set hasInitialFetchRef to true so it will try to fetch fresh data on next attempt
+            setError(null);
           }
         }
       } catch (storageError) {
         console.error("Error accessing session storage:", storageError);
       }
-
-      return [];
     } finally {
       setIsLoading(false);
     }
-  }, [incidents]);
+  }, []);
 
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;

@@ -1,1 +1,1 @@
-export { ApiErrorMessage, FormValidationError } from './ErrorMessage';
+export { ApiErrorMessage } from "./ErrorMessage";

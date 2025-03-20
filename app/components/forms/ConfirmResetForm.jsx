@@ -1,12 +1,6 @@
 import React from "react";
-import { ApiErrorMessage, FormValidationError } from "../ui/errors";
-import {
-  TextField,
-  PasswordField,
-  FormButtons,
-  FormErrorMessage,
-  PromptLabel,
-} from "./fields";
+import { ApiErrorMessage } from "../ui/errors";
+import { TextField, PasswordField, FormButtons, PromptLabel } from "./fields";
 import authStyles from "./Auth.module.css";
 
 const ConfirmResetForm = ({
@@ -18,19 +12,9 @@ const ConfirmResetForm = ({
   errorMessage,
   apiError,
 }) => {
-  const hasFieldErrors = Object.keys(formErrors).some((key) => formErrors[key]);
-
   return (
     <>
-      {apiError ? (
-        <ApiErrorMessage
-          error={apiError}
-        />
-      ) : (
-        <FormErrorMessage message={errorMessage} useAuthStyle={true} />
-      )}
-
-      {hasFieldErrors && <FormValidationError fieldErrors={formErrors} />}
+      {apiError && <ApiErrorMessage error={apiError} />}
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

@@ -1,6 +1,7 @@
 import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { cookies } from "next/headers";
 import { AUTH_CONFIG, CORS_HEADERS } from "@/app/utils/auth/config";
+import { processApiError } from "@/app/utils/errors/errorService";
 
 export const POST = async (req) => {
   try {

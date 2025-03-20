@@ -3,25 +3,21 @@ import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: CORS_HEADERS,
-  });
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
 export async function PUT(req) {
   try {
     const requestData = await req.json();
 
-    if (!requestData.id || !requestData.updates) {
-      throw new Error("Incident ID and updates are required");
+    if (!requestData.id || !requestData.update) {
+      throw new Error("Incident ID and update are required");
     }
 
-    const { id, updates } = requestData;
+    const { id, update } = requestData;
+    let payload = { id, update };
 
-    let payload = { id, updates };
-
-    if (updates.artifactType === "image" && requestData.fileData) {
+    if (update.artifactType === "image" && requestData.fileData) {
       payload.fileData = requestData.fileData;
       payload.fileName = requestData.fileName || "unknown.jpg";
       payload.fileType = requestData.fileType || "image/jpeg";
@@ -38,15 +34,11 @@ export async function PUT(req) {
     const data = await fetchFromSupabase("tech-incidents", "PUT", payload);
 
     return new Response(
-      JSON.stringify({
-        data,
-        timestamp: new Date().toISOString(),
-      }),
+      JSON.stringify({ data, timestamp: new Date().toISOString() }),
       { status: 200, headers: CORS_HEADERS }
     );
   } catch (error) {
     console.error("Update incident error:", error);
-
     const standardError = processApiError(error, {
       defaultMessage: "Failed to update incident",
     });
@@ -58,10 +50,7 @@ export async function PUT(req) {
         details: standardError.details,
         timestamp: new Date().toISOString(),
       }),
-      {
-        status: standardError.status,
-        headers: CORS_HEADERS,
-      }
+      { status: standardError.status || 500, headers: CORS_HEADERS }
     );
   }
 }

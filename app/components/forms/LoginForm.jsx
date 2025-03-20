@@ -2,16 +2,14 @@
 
 import React from "react";
 import authStyles from "./Auth.module.css";
-import { FormValidationError } from "../ui/errors";
+import { ApiErrorMessage } from "../ui/errors";
 import {
   TextField,
   PasswordField,
-  FormErrorMessage,
   FormFooterLinks,
   FormButtons,
   PromptLabel,
 } from "./fields";
-
 
 function LoginForm({
   formData,
@@ -31,15 +29,7 @@ function LoginForm({
         </p>
       </div>
 
-      <FormErrorMessage
-        error={apiError}
-        message={errorMessage}
-        useAuthStyle={true}
-      />
-
-      {Object.keys(formErrors).some((key) => formErrors[key]) && (
-        <FormValidationError fieldErrors={formErrors} />
-      )}
+      {apiError && <ApiErrorMessage error={apiError} />}
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

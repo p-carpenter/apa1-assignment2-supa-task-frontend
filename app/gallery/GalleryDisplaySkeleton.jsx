@@ -4,57 +4,57 @@ const GalleryDisplaySkeleton = () => {
   return (
     <div className={styles.container}>
       <div className={styles.window}>
-        <div className={styles.main_content}>
-          {/* Artifact skeleton */}
-          <div className={styles.artifact_section}>
+        <div className={styles.mainContent}>
+
+          <div className={styles.artifactSection}>
             <div
-              className={`${styles.artifact_container} ${styles.skeleton_artifact}`}
+              className={`${styles.artifactContainer} ${styles.skeletonArtifact}`}
             >
-              <div className={styles.skeleton_pulse}></div>
+              <div className={styles.skeletonPulse}></div>
             </div>
             <div className={styles.pedestal}>
               <img
                 src="/pedestal.png"
-                className={styles.pedestal_image}
+                className={styles.pedestalImage}
                 alt="Pedestal"
               />
             </div>
           </div>
 
-          {/* Details skeleton */}
-          <div className={styles.details_section}>
+
+          <div className={styles.detailsSection}>
             <div
-              className={`${styles.details_window} ${styles.skeleton_details}`}
+              className={`${styles.detailsWindow} ${styles.skeletonDetails}`}
             >
-              <div className={styles.skeleton_header}>
+              <div className={styles.skeletonHeader}>
                 <div
-                  className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonBadge} ${styles.skeletonPulse}`}
                 ></div>
                 <div
-                  className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonBadge} ${styles.skeletonPulse}`}
                 ></div>
                 <div
-                  className={`${styles.skeleton_badge} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonBadge} ${styles.skeletonPulse}`}
                 ></div>
               </div>
               <div
-                className={`${styles.skeleton_title} ${styles.skeleton_pulse}`}
+                className={`${styles.skeletonTitle} ${styles.skeletonPulse}`}
               ></div>
-              <div className={styles.skeleton_content}>
+              <div className={styles.skeletonContent}>
                 <div
-                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonLine} ${styles.skeletonPulse}`}
                 ></div>
                 <div
-                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonLine} ${styles.skeletonPulse}`}
                 ></div>
                 <div
-                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonLine} ${styles.skeletonPulse}`}
                 ></div>
                 <div
-                  className={`${styles.skeleton_line} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonLine} ${styles.skeletonPulse}`}
                 ></div>
                 <div
-                  className={`${styles.skeleton_line} ${styles.skeleton_line_short} ${styles.skeleton_pulse}`}
+                  className={`${styles.skeletonLine} ${styles.skeletonLineShort} ${styles.skeletonPulse}`}
                 ></div>
               </div>
             </div>

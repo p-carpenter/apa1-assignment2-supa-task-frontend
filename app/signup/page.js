@@ -123,8 +123,6 @@ export default function SignupPage() {
         defaultMessage: "Failed to create account",
       });
       setApiError(standardError);
-
-      throw err;
     } finally {
       console.log("Signup form submission completed");
       submissionInProgress.current = false;

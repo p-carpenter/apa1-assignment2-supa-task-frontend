@@ -29,7 +29,6 @@ export default function LoginPage() {
   }, [isAuthenticated, isLoading, router]);
 
   const handleFormSubmit = async (formData) => {
-    // Prevent multiple submissions
     if (submissionInProgress.current) {
       return;
     }
@@ -43,12 +42,10 @@ export default function LoginPage() {
         password: formData.password,
       });
     } catch (err) {
-      // Process the error through the error service
       const standardError = processApiError(err, {
         defaultMessage: "An error occurred during login",
       });
       setApiError(standardError);
-      throw err;
     } finally {
       submissionInProgress.current = false;
     }

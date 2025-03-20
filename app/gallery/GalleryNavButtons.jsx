@@ -81,7 +81,7 @@ const GalleryNavButtons = ({
         <div className={styles.timelineInnerContainer}>
           <div
             ref={timelineInnerRef}
-            className="timeline-inner"
+            className={styles.timelineInner}
             style={{
               transform: `translateX(${transformValue}px)`,
             }}
@@ -100,7 +100,6 @@ const GalleryNavButtons = ({
                     title={count > 1 ? `${count} incidents in ${year}` : ""}
                   >
                     {year}
-                    {/* Show indicator for multiple incidents */}
                     {count > 1 && (
                       <span className={styles.incidentCount}>
                         {isCurrentYear

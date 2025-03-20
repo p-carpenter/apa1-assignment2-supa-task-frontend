@@ -1,12 +1,11 @@
 "use client";
 
 import React from "react";
-import { ApiErrorMessage, FormValidationError } from "../ui/errors";
+import { ApiErrorMessage } from "../ui/errors";
 import authStyles from "./Auth.module.css";
 import {
   TextField,
   PasswordField,
-  FormErrorMessage,
   FormFooterLinks,
   FormButtons,
   PromptLabel,
@@ -29,13 +28,7 @@ function SignupForm({
         <p className={authStyles.subtitle}>Register for archive access</p>
       </div>
 
-      {apiError ? (
-        <ApiErrorMessage
-          error={apiError}
-        />
-      ) : (
-        <FormErrorMessage message={errorMessage} useAuthStyle={true} />
-      )}
+      {apiError && <ApiErrorMessage error={apiError} />}
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField

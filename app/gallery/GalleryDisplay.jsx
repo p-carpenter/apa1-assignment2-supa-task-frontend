@@ -24,28 +24,28 @@ const GalleryDisplay = ({ incident, isLoading }) => {
   return (
     <div className={styles.container}>
       <div className={styles.window}>
-        <div className={styles.main_content}>
-          {/* Artifact section */}
-          <div className={styles.artifact_section}>
-            <div className={styles.artifact_container} ref={artifactRef}>
+        <div className={styles.mainContent}>
+
+          <div className={styles.artifactSection}>
+            <div className={styles.artifactContainer} ref={artifactRef}>
               <ArtifactRenderer
                 artifact={incident}
-                className={styles.artifact_transparent}
+                className={styles.artifactTransparent}
                 paddingSize={paddingSize}
               />
             </div>
             <div className={styles.pedestal}>
               <img
                 src="/pedestal.png"
-                className={styles.pedestal_image}
+                className={styles.pedestalImage}
                 alt="Pedestal"
               />
             </div>
           </div>
 
-          {/* Details section */}
-          <div className={styles.details_section} ref={detailsRef}>
-            <div className={styles.details_window}>
+
+          <div className={styles.detailsSection} ref={detailsRef}>
+            <div className={styles.detailsWindow}>
               <IncidentDetailsWindows incident={incident} />
             </div>
           </div>

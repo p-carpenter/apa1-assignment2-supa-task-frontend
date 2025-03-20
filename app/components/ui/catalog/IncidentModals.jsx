@@ -318,12 +318,11 @@ const IncidentModals = ({
         throw new Error(result);
       }
 
-      setIncidents(result);
+      setIncidents(result.data);
       moveToNextEdit();
     } catch (error) {
       console.error("Error updating incident:", error);
 
-      // Process the error through our centralized error service
       const standardError = processApiError(error, {
         defaultMessage: "Failed to update incident. Please try again.",
       });
@@ -346,7 +345,6 @@ const IncidentModals = ({
 
   return (
     <>
-      {/* Add New Incident Modal */}
       {showAddModal && (
         <Modal
           isOpen={showAddModal}
@@ -382,7 +380,6 @@ const IncidentModals = ({
         </Modal>
       )}
 
-      {/* Edit Incident Modal */}
       {showEditModal && selectedIncidents.length > 0 && (
         <Modal
           isOpen={showEditModal}
