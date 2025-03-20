@@ -41,9 +41,7 @@ const IncidentModals = ({
     clearFile: clearAddFile,
   } = useFileUpload({
     validationOptions: {
-      maxSizeInMB: 2,
-      maxWidth: 863,
-      maxHeight: 768,
+      maxSizeInMB: 2
     },
     setFormErrors: (errors) => {
       if (addFormSetErrors) {

@@ -81,12 +81,10 @@ export const validateMinLength = (value, minLength, fieldName) => {
  * @param {File} file - The file object
  * @param {object} options - Validation options
  * @param {number} options.maxSizeInMB - Maximum file size in MB
- * @param {number} options.maxWidth - Maximum image width in pixels
- * @param {number} options.maxHeight - Maximum image height in pixels
  * @returns {Promise<object>} - Validation result {isValid, errorMessage}
  */
 export const validateImageFile = (file, options = {}) => {
-  const { maxSizeInMB = 2, maxWidth = 863, maxHeight = 768 } = options;
+  const { maxSizeInMB = 5 } = options;
 
   if (!file) {
     return { isValid: false, errorMessage: "An image file is required." };
@@ -104,38 +102,7 @@ export const validateImageFile = (file, options = {}) => {
     };
   }
 
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = function () {
-        if (this.width > maxWidth || this.height > maxHeight) {
-          resolve({
-            isValid: false,
-            errorMessage: `Image dimensions should not exceed ${maxWidth}x${maxHeight} pixels.`,
-          });
-        } else {
-          resolve({ isValid: true, errorMessage: "" });
-        }
-      };
-      img.onerror = () => {
-        resolve({
-          isValid: false,
-          errorMessage: "Error loading image. File may be corrupted.",
-        });
-      };
-      img.src = event.target.result;
-    };
-
-    reader.onerror = () => {
-      resolve({
-        isValid: false,
-        errorMessage: "Error reading file. Please try again.",
-      });
-    };
-
-    reader.readAsDataURL(file);
-  });
+  return { isValid: true, errorMessage: "" };
 };
 
 /**
@@ -356,9 +323,7 @@ const validateField = (data, fieldName, fieldSchema) => {
   return { isValid: true, errorMessage: "" };
 };
 
-/**
- * Incident form schema for both Add and Edit forms
- */
+
 export const incidentFormSchema = {
   name: {
     type: "text",

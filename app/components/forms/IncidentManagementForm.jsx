@@ -166,7 +166,7 @@ const IncidentManagementForm = ({
           onChange={handleChange}
           placeholder="Enter HTML code here..."
           error={formErrors.artifactContent}
-          helperText="HTML max dimensions: 863x768. Anything larger and the page layout may break."
+          helperText="HTML max individual dimensions: 863px (width), 768px (height). Anything larger and the page layout may break."
         />
       )}
 
@@ -191,7 +191,7 @@ const IncidentManagementForm = ({
                 onChange={handleFileChange}
                 accept="image/*"
                 error={formErrors.file || fileState.error}
-                helperText="Max: 863x768, 2MB"
+                helperText="Max file size: 5MB"
                 hideLabel
               />
             </div>
@@ -228,7 +228,7 @@ const IncidentManagementForm = ({
             onChange={handleFileChange}
             accept="image/*"
             error={formErrors.file || fileState.error}
-            helperText="Max: 863x768, 2MB"
+            helperText="Max file size: 5MB"
           />
         )
       )}

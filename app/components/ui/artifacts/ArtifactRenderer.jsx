@@ -9,22 +9,26 @@ const ArtifactRenderer = ({
   title,
   className = "",
   containerId = "artifact-container",
-  paddingSize = "auto",
+  idealWidth = 863,
+  idealHeight = 650,
+  scaleUpSmallImages = true,
 }) => {
   const [iframeDimensions, setIframeDimensions] = useState({
     width: maxWidth,
-    height: Math.min(
-      maxHeight,
-      Math.max(minHeight, artifact?.preferredHeight || 500)
-    ),
+    height: Math.min(maxHeight, Math.max(minHeight || 500)),
+  });
+
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
   });
 
   const iframeRef = useRef(null);
-  const [needsPadding, setNeedsPadding] = useState(false);
   const containerRef = useRef(null);
   const contentRef = useRef(null);
+  const imageRef = useRef(null);
 
-  // Handle iframe dimensions adjustment
+
   useEffect(() => {
     if (!iframeRef.current || artifact?.artifactType !== "code") return;
 
@@ -70,42 +74,82 @@ const ArtifactRenderer = ({
     }
   }, [artifact, maxWidth, maxHeight, minHeight]);
 
-  // Calculate padding based on content size
-  useEffect(() => {
-    if (!containerRef.current || !contentRef.current) return;
 
-    if (paddingSize !== "auto") {
-      setNeedsPadding(false);
+  const handleImageLoad = (e) => {
+    if (!imageRef.current) return;
+
+    const img = imageRef.current;
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+
+    const aspectRatio = naturalWidth / naturalHeight;
+
+    const isNearIdealWidth =
+      Math.abs(naturalWidth - idealWidth) < idealWidth * 0.1;
+    const isNearIdealHeight =
+      Math.abs(naturalHeight - idealHeight) < idealHeight * 0.1;
+
+    // If image is already near ideal size, keep original dimensions
+    if (isNearIdealWidth && isNearIdealHeight) {
+      setImageDimensions({
+        width: naturalWidth,
+        height: naturalHeight,
+      });
       return;
     }
 
-    const containerWidth = containerRef.current.clientWidth;
-    const containerHeight = containerRef.current.clientHeight;
-
-    if (
-      artifact?.artifactType === "image" &&
-      contentRef.current.querySelector("img")
-    ) {
-      const img = contentRef.current.querySelector("img");
-      if (img.complete) {
-        const needsExtraPadding =
-          img.naturalWidth < containerWidth * 0.7 &&
-          img.naturalHeight < containerHeight * 0.7;
-        setNeedsPadding(needsExtraPadding);
+    // Image is larger than max dimensions
+    if (naturalWidth > maxWidth || naturalHeight > maxHeight) {
+      // Determine which dimension is the constraint
+      if (naturalWidth / maxWidth > naturalHeight / maxHeight) {
+        // Width is the constraint
+        const newWidth = maxWidth;
+        const newHeight = newWidth / aspectRatio;
+        setImageDimensions({
+          width: newWidth,
+          height: newHeight,
+        });
       } else {
-        img.addEventListener(
-          "load",
-          () => {
-            const needsExtraPadding =
-              img.naturalWidth < containerWidth * 0.7 &&
-              img.naturalHeight < containerHeight * 0.7;
-            setNeedsPadding(needsExtraPadding);
-          },
-          { once: true }
-        );
+        // Height is the constraint
+        const newHeight = maxHeight;
+        const newWidth = newHeight * aspectRatio;
+        setImageDimensions({
+          width: newWidth,
+          height: newHeight,
+        });
+      }
+      return;
+    }
+
+    // Image is smaller than ideal dimensions
+    if (
+      scaleUpSmallImages &&
+      naturalWidth < idealWidth &&
+      naturalHeight < idealHeight
+    ) {
+      const scaleToWidth = idealWidth / naturalWidth;
+      const scaleToHeight = idealHeight / naturalHeight;
+
+      const scaleFactor = Math.min(scaleToWidth, scaleToHeight);
+
+      const newWidth = naturalWidth * scaleFactor;
+      const newHeight = naturalHeight * scaleFactor;
+
+      if (newWidth <= maxWidth && newHeight <= maxHeight) {
+        setImageDimensions({
+          width: newWidth,
+          height: newHeight,
+        });
+        return;
       }
     }
-  }, [artifact, iframeDimensions, paddingSize]);
+
+    // Image is between min and max size
+    setImageDimensions({
+      width: naturalWidth,
+      height: naturalHeight,
+    });
+  };
 
   const renderArtifactContent = () => {
     if (!artifact) return <div>No artifact available</div>;
@@ -115,9 +159,19 @@ const ArtifactRenderer = ({
         return (
           <div className={styles.imageContainer}>
             <img
+              ref={imageRef}
               src={artifact.artifactContent}
               alt={artifact.name || title || "Artifact image"}
               className={styles.image}
+              style={{
+                width: imageDimensions.width
+                  ? `${imageDimensions.width}px`
+                  : "auto",
+                height: imageDimensions.height
+                  ? `${imageDimensions.height}px`
+                  : "auto",
+              }}
+              onLoad={handleImageLoad}
             />
           </div>
         );
@@ -142,27 +196,6 @@ const ArtifactRenderer = ({
     }
   };
 
-  const getPaddingClass = () => {
-    if (paddingSize === "auto") {
-      return needsPadding ? styles.withPadding : "";
-    }
-
-    switch (paddingSize) {
-      case "xs":
-        return styles.paddingXs;
-      case "small":
-        return styles.paddingSmall;
-      case "medium":
-        return styles.paddingMedium;
-      case "large":
-        return styles.paddingLarge;
-      case "xl":
-        return styles.paddingXl;
-      default:
-        return "";
-    }
-  };
-
   const getArtifactTypeClass = () => {
     if (!artifact?.artifactType) return "";
 
@@ -183,12 +216,12 @@ const ArtifactRenderer = ({
   const containerClasses = [
     styles.renderer,
     getArtifactTypeClass(),
-    getPaddingClass(),
     isTransparent
       ? artifact?.artifactType === "image"
         ? styles.transparentImage
         : styles.transparent
       : "",
+    className,
   ]
     .filter(Boolean)
     .join(" ");

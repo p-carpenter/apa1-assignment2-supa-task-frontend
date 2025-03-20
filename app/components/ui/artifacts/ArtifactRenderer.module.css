@@ -49,6 +49,8 @@
   overflow: hidden;
   width: 100%;
   height: 100%;
+  max-width: 863px;
+  max-height: 768px;
 }
 
 .image {
@@ -113,32 +115,6 @@
   height: 400px;
 }
 
-/* Automatic padding for small artifacts - detected dynamically */
-.withPadding {
-  padding: 30px;
-}
-
-/* Manual padding size options */
-.paddingXs {
-  padding: 10px;
-}
-
-.paddingSmall {
-  padding: 20px;
-}
-
-.paddingMedium {
-  padding: 35px;
-}
-
-.paddingLarge {
-  padding: 50px;
-}
-
-.paddingXl {
-  padding: 70px;
-}
-
 /* Responsive styling */
 @media (max-width: 768px) {
   .renderer {
@@ -150,30 +126,6 @@
     width: 100vw !important;
     height: 100vh !important;
     max-width: none !important;
-  }
-
-  .withPadding {
-    padding: 15px;
-  }
-
-  .paddingXs {
-    padding: 5px;
-  }
-
-  .paddingSmall {
-    padding: 10px;
-  }
-
-  .paddingMedium {
-    padding: 20px;
-  }
-
-  .paddingLarge {
-    padding: 30px;
-  }
-
-  .paddingXl {
-    padding: 40px;
   }
 
   .closeBtn {
