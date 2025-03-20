@@ -11,18 +11,22 @@ export async function OPTIONS() {
 
 export async function DELETE(req) {
   try {
-    const url = new URL(req.url);
-    const id = url.searchParams.get("id");
+    const { ids } = await req.json();
 
-    if (!id) {
-      throw new Error("Incident ID is required");
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "No valid incident IDs provided" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
-    console.log(`🗑️ Deleting incident ID: ${id}`);
-    const data = await fetchFromSupabase(`tech-incidents?id=${id}`, "DELETE");
-
+    const data = await fetchFromSupabase("tech-incidents", "DELETE", { ids });
     return new Response(
       JSON.stringify({
+        data: data,
         success: true,
         timestamp: new Date().toISOString(),
       }),

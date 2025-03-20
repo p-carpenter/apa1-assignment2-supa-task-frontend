@@ -391,7 +391,8 @@ export const incidentFormSchema = {
   file: {
     type: "image",
     required: true,
-    conditional: (data) => data.artifactType === "image",
+    conditional: (data) =>
+      data.artifactType === "image" && data.artifactContent && data.id,
     errorMessage:
       "An image file is required when Artifact Type is set to Image.",
   },
@@ -412,6 +413,5 @@ export const AuthFormSchema = {
   },
 };
 
-// Pre-built validator for incident forms
 export const validateIncidentForm = createFormValidator(incidentFormSchema);
 export const validateAuthForm = createFormValidator(AuthFormSchema);

@@ -1,20 +1,21 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { processValidationError } from "../utils/errors/errorService";
-
 /**
  * Custom hook for managing form state and validation
  *
  * @param {Object} initialValues - Initial form field values
  * @param {Function} validateFn - Validation function that returns errors object
  * @param {Function} onSubmit - Submit handler function
+ * @param {Object} options - Additional options
+ * @param {Object} options.fileState - File state from useFileUpload hook
  * @returns {Object} Form handling methods and state
  */
-export const useForm = (initialValues, validateFn, onSubmit) => {
+export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
   const [formData, setFormData] = useState(initialValues);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [touched, setTouched] = useState({});
   const isMounted = useRef(true);
+  const { fileState } = options;
 
   // Clean up on unmount
   useEffect(() => {
@@ -31,14 +32,13 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         const newData = { ...formData, [name]: value };
 
         try {
-          const fieldErrors = validateFn(newData, name) || {};
+          const dataWithFileState = fileState ? { ...newData, fileState } : newData;
+          const fieldErrors = validateFn(dataWithFileState, name) || {};
 
-          // Update errors to add new ones and remove fixed ones
           setFormErrors((prevErrors) => {
             const newErrors = { ...prevErrors };
 
             delete newErrors[name];
-
 
             if (fieldErrors[name]) {
               newErrors[name] = fieldErrors[name];
@@ -51,7 +51,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         }
       }
     },
-    [formData, validateFn]
+    [formData, validateFn, fileState]
   );
 
   /**
@@ -62,7 +62,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
     (e) => {
       const { name, value, type, checked } = e.target;
       const inputValue = type === "checkbox" ? checked : value;
-
+      
       setFormData((prevData) => ({
         ...prevData,
         [name]: inputValue,
@@ -70,8 +70,9 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
 
       if (validateFn) {
         try {
-          const fieldErrors =
-            validateFn({ ...formData, [name]: inputValue }, name) || {};
+          const newData = { ...formData, [name]: inputValue };
+          const dataWithFileState = fileState ? { ...newData, fileState } : newData;
+          const fieldErrors = validateFn(dataWithFileState, name) || {};
 
           setFormErrors((prevErrors) => {
             const newErrors = { ...prevErrors };
@@ -81,7 +82,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
             if (fieldErrors[name]) {
               newErrors[name] = fieldErrors[name];
             }
-
+            
             return newErrors;
           });
         } catch (error) {
@@ -93,7 +94,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         }
       }
     },
-    [formData, validateFn]
+    [formData, validateFn, fileState]
   );
 
   /**
@@ -107,7 +108,8 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
 
       if (validateFn) {
         try {
-          const fieldErrors = validateFn(formData, name) || {};
+          const dataWithFileState = fileState ? { ...formData, fileState } : formData;
+          const fieldErrors = validateFn(dataWithFileState, name) || {};
 
           if (Object.keys(fieldErrors).length > 0) {
             setFormErrors((prevErrors) => ({
@@ -124,7 +126,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         }
       }
     },
-    [formData, validateFn]
+    [formData, validateFn, fileState]
   );
 
   /**
@@ -182,7 +184,8 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
           let errors = {};
 
           try {
-            errors = validateFn(formData) || {};
+            const dataWithFileState = fileState ? { ...formData, fileState } : formData;
+            errors = validateFn(dataWithFileState) || {};
           } catch (validationError) {
             console.warn("Form validation error:", validationError);
             errors = {
@@ -216,7 +219,7 @@ export const useForm = (initialValues, validateFn, onSubmit) => {
         }
       }
     },
-    [formData, onSubmit, validateFn]
+    [formData, onSubmit, validateFn, fileState]
   );
 
   /**

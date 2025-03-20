@@ -159,8 +159,8 @@ const Catalog = () => {
         return;
       }
 
-      if (Array.isArray(result)) {
-        setIncidents(result);
+      if (Array.isArray(result.data)) {
+        setIncidents(result.data);
       } else {
         console.error("Invalid response from delete handler:", result);
         alert("An error occurred while deleting incidents");

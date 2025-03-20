@@ -27,21 +27,13 @@ export const IncidentProvider = ({
   const [currentYear, setCurrentYear] = useState(null);
   const [activeFilter, setActiveFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const hasInitialFetchRef = useRef(false);
-  const retryCount = useRef(0);
-  const maxRetries = 3;
 
   useEffect(() => {
-    if (hasInitialFetchRef.current) return;
-
+    // First load from initial incidents or session storage
     if (initialIncidents.length > 0) {
       setIncidents(initialIncidents);
       setIsLoading(false);
-      hasInitialFetchRef.current = true;
-      return;
-    }
-
-    const loadFromSessionStorage = () => {
+    } else {
       try {
         const sessionData = sessionStorage.getItem("incidents");
         if (sessionData) {
@@ -49,28 +41,19 @@ export const IncidentProvider = ({
           if (Array.isArray(parsedData) && parsedData.length > 0) {
             setIncidents(parsedData);
             setIsLoading(false);
-            hasInitialFetchRef.current = true;
-            return true;
           }
         }
       } catch (error) {
         console.error(
-          processApiError(error, {
-            defaultMessage: "Error parsing session storage data",
-          })
+          "Error parsing session storage data:",
+          error
         );
       }
-      return false;
-    };
-
-    if (!loadFromSessionStorage()) {
-      fetchIncidents();
     }
+    fetchIncidents();
   }, []);
 
   const fetchIncidents = useCallback(async () => {
-    if (hasInitialFetchRef.current) return;
-
     setIsLoading(true);
     setError(null);
 
@@ -115,7 +98,6 @@ export const IncidentProvider = ({
       }
 
       setIncidents(result.data);
-      hasInitialFetchRef.current = true;
     } catch (error) {
       console.error("Failed to fetch incidents:", processApiError(error));
 
@@ -263,7 +245,6 @@ export const IncidentProvider = ({
 
   const refreshIncidents = useCallback(async () => {
     // Force a refresh of the incidents data
-    hasInitialFetchRef.current = false;
     setError(null);
     return fetchIncidents();
   }, [fetchIncidents]);
@@ -279,7 +260,6 @@ export const IncidentProvider = ({
       isLoading,
       setIsLoading,
       error,
-      hasInitialFetch: hasInitialFetchRef.current,
       // Selection state
       selectedIncidents,
       setSelectedIncidents,

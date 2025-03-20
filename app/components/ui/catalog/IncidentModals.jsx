@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Modal from "../modals/Modal";
-import BaseIncidentForm from "../../forms/IncidentManagementForm";
 import { useIncidents } from "../../../contexts/IncidentContext";
 import useForm from "../../../hooks/useForm";
 import useFileUpload from "../../../hooks/useFileUpload";
@@ -15,6 +14,7 @@ import {
   handleUpdateIncident,
 } from "../../../catalog/crudHandlers";
 import { processApiError } from "../../../utils/errors/errorService";
+import IncidentManagementForm from "../../forms/IncidentManagementForm";
 
 /**
  * Component for incident-related modals (add/edit) with form logic
@@ -34,6 +34,24 @@ const IncidentModals = ({
   const [addFormApiError, setAddFormApiError] = useState(null);
   const [addFormShowSeverityInfo, setAddFormShowSeverityInfo] = useState(false);
 
+  // File upload for add form
+  const {
+    fileState: addFileState,
+    handleFileChange: handleAddFileChange,
+    clearFile: clearAddFile,
+  } = useFileUpload({
+    validationOptions: {
+      maxSizeInMB: 2,
+      maxWidth: 863,
+      maxHeight: 768,
+    },
+    setFormErrors: (errors) => {
+      if (addFormSetErrors) {
+        addFormSetErrors(errors);
+      }
+    },
+  });
+
   // Add form setup with useForm hook
   const {
     formData: addFormData,
@@ -41,7 +59,7 @@ const IncidentModals = ({
     isSubmitting: isAddFormSubmitting,
     handleChange: handleAddFormChange,
     handleSubmit: submitAddForm,
-    setErrors: setAddFormErrors,
+    setErrors: addFormSetErrors,
     setFieldValue: setAddFormFieldValue,
     resetForm: resetAddForm,
   } = useForm(
@@ -55,27 +73,14 @@ const IncidentModals = ({
       artifactContent: "",
     },
     validateIncidentForm,
-    handleAddFormSubmit
+    handleAddFormSubmit,
+    { fileState: addFileState } // Pass fileState to useForm
   );
-
-  // File upload for add form
-  const {
-    fileState: addFileState,
-    handleFileChange: handleAddFileChange,
-    clearFile: clearAddFile,
-  } = useFileUpload({
-    validationOptions: {
-      maxSizeInMB: 2,
-      maxWidth: 863,
-      maxHeight: 768,
-    },
-    setFormErrors: setAddFormErrors,
-  });
 
   const updateAddFormErrors = (modifyFn) => {
     const currentErrors = { ...addFormErrors };
     const updatedErrors = modifyFn(currentErrors);
-    setAddFormErrors(updatedErrors);
+    addFormSetErrors(updatedErrors);
   };
 
   const handleAddFormDateChange = (e) => {
@@ -90,6 +95,7 @@ const IncidentModals = ({
 
     if (value !== "image") {
       clearAddFile();
+      setAddFormFieldValue("artifactContent", "");
       updateAddFormErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors.file;
@@ -146,27 +152,26 @@ const IncidentModals = ({
         throw new Error(result);
       }
 
-      setIncidents(result);
+      setIncidents(result.data);
       resetAddForm();
       clearAddFile();
       closeAddModal();
     } catch (error) {
       console.error("Error adding incident:", error);
 
-      // Process the error through our centralized error service
       const standardError = processApiError(error, {
         defaultMessage: "Failed to add incident. Please try again.",
       });
 
-      // Special handling for file/image errors
       if (
         error.message.includes("file") ||
         error.message.includes("image") ||
         error.message.includes("upload")
       ) {
-        const updatedErrors = { ...addFormErrors };
-        updatedErrors.file = `Artifact error: ${error.message}`;
-        setAddFormErrors(updatedErrors);
+        updateAddFormErrors((prevErrors) => ({
+          ...prevErrors,
+          file: `Artifact error: ${error.message}`,
+        }));
       } else {
         setAddFormApiError(standardError);
       }
@@ -179,6 +184,28 @@ const IncidentModals = ({
   const [editFormApiError, setEditFormApiError] = useState(null);
   const [editFormShowSeverityInfo, setEditFormShowSeverityInfo] =
     useState(false);
+
+  // File upload for edit form
+  const {
+    fileState: editFileState,
+    handleFileChange: handleEditFileChange,
+    clearFile: clearEditFile,
+  } = useFileUpload({
+    validationOptions: {
+      maxSizeInMB: 2,
+      maxWidth: 863,
+      maxHeight: 768,
+    },
+    setFormErrors: (errors) => {
+      if (editFormSetErrors) {
+        editFormSetErrors(errors);
+      }
+    },
+  });
+
+  const getCurrentIncident = () => {
+    return selectedIncidents?.[currentEditIndex] || null;
+  };
 
   const getInitialEditFormValues = () => {
     if (!selectedIncidents || !selectedIncidents[currentEditIndex]) {
@@ -211,33 +238,24 @@ const IncidentModals = ({
     isSubmitting: isEditFormSubmitting,
     handleChange: handleEditFormChange,
     handleSubmit: submitEditForm,
-    setErrors: setEditFormErrors,
+    setErrors: editFormSetErrors,
     setFieldValue: setEditFormFieldValue,
     setValues: setEditFormValues,
     resetForm: resetEditForm,
   } = useForm(
     getInitialEditFormValues(),
     validateIncidentForm,
-    handleEditFormSubmit
+    handleEditFormSubmit,
+    {
+      fileState: editFileState,
+      incident: getCurrentIncident(),
+    } // Pass fileState and incident to useForm for validation
   );
-
-  const {
-    fileState: editFileState,
-    handleFileChange: handleEditFileChange,
-    clearFile: clearEditFile,
-  } = useFileUpload({
-    validationOptions: {
-      maxSizeInMB: 2,
-      maxWidth: 863,
-      maxHeight: 768,
-    },
-    setFormErrors: setEditFormErrors,
-  });
 
   const updateEditFormErrors = (modifyFn) => {
     const currentErrors = { ...editFormErrors };
     const updatedErrors = modifyFn(currentErrors);
-    setEditFormErrors(updatedErrors);
+    editFormSetErrors(updatedErrors);
   };
 
   React.useEffect(() => {
@@ -260,6 +278,7 @@ const IncidentModals = ({
 
     if (value !== "image") {
       clearEditFile();
+      setEditFormFieldValue("artifactContent", "");
       updateEditFormErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
         delete newErrors.file;
@@ -312,6 +331,7 @@ const IncidentModals = ({
         payload.fileName = editFileState.name;
         payload.fileType = editFileState.type;
       }
+
       const result = await handleUpdateIncident(payload);
 
       if (typeof result === "string") {
@@ -321,7 +341,6 @@ const IncidentModals = ({
       setIncidents(result.data);
       moveToNextEdit();
     } catch (error) {
-      console.error("Error updating incident:", error);
 
       const standardError = processApiError(error, {
         defaultMessage: "Failed to update incident. Please try again.",
@@ -332,9 +351,10 @@ const IncidentModals = ({
         error.message.includes("image") ||
         error.message.includes("upload")
       ) {
-        const updatedErrors = { ...editFormErrors };
-        updatedErrors.file = `Artifact error: ${error.message}`;
-        setEditFormErrors(updatedErrors);
+        updateEditFormErrors((prevErrors) => ({
+          ...prevErrors,
+          file: `Artifact error: ${error.message}`,
+        }));
       } else {
         setEditFormApiError(standardError);
       }
@@ -352,7 +372,7 @@ const IncidentModals = ({
           title="Add New Technical Incident"
           size="large"
         >
-          <BaseIncidentForm
+          <IncidentManagementForm
             // Form state
             formData={addFormData}
             formErrors={addFormErrors}
@@ -387,7 +407,7 @@ const IncidentModals = ({
           title={`Edit Incident (${currentEditIndex + 1}/${selectedIncidents.length})`}
           size="large"
         >
-          <BaseIncidentForm
+          <IncidentManagementForm
             // Form state
             formData={editFormData}
             formErrors={editFormErrors}
