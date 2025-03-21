@@ -41,9 +41,7 @@ export async function DELETE(req) {
 
     return new Response(
       JSON.stringify({
-        error: standardError.message,
-        errorType: standardError.type,
-        details: standardError.details,
+        ...standardError,
         timestamp: new Date().toISOString(),
       }),
       {

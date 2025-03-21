@@ -62,6 +62,7 @@ export default function ResetPasswordPage() {
       const standardError = processApiError(err, {
         defaultMessage: "Failed to process request",
       });
+      submissionInProgress.current = false;
       setApiError(standardError);
     }
   };

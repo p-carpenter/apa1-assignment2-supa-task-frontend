@@ -8,7 +8,6 @@ export async function OPTIONS() {
 
 export async function GET(req) {
   try {
-
     const path = "tech-incidents";
     const data = await fetchFromSupabase(path, "GET");
 
@@ -41,9 +40,7 @@ export async function GET(req) {
 
     return new Response(
       JSON.stringify({
-        error: standardError.message,
-        errorType: standardError.type,
-        details: standardError.details,
+        ...standardError,
         timestamp: new Date().toISOString(),
       }),
       { status: standardError.status || 500, headers: CORS_HEADERS }

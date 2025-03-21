@@ -41,9 +41,7 @@ export async function GET(req) {
 
     return new Response(
       JSON.stringify({
-        error: standardError.message,
-        errorType: standardError.type,
-        details: standardError.details,
+        ...standardError,
         timestamp: new Date().toISOString(),
       }),
       {
@@ -87,9 +85,7 @@ export async function POST(req) {
 
     return new Response(
       JSON.stringify({
-        error: standardError.message,
-        errorType: standardError.type,
-        details: standardError.details,
+        ...standardError,
         timestamp: new Date().toISOString(),
       }),
       {

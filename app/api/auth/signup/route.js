@@ -1,8 +1,7 @@
 import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 import { processApiError } from "@/app/utils/errors/errorService";
-import { cookies } from "next/headers";
-import { AUTH_CONFIG, CORS_HEADERS } from "@/app/utils/auth/config";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
 export async function OPTIONS() {
   return new Response(null, {
@@ -16,44 +15,73 @@ export async function POST(req) {
     const body = await req.json();
     const { email, password, displayName } = body;
 
+    // Log request data for debugging (remove in production)
+    console.log("Signup request:", { email, displayName });
+
     const data = await fetchFromSupabase("authentication/signup", "POST", {
       email,
       password,
       display_name: displayName,
     });
 
-    if (data.session) {
-      const cookieStore = await cookies();
+    // Log the response data for debugging
+    console.log("Supabase signup response:", JSON.stringify(data));
 
-      cookieStore.set("sb-access-token", data.session.access_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: AUTH_CONFIG.tokenExpiration.access,
-        path: "/",
-        sameSite: "lax",
-      });
-
-      cookieStore.set("sb-refresh-token", data.session.refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        maxAge: AUTH_CONFIG.tokenExpiration.refresh,
-        path: "/",
-        sameSite: "lax",
-      });
-
+    if (
+      data &&
+      data.user &&
+      data.user.identities &&
+      data.user.identities.length === 0
+    ) {
       return new Response(
         JSON.stringify({
-          user: data.user,
-          session: {
-            expires_at: data.session.expires_at,
-          },
+          error: "Email already exists",
+          type: ERROR_TYPES.ALREADY_EXISTS,
+          details: "This email is already registered",
           timestamp: new Date().toISOString(),
         }),
-        { status: 201, headers: CORS_HEADERS }
+        {
+          status: 409,
+          headers: CORS_HEADERS,
+        }
       );
-    } else {
-      throw new Error("Account created but no session was established");
     }
+
+    if (
+      data &&
+      data.user &&
+      !data.session &&
+      data.user.identities &&
+      data.user.identities.length > 0
+    ) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          user: data.user,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 200,
+          headers: CORS_HEADERS,
+        }
+      );
+    }
+
+    // If we got here, we have an unexpected response format
+    console.error("Unexpected Supabase response format:", data);
+    return new Response(
+      JSON.stringify({
+        error: "Unable to process signup",
+        type: ERROR_TYPES.SERVICE_ERROR,
+        details:
+          "Received an unexpected response from the authentication service",
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 500,
+        headers: CORS_HEADERS,
+      }
+    );
   } catch (error) {
     console.error("Signup error:", error);
 
@@ -63,9 +91,7 @@ export async function POST(req) {
 
     return new Response(
       JSON.stringify({
-        error: standardError.message,
-        errorType: standardError.type,
-        details: standardError.details,
+        ...standardError,
         timestamp: new Date().toISOString(),
       }),
       {

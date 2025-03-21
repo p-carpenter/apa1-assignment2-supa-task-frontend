@@ -85,6 +85,7 @@ export default function ConfirmResetPage() {
       const standardError = processApiError(err, {
         defaultMessage: "Failed to reset password",
       });
+      submissionInProgress.current = false;
       setApiError(standardError);
     }
   };

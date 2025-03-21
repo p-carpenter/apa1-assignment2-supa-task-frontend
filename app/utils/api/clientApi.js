@@ -1,3 +1,4 @@
+import { processApiError } from "../errors/errorService";
 /**
  * Generic function to handle API requests to Supabase
  * @param {string} path - The API endpoint path (e.g., "tech-incidents").

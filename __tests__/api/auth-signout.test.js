@@ -37,15 +37,21 @@ describe("auth/signout API route", () => {
       http.post(
         "https://test-supabase-url.com/functions/v1/authentication/signout",
         () => {
-          return new HttpResponse(JSON.stringify({ success: true }), {
-            headers: {
-              "Content-Type": "application/json",
-              "Set-Cookie": [
-                "sb-access-token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax",
-                "sb-refresh-token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax",
-              ],
-            },
-          });
+          return new HttpResponse(
+            JSON.stringify({
+              success: true,
+              timestamp: new Date(1716313200000).toISOString(),
+            }),
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "Set-Cookie": [
+                  "sb-access-token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax",
+                  "sb-refresh-token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax",
+                ],
+              },
+            }
+          );
         }
       )
     );
@@ -54,7 +60,10 @@ describe("auth/signout API route", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({ success: true });
+    expect(data).toEqual({
+      success: true,
+      timestamp: new Date(1716313200000).toISOString(),
+    });
 
     // Verify cookies were set to be cleared
     expect(mockCookieStore.set).toHaveBeenCalledTimes(2);

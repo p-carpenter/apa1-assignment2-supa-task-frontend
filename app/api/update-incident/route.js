@@ -43,14 +43,12 @@ export async function PUT(req) {
       defaultMessage: "Failed to update incident",
     });
 
-    return new Response(
-      JSON.stringify({
-        error: standardError.message,
-        errorType: standardError.type,
-        details: standardError.details,
-        timestamp: new Date().toISOString(),
-      }),
-      { status: standardError.status || 500, headers: CORS_HEADERS }
-    );
+        return new Response(
+          JSON.stringify({
+            ...standardError,
+            timestamp: new Date().toISOString(),
+          }),
+          { status: standardError.status || 500, headers: CORS_HEADERS }
+        );
   }
 }

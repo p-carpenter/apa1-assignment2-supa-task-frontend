@@ -77,7 +77,7 @@ export async function signUp({ email, password, displayName }) {
 
     return data;
   } catch (error) {
-    console.error("Sign up error:", error);
+    console.warn("Sign up error:", error);
     throw error;
   }
 }
@@ -185,7 +185,7 @@ export async function getCurrentUser(forceRefresh = false) {
       user: null,
       session: null,
       error: error.message,
-      errorType: error.type,
+      type: error.type,
     };
   }
 }

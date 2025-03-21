@@ -41,11 +41,13 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       });
+      submissionInProgress.current = false;
     } catch (err) {
       const standardError = processApiError(err, {
         defaultMessage: "An error occurred during login",
       });
       setApiError(standardError);
+      submissionInProgress.current = false;
     } finally {
       submissionInProgress.current = false;
     }

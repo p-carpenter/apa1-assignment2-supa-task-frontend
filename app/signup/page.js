@@ -69,12 +69,10 @@ export default function SignupPage() {
 
   const handleFormSubmit = async (formData) => {
     if (submissionInProgress.current) {
-      console.log("Submission already in progress, ignoring");
       return;
     }
 
     submissionInProgress.current = true;
-    console.log("Starting signup form submission");
 
     setApiError(null);
 
@@ -106,6 +104,7 @@ export default function SignupPage() {
         password: formData.password,
         displayName: formData.email.split("@")[0],
       });
+      submissionInProgress.current = false;
 
       console.log("Sign up successful:", result);
 
@@ -117,14 +116,12 @@ export default function SignupPage() {
 
       return result;
     } catch (err) {
-      console.error("Signup form error:", err);
-
       const standardError = processApiError(err, {
         defaultMessage: "Failed to create account",
       });
+      submissionInProgress.current = false;
       setApiError(standardError);
     } finally {
-      console.log("Signup form submission completed");
       submissionInProgress.current = false;
     }
   };

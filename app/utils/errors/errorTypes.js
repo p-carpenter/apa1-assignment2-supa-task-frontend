@@ -40,7 +40,6 @@ export const ERROR_MESSAGES = {
     "You don't have permission to perform this action.",
   [ERROR_TYPES.NOT_FOUND]: "The requested resource was not found.",
   [ERROR_TYPES.ALREADY_EXISTS]: "This resource already exists.",
-  [ERROR_TYPES.VALIDATION_ERROR]: "Please check your input and try again.",
   [ERROR_TYPES.FILE_TOO_LARGE]: "The file is too large. Maximum size is 2MB.",
   [ERROR_TYPES.INVALID_FILE_TYPE]: "This file type is not supported.",
   [ERROR_TYPES.RATE_LIMITED]: "Too many requests. Please try again later.",

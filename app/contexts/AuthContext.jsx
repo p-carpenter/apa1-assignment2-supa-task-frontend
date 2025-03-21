@@ -62,7 +62,7 @@ export function AuthProvider({
           if (data.error) {
             setError({
               message: data.error,
-              type: data.errorType || ERROR_TYPES.UNKNOWN_ERROR,
+              type: data.type || ERROR_TYPES.UNKNOWN_ERROR,
             });
           }
         }
@@ -93,35 +93,21 @@ export function AuthProvider({
     setError(null);
 
     try {
-      if (!credentials.email || !credentials.password) {
-        console.error("Missing credentials");
-        const validationError = {
-          type: ERROR_TYPES.VALIDATION_ERROR,
-          message: "Email and password are required",
-          details: {
-            email: !credentials.email ? "Email is required" : "",
-            password: !credentials.password ? "Password is required" : "",
-          },
-        };
-        throw validationError;
-      }
-
       const data = await signIn(credentials);
       setUser(data.user);
       setSession(data.session);
       return data;
     } catch (error) {
       // If the error already has a type (processed by the API), use it directly
-      if (error && error.errorType) {
+      if (error && error.type) {
         const formattedError = {
-          type: error.errorType,
+          type: error.type,
           message: error.error,
           details: error.details,
         };
         setError(formattedError);
         throw formattedError;
       }
-
 
       const standardError = processApiError(error, {
         defaultMessage: "Unable to sign in. Please try again.",
@@ -134,78 +120,78 @@ export function AuthProvider({
     }
   }, []);
 
-const handleSignUp = useCallback(async (credentials) => {
-  setIsLoading(true);
-  setError(null);
+  const handleSignUp = useCallback(async (credentials) => {
+    setIsLoading(true);
+    setError(null);
 
-  try {
-    const data = await signUp(credentials);
-    setUser(data.user);
-    setSession(data.session);
-    return data;
-  } catch (error) {
-    if (error && error.errorType) {
-      const formattedError = {
-        type: error.errorType,
-        message: error.error,
-        details: error.details,
-      };
-      setError(formattedError);
-      throw formattedError;
-    }
-
-    const standardError = processApiError(error, {
-      defaultMessage: "Unable to create account. Please try again.",
-    });
-
-    setError(standardError);
-    throw standardError;
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
-
-const handleSignOut = useCallback(async () => {
-  setIsLoading(true);
-  setError(null);
-
-  try {
-    const result = await signOut();
-    setUser(null);
-    setSession(null);
-    return result;
-  } catch (error) {
-    // Always clear user state on signout attempt regardless of errors
-    setUser(null);
-    setSession(null);
-
-    if (error && error.errorType) {
-      const formattedError = {
-        type: error.errorType,
-        message: error.error,
-        details: error.details,
-      };
-      setError(formattedError);
-
-      if (formattedError.type !== ERROR_TYPES.NETWORK_ERROR) {
+    try {
+      const data = await signUp(credentials);
+      // cannot set session here as session is null until email confirmation
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      if (error && error.type) {
+        const formattedError = {
+          type: error.type,
+          message: error.error,
+          details: error.details,
+        };
+        setError(formattedError);
         throw formattedError;
       }
-      return;
-    }
 
-    const standardError = processApiError(error, {
-      defaultMessage:
-        "Error during sign out, but local session has been cleared.",
-    });
+      const standardError = processApiError(error, {
+        defaultMessage: "Unable to create account. Please try again.",
+      });
 
-    setError(standardError);
-    if (standardError.type !== ERROR_TYPES.NETWORK_ERROR) {
+      setError(standardError);
       throw standardError;
+    } finally {
+      setIsLoading(false);
     }
-  } finally {
-    setIsLoading(false);
-  }
-}, []);
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await signOut();
+      setUser(null);
+      setSession(null);
+      return result;
+    } catch (error) {
+      // Always clear user state on signout attempt regardless of errors
+      setUser(null);
+      setSession(null);
+
+      if (error && error.type) {
+        const formattedError = {
+          type: error.type,
+          message: error.error,
+          details: error.details,
+        };
+        setError(formattedError);
+
+        if (formattedError.type !== ERROR_TYPES.NETWORK_ERROR) {
+          throw formattedError;
+        }
+        return;
+      }
+
+      const standardError = processApiError(error, {
+        defaultMessage:
+          "Error during sign out, but local session has been cleared.",
+      });
+
+      setError(standardError);
+      if (standardError.type !== ERROR_TYPES.NETWORK_ERROR) {
+        throw standardError;
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
