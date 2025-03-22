@@ -11,7 +11,9 @@ export async function POST(req) {
     const requestData = await req.json();
 
     if (!requestData.addition || !requestData.addition.name) {
-      throw new Error("Incident data with a name is required");
+      const validationError = new Error("Incident data with a name is required");
+      validationError.status = 400; // Bad Request
+      throw validationError;
     }
 
     const incidentData = requestData.addition;
@@ -25,7 +27,9 @@ export async function POST(req) {
       if (typeof payload.fileData === "string") {
         const base64Size = payload.fileData.length * 0.75;
         if (base64Size > 5 * 1024 * 1024) {
-          throw new Error("File size exceeds 5MB limit");
+          const fileSizeError = new Error("File size exceeds 5MB limit");
+          fileSizeError.status = 413; // Payload Too Large
+          throw fileSizeError;
         }
       }
     }

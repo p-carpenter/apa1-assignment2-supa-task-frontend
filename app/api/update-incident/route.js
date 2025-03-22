@@ -10,8 +10,16 @@ export async function PUT(req) {
   try {
     const requestData = await req.json();
 
-    if (!requestData.id || !requestData.update) {
-      throw new Error("Incident ID and update are required");
+    if (!requestData.id) {
+      const validationError = new Error("Incident ID is required");
+      validationError.status = 400;
+      throw validationError;
+    }
+
+    if (!requestData.update) {
+      const validationError = new Error("Update data is required");
+      validationError.status = 400;
+      throw validationError;
     }
 
     const { id, update } = requestData;
@@ -25,7 +33,9 @@ export async function PUT(req) {
       if (typeof payload.fileData === "string") {
         const base64Size = payload.fileData.length * 0.75;
         if (base64Size > 5 * 1024 * 1024) {
-          throw new Error("File size exceeds 5MB limit");
+          const fileSizeError = new Error("File size exceeds 5MB limit");
+          fileSizeError.status = 413; // Payload Too Large
+          throw fileSizeError;
         }
       }
     }
@@ -43,12 +53,12 @@ export async function PUT(req) {
       defaultMessage: "Failed to update incident",
     });
 
-        return new Response(
-          JSON.stringify({
-            ...standardError,
-            timestamp: new Date().toISOString(),
-          }),
-          { status: standardError.status || 500, headers: CORS_HEADERS }
-        );
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: standardError.status || 500, headers: CORS_HEADERS }
+    );
   }
 }

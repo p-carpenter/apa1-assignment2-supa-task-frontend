@@ -15,10 +15,13 @@ export async function DELETE(req) {
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return new Response(
-        JSON.stringify({ error: "No valid incident IDs provided" }),
+        JSON.stringify({ 
+          error: "No valid incident IDs provided",
+          timestamp: new Date().toISOString()
+        }),
         {
           status: 400,
-          headers: { "Content-Type": "application/json" },
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         }
       );
     }
