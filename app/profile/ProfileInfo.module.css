@@ -65,3 +65,11 @@
 .logoutButton:hover {
   background-color: #c96868;
 }
+
+.resetStatus {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.9rem;
+}

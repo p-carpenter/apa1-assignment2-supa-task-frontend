@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
@@ -8,7 +8,6 @@ import authStyles from "@/app/components/forms/Auth.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ResetPasswordForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/useForm";
-import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 import { validateAuthForm } from "@/app/utils/validation/formValidation";
 import { processApiError } from "@/app/utils/errors/errorService";
 
@@ -19,7 +18,7 @@ import {
 } from "../components/ui/console";
 
 export default function ResetPasswordPage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, handleResetPassword } = useAuth();
   const router = useRouter();
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
@@ -30,46 +29,43 @@ export default function ResetPasswordPage() {
     }
   }, [isAuthenticated, loading, router]);
 
+  // Declare this outside of useEffect to avoid dependency issues
   const handleFormSubmit = async (formData) => {
+    // The key issue: don't check submissionInProgress here because useForm already prevents duplicate submissions
+    // This creates a race condition with the useForm's own isSubmitting state
+
+    console.log("handleFormSubmit called with:", formData);
     setApiError(null);
     setSuccessMessage("");
 
     try {
-      const response = await fetch("/api/auth/password-recovery", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: formData.email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw {
-          status: response.status,
-          data: data,
-          message: data.error || "Something went wrong",
-        };
-      }
+      console.log("Calling handleResetPassword with email:", formData.email);
+      await handleResetPassword(formData.email);
+      console.log("Password reset instructions sent successfully");
 
       setSuccessMessage(
         "Password reset instructions have been sent to your email."
       );
 
-      resetForm();
+      // Don't call resetForm here, it's not stable
+      // resetForm();
+
+      // Return success to signal to useForm that submission was successful
+      return { success: true };
     } catch (err) {
+      console.error("Password reset error:", err);
       const standardError = processApiError(err, {
         defaultMessage: "Failed to process request",
       });
-      submissionInProgress.current = false;
       setApiError(standardError);
+
+      // Important: throw the error to let useForm know submission failed
+      throw standardError;
     }
   };
 
   const initialFormState = { email: "" };
-  const validateFormFunction = (data, fieldName) =>
-    validateAuthForm(data, fieldName);
+
   const {
     formData,
     formErrors,
@@ -77,7 +73,7 @@ export default function ResetPasswordPage() {
     handleChange,
     handleSubmit,
     resetForm,
-  } = useForm(initialFormState, validateFormFunction, handleFormSubmit);
+  } = useForm(initialFormState, validateAuthForm, handleFormSubmit);
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
@@ -123,17 +119,15 @@ export default function ResetPasswordPage() {
                 </p>
               </div>
 
-              {successMessage && (
+              {successMessage ? (
                 <div className={authStyles.authSuccess}>{successMessage}</div>
-              )}
-
-              {!successMessage && (
+              ) : (
                 <ResetPasswordForm
                   formData={formData}
                   formErrors={formErrors}
                   handleChange={handleChange}
                   handleSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
+                  isSubmitting={isSubmitting || loading}
                   apiError={apiError}
                 />
               )}

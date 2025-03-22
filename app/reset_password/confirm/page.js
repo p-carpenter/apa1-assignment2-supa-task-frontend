@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
@@ -19,12 +19,13 @@ import {
 } from "../../components/ui/console";
 
 export default function ConfirmResetPage() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, handleResetPasswordConfirm } = useAuth();
   const router = useRouter();
 
   const [token, setToken] = useState("");
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const submissionInProgress = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -38,10 +39,6 @@ export default function ConfirmResetPage() {
   }, []);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push("/profile");
-    }
-
     if (
       typeof window !== "undefined" &&
       !token &&
@@ -52,32 +49,21 @@ export default function ConfirmResetPage() {
   }, [isAuthenticated, loading, router, token]);
 
   const handleFormSubmit = async (formData) => {
+    if (submissionInProgress.current) {
+      return;
+    }
+
+    submissionInProgress.current = true;
     setApiError(null);
     setSuccessMessage("");
 
     try {
-      const response = await fetch("/api/auth/password-recovery/confirm", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          token,
-        }),
+      await handleResetPasswordConfirm({
+        email: formData.email,
+        password: formData.password,
+        token,
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw {
-          status: response.status,
-          data: data,
-          message: data.error || "Something went wrong",
-        };
-      }
-
+      submissionInProgress.current = false;
       setSuccessMessage(
         "Your password has been successfully reset. You can now login with your new password."
       );
@@ -85,8 +71,10 @@ export default function ConfirmResetPage() {
       const standardError = processApiError(err, {
         defaultMessage: "Failed to reset password",
       });
-      submissionInProgress.current = false;
       setApiError(standardError);
+      submissionInProgress.current = false;
+    } finally {
+      submissionInProgress.current = false;
     }
   };
 
@@ -178,28 +166,38 @@ export default function ConfirmResetPage() {
               </div>
 
               {successMessage && (
+                <>
                 <div className={authStyles.authSuccess}>{successMessage}</div>
+                <div className={authStyles.authFooter}>
+                <p>
+                  <Link href="/login" className={authStyles.authLink}>
+                    Back
+                  </Link>
+                </p>
+              </div>
+              </>
               )}
 
               {!successMessage && (
+                   <>             
                 <ConfirmResetForm
                   formData={formData}
                   formErrors={formErrors}
                   handleChange={handleChange}
                   handleSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
+                  isSubmitting={isSubmitting || loading}
                   apiError={apiError}
                 />
-              )}
-
-              <div className={authStyles.authFooter}>
+                              <div className={authStyles.authFooter}>
                 <p>
                   Remember your password?{" "}
                   <Link href="/login" className={authStyles.authLink}>
-                    Back to login
+                    Back
                   </Link>
                 </p>
               </div>
+              </>
+              )}
             </div>
           </ConsoleSection>
         </ConsoleWindow>

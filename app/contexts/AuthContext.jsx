@@ -8,7 +8,14 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { signIn, signUp, signOut, getCurrentUser } from "../utils/auth/client";
+import {
+  signIn,
+  signUp,
+  signOut,
+  getCurrentUser,
+  resetPassword,
+  resetPasswordConfirm,
+} from "../utils/auth/client";
 import { ERROR_TYPES } from "../utils/errors/errorTypes";
 import { processApiError } from "../utils/errors/errorService";
 
@@ -21,6 +28,8 @@ export const AuthContext = createContext({
   signUp: async () => {},
   signOut: async () => {},
   refreshUser: async () => {},
+  handleResetPassword: async () => {},
+  handleResetPasswordConfirm: async () => {},
 });
 
 /**
@@ -47,42 +56,26 @@ export function AuthProvider({
         return;
       }
 
-      try {
-        // Verify with server that session is valid
-        const data = await getCurrentUser();
+      // Verify with server that session is valid
+      const data = await getCurrentUser(true);
 
-        if (data.user) {
-          setUser(data.user);
-          setSession(data.session);
-        } else {
-          setUser(null);
-          setSession(null);
+      if (data.user && data.session) {
+        setUser(data.user);
+        setSession(data.session);
+      } else {
+        setUser(null);
+        setSession(null);
 
-          // If specific error, store it
-          if (data.error) {
-            setError({
-              message: data.error,
-              type: data.type || ERROR_TYPES.UNKNOWN_ERROR,
-            });
-          }
+
+        if (data.error) {
+          setError({
+            message: data.error,
+            type: data.type || ERROR_TYPES.UNKNOWN_ERROR,
+          });
         }
-      } catch (error) {
-        console.warn("Session verification failed:", error);
-
-        const standardError = processApiError(error);
-        setError(standardError);
-
-        // If auth errors, clear user state
-        if (
-          standardError.type === ERROR_TYPES.AUTH_REQUIRED ||
-          standardError.type === ERROR_TYPES.SESSION_EXPIRED
-        ) {
-          setUser(null);
-          setSession(null);
-        }
-      } finally {
-        setIsLoading(false);
       }
+
+      setIsLoading(false);
     };
 
     initialiseAuth();
@@ -223,6 +216,68 @@ export function AuthProvider({
     }
   }, []);
 
+  const handleResetPassword = useCallback(async (email) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const data = await resetPassword({ email });
+      return data;
+    } catch (error) {
+      if (error && error.type) {
+        const formattedError = {
+          type: error.type,
+          message: error.error,
+          details: error.details,
+        };
+        setError(formattedError);
+        throw formattedError;
+      }
+
+      const standardError = processApiError(error, {
+        defaultMessage:
+          "Unable to send password reset instructions. Please try again.",
+      });
+
+      setError(standardError);
+      throw standardError;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleResetPasswordConfirm = useCallback(
+    async ({ email, password, token }) => {
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await resetPasswordConfirm({ email, password, token });
+        return data;
+      } catch (error) {
+        if (error && error.type) {
+          const formattedError = {
+            type: error.type,
+            message: error.error,
+            details: error.details,
+          };
+          setError(formattedError);
+          throw formattedError;
+        }
+
+        const standardError = processApiError(error, {
+          defaultMessage: "Unable to reset password. Please try again.",
+        });
+
+        setError(standardError);
+        throw standardError;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -234,6 +289,8 @@ export function AuthProvider({
       signUp: handleSignUp,
       signOut: handleSignOut,
       refreshUser,
+      handleResetPassword,
+      handleResetPasswordConfirm,
     }),
     [
       user,
@@ -245,6 +302,8 @@ export function AuthProvider({
       handleSignUp,
       handleSignOut,
       refreshUser,
+      handleResetPassword,
+      handleResetPasswordConfirm,
     ]
   );
 

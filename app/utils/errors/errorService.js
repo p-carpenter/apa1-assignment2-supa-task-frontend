@@ -5,6 +5,7 @@ import { ERROR_TYPES, ERROR_MESSAGES } from "./errorTypes";
  * Maps HTTP status codes to standard error types
  */
 const STATUS_CODE_MAP = {
+  400: ERROR_TYPES.BAD_REQUEST,
   401: ERROR_TYPES.AUTH_REQUIRED,
   403: ERROR_TYPES.PERMISSION_DENIED,
   404: ERROR_TYPES.NOT_FOUND,
@@ -77,21 +78,6 @@ export const processApiError = (error, options = {}) => {
       standardError.message = ERROR_MESSAGES[ERROR_TYPES.SESSION_NOT_FOUND];
     }
   }
-
-  // if (error.status === 400) {
-  //   const errorDetails = error.details || error.data?.details;
-  //   const errorMessage = error.message || error.data?.error || "";
-
-  //   if (
-  //     (typeof errorDetails === "string" &&
-  //       errorDetails.includes("already exists")) ||
-  //     (typeof errorMessage === "string" &&
-  //       errorMessage.includes("already exists"))
-  //   ) {
-  //     standardError.type = ERROR_TYPES.ALREADY_EXISTS;
-  //     standardError.message = ERROR_MESSAGES[ERROR_TYPES.ALREADY_EXISTS];
-  //   }
-  // }
 
   return standardError;
 };

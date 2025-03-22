@@ -138,10 +138,9 @@ export async function signOut() {
 
 /**
  * Get the current user
- * @param {boolean} forceRefresh - Force server verification
  * @returns {Promise<Object>} Authentication data with user and session
  */
-export async function getCurrentUser(forceRefresh = false) {
+export async function getCurrentUser() {
   try {
     if (typeof window !== "undefined" && !window.navigator.onLine) {
       const offlineError = new Error(
@@ -149,7 +148,7 @@ export async function getCurrentUser(forceRefresh = false) {
       );
       offlineError.type = ERROR_TYPES.NETWORK_ERROR;
       offlineError.isOffline = true;
-      throw offlineError;
+      console.warn("Offline user check:", offlineError);
     }
 
     const response = await fetch(AUTH_ENDPOINTS.USER, {
@@ -254,6 +253,71 @@ export async function addProtectedData(data) {
     return responseData;
   } catch (error) {
     console.error("Add protected data error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Request a password reset email
+ * @param {string} email - User email address for password recovery
+ * @returns {Promise<Object>} Response from the server
+ */
+export async function resetPassword({ email }) {
+  try {
+    const response = await fetch(AUTH_ENDPOINTS.PASSWORD_RECOVERY, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error("Failed to parse response from server");
+    }
+
+    if (!response.ok) {
+      throw data;
+    }
+
+    return data;
+  } catch (error) {
+    console.warn("Password reset error:", error);
+    throw error;
+  }
+}
+
+/**
+ * Confirm password reset with token, email and new password
+ * @param {Object} params - Password reset confirmation parameters
+ * @param {string} params.email - User email address
+ * @param {string} params.password - New password
+ * @param {string} params.token - Reset token from email
+ * @returns {Promise<Object>} Response from the server
+ */
+export async function resetPasswordConfirm({ email, password, token }) {
+  try {
+    const response = await fetch(AUTH_ENDPOINTS.PASSWORD_RECOVERY_CONFIRM, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, token }),
+    });
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error("Failed to parse response from server");
+    }
+
+    if (!response.ok) {
+      throw data;
+    }
+
+    return data;
+  } catch (error) {
+    console.warn("Password reset confirmation error:", error);
     throw error;
   }
 }

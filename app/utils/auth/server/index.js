@@ -38,13 +38,11 @@ export async function getServerSession() {
     );
 
     if (!response.ok) {
-      console.error("Server auth error: HTTP status", response.status);
       return { user: null, session: null };
     }
 
     return await response.json();
   } catch (error) {
-    console.error("Server auth error:", error);
     return { user: null, session: null };
   }
 }
