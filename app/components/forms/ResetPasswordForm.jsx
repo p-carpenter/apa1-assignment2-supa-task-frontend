@@ -9,7 +9,6 @@ const ResetPasswordForm = ({
   handleChange,
   handleSubmit,
   isSubmitting,
-  errorMessage,
   apiError,
   buttonText = "SEND RESET LINK",
 }) => {

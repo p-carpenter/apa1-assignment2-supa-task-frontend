@@ -7,37 +7,19 @@ import formStyles from "../FormStyles.module.css";
  * Form buttons component that handles both auth-style and standard buttons
  */
 const FormButtons = ({
-  onCancel,
   isSubmitting,
   submitLabel = "Submit",
-  cancelLabel = "Cancel",
   loadingLabel,
   useAuthStyle = false,
   className = "",
   testId,
 }) => {
-  // Determine button class based on style type
-  const buttonClass = useAuthStyle 
-    ? `${authStyles.authButton} ${authStyles.authSubmit}` 
-    : `${buttonStyles.button} ${buttonStyles.primary}`;
-  
-  const cancelClass = useAuthStyle 
-    ? `${authStyles.authButton}`
+  const buttonClass = useAuthStyle
+    ? `${authStyles.authButton} ${authStyles.authSubmit}`
     : `${buttonStyles.button} ${buttonStyles.primary}`;
 
   return (
     <div className={`${formStyles.formButtons} ${className}`}>
-      {onCancel && (
-        <button
-          type="button"
-          className={cancelClass}
-          onClick={onCancel}
-          disabled={isSubmitting}
-        >
-          {cancelLabel}
-        </button>
-      )}
-      
       <button
         type="submit"
         className={`${buttonClass} ${isSubmitting && !useAuthStyle ? buttonStyles.loading : ""}`}

@@ -18,7 +18,7 @@ const SelectField = ({
   return (
     <div className={`${styles.formGroup} ${className}`}>
       <label className={styles.formLabel} htmlFor={id || name}>
-        {label} {required && "*"}
+        {label} {required && <span style={{ color: "red" }}>*</span>}
       </label>
       <select
         id={id || name}

@@ -19,7 +19,7 @@ const categories = [
   "Infrastructure",
   "Security",
   "Human Error",
-  "External Factor",
+  "External Factors",
 ];
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
@@ -119,6 +119,7 @@ const IncidentManagementForm = ({
           onChange={handleChange}
           options={categories}
           className={formStyles.thirdWidth}
+          required
         />
 
         <SelectField
@@ -129,6 +130,7 @@ const IncidentManagementForm = ({
           onChange={handleChange}
           options={severityOptions}
           className={formStyles.thirdWidth}
+          required
         />
       </FormRow>
 
@@ -142,6 +144,7 @@ const IncidentManagementForm = ({
         onChange={handleChange}
         placeholder="Provide a description of the incident..."
         error={formErrors.description}
+        required
       />
 
       <SelectField

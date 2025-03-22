@@ -20,7 +20,7 @@ const DateField = ({
   return (
     <div className={`${styles.formGroup} ${className}`}>
       <label className={styles.formLabel} htmlFor={id || name}>
-        {label} {required && "*"}
+        {label} {required && <span style={{ color: "red" }}>*</span>}
       </label>
       <input
         id={id || name}

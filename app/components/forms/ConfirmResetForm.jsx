@@ -9,7 +9,6 @@ const ConfirmResetForm = ({
   handleChange,
   handleSubmit,
   isSubmitting,
-  errorMessage,
   apiError,
 }) => {
   return (

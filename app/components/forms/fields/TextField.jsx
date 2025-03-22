@@ -28,7 +28,7 @@ const TextField = ({
         ) : (
           label
         )}{" "}
-        {required && "*"}
+        {required && <span style={{ color: "red" }}>*</span>}
       </label>
       <input
         id={id || name}
