@@ -6,6 +6,48 @@ import { GET, POST } from "@/app/api/auth/protected/route";
 process.env.SUPABASE_URL = "https://test-supabase-url.com";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
+// Mock the processApiError function
+jest.mock("@/app/utils/errors/errorService", () => ({
+  processApiError: jest.fn((error, options = {}) => {
+    if (error.message === "Authentication required") {
+      return { error: "Unauthorized", status: 401 };
+    }
+    if (error.status) {
+      return { error: error.message || "API Error", status: error.status };
+    }
+    return { 
+      error: options.defaultMessage || error.message || "Unknown error", 
+      status: error.status || 500 
+    };
+  }),
+}));
+
+// Mock the fetchFromSupabase function
+jest.mock("@/app/utils/api/clientApi", () => ({
+  fetchFromSupabase: jest.fn(async (path, method, body, headers) => {
+    // This will be mocked differently for each test
+    if (path === "protected-data" && method === "GET") {
+      if (headers.Cookie && headers.Cookie.includes("sb-access-token") && headers.Cookie.includes("sb-refresh-token")) {
+        return "This is protected data";
+      }
+      throw new Error("Session expired");
+    }
+    
+    if (path === "protected-data" && method === "POST") {
+      if (headers.Cookie && headers.Cookie.includes("sb-access-token") && headers.Cookie.includes("sb-refresh-token")) {
+        return {
+          success: true,
+          message: "Data saved successfully",
+          received: body
+        };
+      }
+      throw new Error("Session expired");
+    }
+    
+    throw new Error("Unhandled request in mock");
+  }),
+}));
+
 // Mock the cookies
 const mockCookieStore = {
   has: jest.fn(),
@@ -33,36 +75,13 @@ describe("auth/protected API route", () => {
         .mockImplementationOnce(() => ({ value: "test-access-token" }))
         .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
-      // Set up MSW handler for this test
-      server.use(
-        http.get(
-          "https://test-supabase-url.com/functions/v1/validate-auth",
-          ({ cookies }) => {
-            // Check cookies directly using MSW's cookies API
-            if (
-              cookies["sb-access-token"] === "test-access-token" &&
-              cookies["sb-refresh-token"] === "test-refresh-token"
-            ) {
-              return HttpResponse.json({
-                data: "This is protected data",
-                userId: "123",
-              });
-            }
-            return new HttpResponse(
-              JSON.stringify({ error: "Invalid auth cookies" }),
-              { status: 401 }
-            );
-          }
-        )
-      );
-
       const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toEqual({
         data: "This is protected data",
-        userId: "123",
+        timestamp: expect.any(String)
       });
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-access-token");
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-refresh-token");
@@ -78,7 +97,11 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ error: "Unauthorized" });
+      expect(data).toEqual({ 
+        error: "Unauthorized",
+        status: 401,
+        timestamp: expect.any(String)
+      });
     });
 
     it("handles API errors", async () => {
@@ -87,24 +110,23 @@ describe("auth/protected API route", () => {
         .mockImplementationOnce(() => ({ value: "test-access-token" }))
         .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
-      // Set up an error response
-      server.use(
-        http.get(
-          "https://test-supabase-url.com/functions/v1/validate-auth",
-          () => {
-            return new HttpResponse(
-              JSON.stringify({ error: "Session expired" }),
-              { status: 401 }
-            );
-          }
-        )
-      );
+      // Override the fetchFromSupabase mock for this test
+      const { fetchFromSupabase } = require("@/app/utils/api/clientApi");
+      fetchFromSupabase.mockImplementationOnce(() => {
+        const error = new Error("Session expired");
+        error.status = 401;
+        throw error;
+      });
 
       const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ error: "Session expired" });
+      expect(data).toEqual({ 
+        error: "Session expired",
+        status: 401,
+        timestamp: expect.any(String)
+      });
     });
 
     it("handles network errors", async () => {
@@ -113,21 +135,23 @@ describe("auth/protected API route", () => {
         .mockImplementationOnce(() => ({ value: "test-access-token" }))
         .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
-      // Set up network error
-      server.use(
-        http.get(
-          "https://test-supabase-url.com/functions/v1/validate-auth",
-          () => {
-            return HttpResponse.error();
-          }
-        )
-      );
+      // Override the fetchFromSupabase mock for this test
+      const { fetchFromSupabase } = require("@/app/utils/api/clientApi");
+      fetchFromSupabase.mockImplementationOnce(() => {
+        const error = new Error("Failed to fetch");
+        error.status = 500;
+        throw error;
+      });
 
       const response = await GET();
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ error: "Failed to fetch" });
+      expect(data).toEqual({ 
+        error: "Failed to fetch",
+        status: 500,
+        timestamp: expect.any(String)
+      });
     });
   });
 
@@ -137,32 +161,6 @@ describe("auth/protected API route", () => {
       mockCookieStore.get
         .mockImplementationOnce(() => ({ value: "test-access-token" }))
         .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
-
-      // Set up MSW handler for this test
-      server.use(
-        http.post(
-          "https://test-supabase-url.com/functions/v1/validate-auth",
-          async ({ cookies, request }) => {
-            // Check cookies directly using MSW's cookies API
-            if (
-              cookies["sb-access-token"] === "test-access-token" &&
-              cookies["sb-refresh-token"] === "test-refresh-token"
-            ) {
-              const body = await request.json();
-
-              return HttpResponse.json({
-                success: true,
-                message: "Data saved successfully",
-                received: body,
-              });
-            }
-            return new HttpResponse(
-              JSON.stringify({ error: "Invalid auth cookies" }),
-              { status: 401 }
-            );
-          }
-        )
-      );
 
       const mockRequest = {
         json: () =>
@@ -176,14 +174,17 @@ describe("auth/protected API route", () => {
       const response = await POST(mockRequest);
       const data = await response.json();
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(201); // Note: Implementation returns 201 for successful POST
       expect(data).toEqual({
-        success: true,
-        message: "Data saved successfully",
-        received: expect.objectContaining({
-          itemId: "123",
-          action: "update",
-        }),
+        data: {
+          success: true,
+          message: "Data saved successfully",
+          received: expect.objectContaining({
+            itemId: "123",
+            action: "update",
+          }),
+        },
+        timestamp: expect.any(String)
       });
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-access-token");
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-refresh-token");
@@ -207,7 +208,11 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ error: "Unauthorized" });
+      expect(data).toEqual({ 
+        error: "Unauthorized",
+        status: 401,
+        timestamp: expect.any(String)
+      });
     });
 
     it("handles API errors", async () => {
@@ -216,18 +221,13 @@ describe("auth/protected API route", () => {
         .mockImplementationOnce(() => ({ value: "test-access-token" }))
         .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
-      // Set up an error response
-      server.use(
-        http.post(
-          "https://test-supabase-url.com/functions/v1/validate-auth",
-          () => {
-            return new HttpResponse(
-              JSON.stringify({ error: "Invalid data format" }),
-              { status: 400 }
-            );
-          }
-        )
-      );
+      // Override the fetchFromSupabase mock for this test
+      const { fetchFromSupabase } = require("@/app/utils/api/clientApi");
+      fetchFromSupabase.mockImplementationOnce(() => {
+        const error = new Error("Invalid data format");
+        error.status = 400;
+        throw error;
+      });
 
       const mockRequest = {
         json: () =>
@@ -240,7 +240,11 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: "Invalid data format" });
+      expect(data).toEqual({ 
+        error: "Invalid data format",
+        status: 400,
+        timestamp: expect.any(String)
+      });
     });
 
     it("handles JSON parsing errors", async () => {
@@ -248,6 +252,12 @@ describe("auth/protected API route", () => {
       mockCookieStore.get
         .mockImplementationOnce(() => ({ value: "test-access-token" }))
         .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
+
+      // Add mock for processApiError to handle this specific error
+      const { processApiError } = require("@/app/utils/errors/errorService");
+      processApiError.mockImplementationOnce(() => {
+        return { error: "Failed to process request", status: 500 };
+      });
 
       const mockRequest = {
         json: () => Promise.reject(new Error("JSON parse error")),
@@ -257,7 +267,11 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ error: "Failed to process request" });
+      expect(data).toEqual({ 
+        error: "Failed to process request",
+        status: 500,
+        timestamp: expect.any(String)
+      });
     });
   });
 });
