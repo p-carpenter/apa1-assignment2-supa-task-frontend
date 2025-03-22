@@ -6,7 +6,7 @@ const categoryIcons = {
   "Human Error": "👤", // person
   Security: "🔒", // lock
   Infrastructure: "🏗️", // building construction
-  "External Factor": "🌍", // earth globe
+  "External Factors": "🌍", // earth globe
 };
 
 /**

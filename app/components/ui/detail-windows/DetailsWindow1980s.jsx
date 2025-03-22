@@ -1,20 +1,20 @@
 import React from "react";
 import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
-import styles from "./MacintoshDetailsWindow.module.css";
+import styles from "./DetailsWindow1980s.module.css";
 
-const MacintoshDetailsWindow = ({ incident }) => {
+const DetailsWindow1980s = ({ incident }) => {
   if (!incident) return null;
 
   return (
     <div className={`apple-macintosh ${styles.macWindow}`}>
       <div className="window">
         <div className="title-bar">
-          <div className="title">{incident.name || "Unknown"}</div>
+          <div className="title">{incident.name || "Unknown Incident"}</div>
         </div>
 
         <div className={`standard-dialog ${styles.standardDialog}`}>
           <div className={styles.compactFieldRow}>
-            <div className={styles.fieldLabel}>
+            <div className={styles.fieldLabel} data-testid="incident-date">
               {formatDateForDisplay(incident.incident_date)}
             </div>
             <div className={styles.fieldLabel}>
@@ -36,7 +36,7 @@ const MacintoshDetailsWindow = ({ incident }) => {
                   <div className={`inner-border ${styles.innerBorder}`}>
                     <div className={`heading ${styles.heading}`}>
                       <p className={styles.compactText}>
-                        {incident.description}
+                        {incident.description || "No description available."}
                       </p>
                     </div>
                   </div>
@@ -50,4 +50,4 @@ const MacintoshDetailsWindow = ({ incident }) => {
   );
 };
 
-export default MacintoshDetailsWindow;
+export default DetailsWindow1980s;

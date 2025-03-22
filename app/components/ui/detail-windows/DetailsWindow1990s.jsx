@@ -1,13 +1,13 @@
 import React from "react";
 import { formatDateForDisplay } from "@/app/utils/formatting/dateUtils";
-import styles from "./Win98DetailsWindow.module.css";
+import styles from "./DetailsWindow1990s.module.css";
 
 /**
  * Windows 98 Styled Details Window (1990s)
  *
- * This component uses 98.css to recreate the iconic Windows 98 UI.
+ * This component uses 98.css to recreate the Windows 98 UI.
  */
-const Win98DetailsWindow = ({ incident }) => {
+const DetailsWindow1990s = ({ incident }) => {
   if (!incident) return null;
 
   return (
@@ -24,7 +24,9 @@ const Win98DetailsWindow = ({ incident }) => {
           <div className={styles.metadataRow}>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Date:</span>
-              <span>{formatDateForDisplay(incident.incident_date)}</span>
+              <span data-testid="incident-date">
+                {formatDateForDisplay(incident.incident_date)}
+              </span>
             </div>
             <div className={styles.metadataItem}>
               <span className={styles.metadataLabel}>Category:</span>
@@ -41,7 +43,9 @@ const Win98DetailsWindow = ({ incident }) => {
           {/* Content section */}
           <div className={styles.contentSections}>
             <div className={styles.contentSection}>
-              <div className={styles.sectionText}>{incident.description}</div>
+              <div className={styles.sectionText}>
+                {incident.description || "No description available."}
+              </div>
             </div>
           </div>
         </div>
@@ -57,4 +61,4 @@ const Win98DetailsWindow = ({ incident }) => {
   );
 };
 
-export default Win98DetailsWindow;
+export default DetailsWindow1990s;
