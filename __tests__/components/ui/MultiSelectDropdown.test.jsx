@@ -1,10 +1,10 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import MultiSelectDropdown from "@/app/components/ui/filters/MultiSelectDropdown";
+import styles from "@/app/component/ui/filters/Filters.module.css";
 
 describe("MSW Handlers", () => {
   it("defines API handlers", () => {
-    // Just a placeholder test to ensure MSW is correctly set up
     expect(true).toBe(true);
   });
 });
@@ -41,13 +41,9 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Click the dropdown header to open it, not the label
-    const dropdownHeader = screen
-      .getByText("0 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Options should now be visible, including the "All" option
     expect(screen.getByText("All")).toBeInTheDocument();
     options.forEach((option) => {
       expect(screen.getByText(option)).toBeInTheDocument();
@@ -64,13 +60,9 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("0 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Select an option
     const option = screen.getByText("Option 1");
     fireEvent.click(option);
 
@@ -87,17 +79,11 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("1 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Check for active class on selected option
-    const selectedOption = screen
-      .getByText("Option 2")
-      .closest(".dropdown-option");
-    expect(selectedOption).toHaveClass("active");
+    const selectedOption = screen.getByText("Option 2");
+    expect(selectedOption).toHaveClass(styles.selected);
   });
 
   it("removes option when clicked if already selected", () => {
@@ -110,17 +96,12 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("1 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Click already selected option
     const option = screen.getByText("Option 1");
     fireEvent.click(option);
 
-    // Should switch to "all" when no other options are selected
     expect(mockOnChange).toHaveBeenCalledWith(["all"]);
   });
 
@@ -137,20 +118,14 @@ describe("MultiSelectDropdown", () => {
       </div>
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("0 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Options should be visible (check for All option which is always there)
     expect(screen.getByText("All")).toBeInTheDocument();
 
-    // Click outside
     const outside = screen.getByTestId("outside");
     fireEvent.mouseDown(outside);
 
-    // Options should no longer be visible
     expect(screen.queryByText("All")).not.toBeInTheDocument();
   });
 });
