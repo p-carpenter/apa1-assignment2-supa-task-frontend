@@ -1,36 +1,44 @@
 /**
- * Formats a date to display format (DD-MM-YYYY).
+ * Formats a date to medium display format (DD MMM YYYY, e.g., "13 Jan 2023").
  *
- * @param {string|Date} date - A date string (YYYY-MM-DD, ISO) or a Date object.
- * @param {string} [separator='-'] - The separator for the output format.
- * @returns {string} Formatted date (DD-MM-YYYY) or an empty string if invalid.
+ * @param {string|Date|number} date - A date string (any valid format including ISO), Date object, or timestamp.
+ * @returns {string} Formatted date in medium format (DD MMM YYYY) or an empty string if invalid.
  */
-export const formatDateForDisplay = (date, separator = "-") => {
+export const formatDateForDisplay = (date) => {
   if (!date) return "";
 
-  let dateObj = date instanceof Date ? date : new Date(date);
+  let dateObj;
 
-  // If string, handle specific formats
-  if (typeof date === "string") {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      const [year, month, day] = date.split("-").map(Number);
-      dateObj = new Date(year, month - 1, day);
-    } else if (/^\d{2}-\d{2}-\d{4}$/.test(date)) {
-      return date; // Already in the correct format
+  try {
+    if (date instanceof Date) {
+      dateObj = date;
+    } else if (typeof date === "string") {
+      // Try to parse as an ISO string or any other valid date string
+      dateObj = new Date(date);
+
+      // Special handling for DD-MM-YYYY format which JavaScript doesn't parse well
+      if (isNaN(dateObj.getTime()) && /^\d{2}-\d{2}-\d{4}$/.test(date)) {
+        const [day, month, year] = date.split("-").map(Number);
+        dateObj = new Date(year, month - 1, day);
+      }
+    } else {
+      dateObj = new Date(date);
     }
-  }
 
-  // Validate date
-  if (isNaN(dateObj.getTime())) {
-    console.warn(`Invalid date input: ${date}`);
+    if (isNaN(dateObj.getTime())) {
+      console.warn(`Invalid date input: ${date}`);
+      return "";
+    }
+
+    return dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch (error) {
+    console.warn(`Error formatting date: ${error.message}`);
     return "";
   }
-
-  const day = String(dateObj.getDate()).padStart(2, "0");
-  const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-  const year = dateObj.getFullYear();
-
-  return [day, month, year].join(separator);
 };
 
 /**
