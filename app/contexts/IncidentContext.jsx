@@ -10,8 +10,20 @@ import {
 } from "react";
 import { processApiError, getErrorMessage } from "../utils/errors/errorService";
 
+/**
+ * Context for managing tech incidents data and state
+ * @type {React.Context}
+ */
 const IncidentContext = createContext(null);
 
+/**
+ * Provider component for incident data and operations
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components
+ * @param {Array} [props.incidents=[]] - Initial incidents data
+ * @returns {JSX.Element} Incident provider component
+ */
 export const IncidentProvider = ({
   children,
   incidents: initialIncidents = [],
@@ -25,41 +37,93 @@ export const IncidentProvider = ({
   const [currentDecade, setCurrentDecade] = useState(null);
   const [currentYear, setCurrentYear] = useState(null);
 
+  /**
+   * Initializes incidents data from props or session storage
+   */
   useEffect(() => {
     if (initialIncidents.length > 0) {
       setIncidents(initialIncidents);
       setIsLoading(false);
     } else {
-      try {
-        const sessionData = sessionStorage.getItem("incidents");
-        if (sessionData) {
-          const parsedData = JSON.parse(sessionData);
-          if (Array.isArray(parsedData) && parsedData.length > 0) {
-            setIncidents(parsedData);
-            setIsLoading(false);
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing session storage data:", error);
-      }
+      loadIncidentsFromSessionStorage();
     }
     fetchIncidents();
   }, []);
 
+  /**
+   * Attempts to load incidents from session storage
+   * 
+   * @returns {boolean} Whether incidents were successfully loaded
+   */
+  const loadIncidentsFromSessionStorage = () => {
+    try {
+      const sessionData = sessionStorage.getItem("incidents");
+      if (sessionData) {
+        const parsedData = JSON.parse(sessionData);
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
+          setIncidents(parsedData);
+          setIsLoading(false);
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing session storage data:", error);
+    }
+    return false;
+  };
+
+  /**
+   * Saves incidents data to session storage
+   * 
+   * @param {Array} data - Incidents data to save
+   */
+  const saveIncidentsToSessionStorage = (data) => {
+    try {
+      sessionStorage.setItem("incidents", JSON.stringify(data));
+    } catch (storageError) {
+      console.warn(
+        "Failed to save incidents to session storage:",
+        storageError
+      );
+    }
+  };
+
+  /**
+   * Fetches incidents data from the API
+   */
   const fetchIncidents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
+      // Check for offline status
       if (typeof window !== "undefined" && !window.navigator.onLine) {
         throw new Error(
           "You appear to be offline. Please check your internet connection."
         );
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const data = await fetchIncidentsWithTimeout();
+      setIncidents(data);
+      saveIncidentsToSessionStorage(data);
+    } catch (error) {
+      handleFetchError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
+  /**
+   * Fetches incidents with a timeout
+   * 
+   * @returns {Promise<Array>} Fetched incidents data
+   * @throws {Error} Fetch error
+   */
+  const fetchIncidentsWithTimeout = async () => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    try {
       const response = await fetch("/api/fetch-incidents", {
         signal: controller.signal,
       });
@@ -77,54 +141,53 @@ export const IncidentProvider = ({
 
       if (!result?.data || !Array.isArray(result.data)) {
         console.warn("No incidents found in API response.");
-        setIncidents([]);
-        return;
+        return [];
       }
 
-      try {
-        sessionStorage.setItem("incidents", JSON.stringify(result.data));
-      } catch (storageError) {
-        console.warn(
-          "Failed to save incidents to session storage:",
-          storageError
-        );
-      }
-
-      setIncidents(result.data);
+      return result.data;
     } catch (error) {
-      console.error("Failed to fetch incidents:", processApiError(error));
-
-      setError(
-        getErrorMessage(
-          processApiError(error, {
-            defaultMessage: "Failed to load incidents.",
-          })
-        )
-      );
-
-      // Try to load from session storage as a fallback
-      try {
-        const cachedData = sessionStorage.getItem("incidents");
-        if (cachedData) {
-          const parsedData = JSON.parse(cachedData);
-          if (Array.isArray(parsedData) && parsedData.length > 0) {
-            setIncidents(parsedData);
-            setError(null);
-          }
-        }
-      } catch (storageError) {
-        console.error("Error accessing session storage:", storageError);
-      }
-    } finally {
-      setIsLoading(false);
+      clearTimeout(timeoutId);
+      throw error;
     }
-  }, []);
+  };
 
+  /**
+   * Handles errors during incident fetching
+   * 
+   * @param {Error} error - The error that occurred
+   */
+  const handleFetchError = (error) => {
+    console.error("Failed to fetch incidents:", processApiError(error));
+
+    setError(
+      getErrorMessage(
+        processApiError(error, {
+          defaultMessage: "Failed to load incidents.",
+        })
+      )
+    );
+
+    // Try to load from session storage as a fallback
+    const loaded = loadIncidentsFromSessionStorage();
+    if (loaded) {
+      setError(null);
+    }
+  };
+
+  /**
+   * Calculates the decade from a given year
+   * 
+   * @param {number} year - Year to calculate decade from
+   * @returns {number|null} Decade (e.g., 1990) or null if year is invalid
+   */
   const calculateDecadeFromYear = (year) => {
     if (!year) return null;
     return Math.floor(year / 10) * 10;
   };
 
+  /**
+   * Groups incidents by decade
+   */
   const incidentsByDecade = useMemo(() => {
     if (!Array.isArray(incidents)) {
       console.warn("incidents is not an array:", incidents);
@@ -146,6 +209,11 @@ export const IncidentProvider = ({
     }, {});
   }, [incidents]);
 
+  /**
+   * Handles navigation to a specific incident by index
+   * 
+   * @param {number} newIndex - Index of the incident to navigate to
+   */
   const handleIncidentNavigation = useCallback(
     (newIndex) => {
       if (!Array.isArray(incidents) || incidents.length === 0) {
@@ -181,9 +249,12 @@ export const IncidentProvider = ({
         console.error("Error during incident navigation:", error);
       }
     },
-    [incidents, calculateDecadeFromYear]
+    [incidents]
   );
 
+  /**
+   * Navigates back to the root view (all decades)
+   */
   const navigateToRoot = useCallback(() => {
     try {
       setCurrentYear(null);
@@ -194,6 +265,9 @@ export const IncidentProvider = ({
     }
   }, []);
 
+  /**
+   * Memoized context value
+   */
   const value = useMemo(
     () => ({
       // Data
@@ -243,6 +317,12 @@ export const IncidentProvider = ({
   );
 };
 
+/**
+ * Custom hook to use the incident context
+ * 
+ * @returns {Object} Incident context value
+ * @throws {Error} If used outside of IncidentProvider
+ */
 export const useIncidents = () => {
   const context = useContext(IncidentContext);
   if (!context)

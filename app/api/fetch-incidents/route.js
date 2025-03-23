@@ -6,18 +6,19 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-export async function GET(req) {
+export async function GET(request) {
   try {
-    const path = "tech-incidents";
-    const data = await fetchFromSupabase(path, "GET");
+    const incidentsData = await fetchFromSupabase("tech-incidents", "GET");
 
-    if (!Array.isArray(data)) {
+    if (!Array.isArray(incidentsData)) {
+      // Log warning for monitoring but provide graceful fallback to client
       console.warn(
         "Invalid response format from Supabase. Returning empty array."
       );
+
       return new Response(
         JSON.stringify({
-          data: [],
+          data: [], // Empty array instead of null/undefined for consistent client handling
           warning:
             "Invalid response format from database. Data has been reset to an empty array.",
           timestamp: new Date().toISOString(),
@@ -27,11 +28,15 @@ export async function GET(req) {
     }
 
     return new Response(
-      JSON.stringify({ data, timestamp: new Date().toISOString() }),
+      JSON.stringify({
+        data: incidentsData,
+        timestamp: new Date().toISOString(),
+      }),
       { status: 200, headers: CORS_HEADERS }
     );
   } catch (error) {
     console.error("Fetch incidents error:", error);
+
     const standardError = processApiError(error, {
       defaultMessage: "Failed to fetch incidents",
     });
@@ -41,7 +46,10 @@ export async function GET(req) {
         ...standardError,
         timestamp: new Date().toISOString(),
       }),
-      { status: standardError.status || 500, headers: CORS_HEADERS }
+      {
+        status: standardError.status || 500,
+        headers: CORS_HEADERS,
+      }
     );
   }
 }

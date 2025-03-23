@@ -2,6 +2,9 @@ import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 import { getServerSession } from "../../../utils/auth/server";
 
+/**
+ * Retrieves the current authenticated user's information
+ */
 export async function GET() {
   try {
     const { user, session } = await getServerSession();

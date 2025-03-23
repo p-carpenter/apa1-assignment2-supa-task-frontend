@@ -2,6 +2,9 @@ import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
@@ -9,10 +12,13 @@ export async function OPTIONS() {
   });
 }
 
-export async function DELETE(req) {
+/**
+ * Deletes one or more tech incidents
+ */
+export async function DELETE(request) {
   try {
-    const { ids } = await req.json();
-
+    const { ids } = await request.json();
+    
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return new Response(
         JSON.stringify({ 
@@ -26,10 +32,11 @@ export async function DELETE(req) {
       );
     }
 
-    const data = await fetchFromSupabase("tech-incidents", "DELETE", { ids });
+    const deletionResult = await fetchFromSupabase("tech-incidents", "DELETE", { ids });
+    
     return new Response(
       JSON.stringify({
-        data: data,
+        data: deletionResult,
         success: true,
         timestamp: new Date().toISOString(),
       }),

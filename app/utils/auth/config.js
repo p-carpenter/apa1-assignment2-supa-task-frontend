@@ -1,5 +1,6 @@
 /**
- * Authentication configuration constants
+ * Authentication endpoints configuration
+ * @type {Object.<string, string>}
  */
 export const AUTH_ENDPOINTS = {
   SIGNIN: "/api/auth/signin",
@@ -12,7 +13,8 @@ export const AUTH_ENDPOINTS = {
 };
 
 /**
- * Edge function endpoints
+ * Edge function endpoints configuration
+ * @type {Object.<string, string>}
  */
 export const EDGE_FUNCTIONS = {
   USER: "/authentication/user",
@@ -20,7 +22,8 @@ export const EDGE_FUNCTIONS = {
 };
 
 /**
- * Cookie for authentication
+ * Authentication cookie names
+ * @type {Object.<string, string>}
  */
 export const AUTH_COOKIE_NAMES = {
   ACCESS_TOKEN: "sb-access-token",
@@ -28,10 +31,14 @@ export const AUTH_COOKIE_NAMES = {
 };
 
 /**
- * Authentication configuration
+ * Authentication configuration settings
+ * @type {Object}
  */
 export const AUTH_CONFIG = {
-  // Cookie settings
+  /**
+   * Cookie settings for authentication
+   * @type {Object}
+   */
   cookieOptions: {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
@@ -39,7 +46,10 @@ export const AUTH_CONFIG = {
     sameSite: "lax",
   },
 
-  // Token expiration times in seconds
+  /**
+   * Token expiration times in seconds
+   * @type {Object.<string, number>}
+   */
   tokenExpiration: {
     access: 3600, // 1 hour
     refresh: 7776000, // 90 days
@@ -48,6 +58,7 @@ export const AUTH_CONFIG = {
 
 /**
  * CORS headers for API routes
+ * @type {Object.<string, string>}
  */
 export const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",

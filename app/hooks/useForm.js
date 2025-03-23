@@ -17,8 +17,8 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
   const isMounted = useRef(true);
   const { fileState } = options;
 
-  // Clean up on unmount
   useEffect(() => {
+    // Prevent state updates after component unmount to avoid memory leaks
     return () => {
       isMounted.current = false;
     };
@@ -35,11 +35,14 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
           const dataWithFileState = fileState ? { ...newData, fileState } : newData;
           const fieldErrors = validateFn(dataWithFileState, name) || {};
 
-          setFormErrors((prevErrors) => {
-            const newErrors = { ...prevErrors };
-
+          setFormErrors((previousErrors) => {
+            // Create a fresh copy to avoid mutating state directly
+            const newErrors = { ...previousErrors };
+            
+            // Remove old error before potentially adding new one
             delete newErrors[name];
 
+            // Only add error if validation found an issue
             if (fieldErrors[name]) {
               newErrors[name] = fieldErrors[name];
             }
@@ -59,8 +62,8 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
    * @param {Event} e - Change event
    */
   const handleChange = useCallback(
-    (e) => {
-      const { name, value, type, checked } = e.target;
+    (changeEvent) => {
+      const { name, value, type, checked } = changeEvent.target;
       const inputValue = type === "checkbox" ? checked : value;
       
       setFormData((prevData) => ({
@@ -98,13 +101,13 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
   );
 
   /**
-   * Handle input blur events
-   * @param {Event} e - Blur event
+   * Validates field on blur to provide immediate feedback
+   * @param {Event} blurEvent - Blur event from input field
    */
   const handleBlur = useCallback(
-    (e) => {
-      const { name } = e.target;
-      setTouched((prev) => ({ ...prev, [name]: true }));
+    (blurEvent) => {
+      const { name } = blurEvent.target;
+      setTouched((previousTouched) => ({ ...previousTouched, [name]: true }));
 
       if (validateFn) {
         try {
@@ -172,9 +175,9 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
    * @returns {Promise} Result of submission
    */
   const handleSubmit = useCallback(
-    async (e) => {
-      if (e && e.preventDefault) {
-        e.preventDefault();
+    async (submitEvent) => {
+      if (submitEvent && submitEvent.preventDefault) {
+        submitEvent.preventDefault();
       }
 
       setIsSubmitting(true);

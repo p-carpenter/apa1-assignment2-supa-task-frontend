@@ -2,13 +2,28 @@ import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 
+/**
+ * Handles OPTIONS requests for CORS preflight
+ * Required to support cross-origin requests in production environment
+ */
 export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-export async function PUT(req) {
+/**
+ * Updates an existing tech incident in the database
+ *
+ * Supports both metadata updates and file uploads for artifacts
+ * Implements validation for:
+ * - Required fields
+ * - File size limits
+ * - Request structure
+ *
+ * @returns {Response} JSON response with updated data or error details
+ */
+export async function PUT(request) {
   try {
-    const requestData = await req.json();
+    const requestData = await request.json();
 
     if (!requestData.id) {
       const validationError = new Error("Incident ID is required");
@@ -31,8 +46,10 @@ export async function PUT(req) {
       payload.fileType = requestData.fileType || "image/jpeg";
 
       if (typeof payload.fileData === "string") {
-        const base64Size = payload.fileData.length * 0.75;
-        if (base64Size > 5 * 1024 * 1024) {
+        const approximateFileSize = payload.fileData.length * 0.75;
+        const maxSizeBytes = 5 * 1024 * 1024; // 5MB limit
+
+        if (approximateFileSize > maxSizeBytes) {
           const fileSizeError = new Error("File size exceeds 5MB limit");
           fileSizeError.status = 413; // Payload Too Large
           throw fileSizeError;
@@ -40,14 +57,22 @@ export async function PUT(req) {
       }
     }
 
-    const data = await fetchFromSupabase("tech-incidents", "PUT", payload);
+    const updatedData = await fetchFromSupabase(
+      "tech-incidents",
+      "PUT",
+      payload
+    );
 
     return new Response(
-      JSON.stringify({ data, timestamp: new Date().toISOString() }),
+      JSON.stringify({
+        data: updatedData,
+        timestamp: new Date().toISOString(),
+      }),
       { status: 200, headers: CORS_HEADERS }
     );
   } catch (error) {
     console.error("Update incident error:", error);
+
     const standardError = processApiError(error, {
       defaultMessage: "Failed to update incident",
     });

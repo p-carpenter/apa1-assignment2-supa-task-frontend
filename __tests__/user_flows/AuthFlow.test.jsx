@@ -1,4 +1,3 @@
-// __tests__/user_flows/AuthFlow.test.jsx
 import React from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

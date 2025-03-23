@@ -1,7 +1,11 @@
 import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
@@ -9,23 +13,41 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(req) {
+/**
+ * Handles password recovery requests by sending reset instructions
+ */
+export async function POST(request) {
   try {
-    const { email } = await req.json();
+    const { email } = await request.json();
 
+    // Simple validation - require an email
     if (!email) {
-      throw new Error("Email is required");
+      return new Response(
+        JSON.stringify({
+          error: "Email is required",
+          type: ERROR_TYPES.BAD_REQUEST,
+          status: 400,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 400, headers: CORS_HEADERS }
+      );
     }
 
-    await fetchFromSupabase("password-recovery", "POST", { email });
+    try {
+      await fetchFromSupabase("password-recovery", "POST", { email });
 
-    return new Response(
-      JSON.stringify({
-        message: "Password reset instructions sent",
-        timestamp: new Date().toISOString(),
-      }),
-      { status: 200, headers: CORS_HEADERS }
-    );
+      return new Response(
+        JSON.stringify({
+          message: "Password reset instructions sent",
+          success: true,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 200, headers: CORS_HEADERS }
+      );
+    } catch (supabaseError) {
+      // Re-throw other errors
+      throw supabaseError;
+    }
   } catch (error) {
     console.error("Password recovery error:", error);
 

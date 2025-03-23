@@ -1,3 +1,15 @@
+/**
+ * Button Component Styles
+ *
+ * Provides styling for the application's navigation and action buttons.
+ * Uses CSS variables for themeable colors to maintain visual consistency
+ * across different decade themes while preserving interactive feedback.
+ */
+
+/** 
+ * Base button style with hover effects that provide subtle elevation
+ * to indicate interactivity
+ */
 .button {
   display: inline-flex;
   align-items: center;
@@ -40,7 +52,10 @@
   z-index: 100;
 }
 
-/* CTA Button styles */
+/** 
+ * Call-to-action button with more prominent styling
+ * Used for primary user actions and important navigation points
+ */
 .ctaButton {
   display: inline-flex;
   align-items: center;

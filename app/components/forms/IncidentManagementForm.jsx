@@ -24,7 +24,6 @@ const categories = [
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
 
-// Component to display severity info button
 const SeverityLabel = ({ toggleSeverityInfo }) => (
   <>
     Severity

@@ -19,6 +19,10 @@ import {
 import { ERROR_TYPES } from "../utils/errors/errorTypes";
 import { processApiError } from "../utils/errors/errorService";
 
+/**
+ * Context for authentication state and operations
+ * @type {React.Context}
+ */
 export const AuthContext = createContext({
   user: null,
   session: null,
@@ -34,6 +38,12 @@ export const AuthContext = createContext({
 
 /**
  * Manages authentication state and provides authentication methods
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components
+ * @param {Object} [props.initialUser=null] - Initial user data from SSR
+ * @param {Object} [props.initialSession=null] - Initial session data from SSR
+ * @returns {JSX.Element} AuthProvider component
  */
 export function AuthProvider({
   children,
@@ -46,6 +56,30 @@ export function AuthProvider({
   const [error, setError] = useState(null);
   const isAuthenticated = Boolean(user);
 
+  /**
+   * Processes API errors into a standardized format
+   * @param {Error} error - The error object
+   * @param {string} defaultMessage - Default message to use if error is not formatted
+   * @returns {Object} Standardized error object
+   */
+  const formatApiError = (error, defaultMessage) => {
+    // If the error already has a type (processed by the API), use it directly
+    if (error && error.type) {
+      return {
+        type: error.type,
+        message: error.error,
+        details: error.details,
+      };
+    }
+
+    return processApiError(error, {
+      defaultMessage,
+    });
+  };
+
+  /**
+   * Initializes authentication state from server or stored session
+   */
   useEffect(() => {
     const initialiseAuth = async () => {
       // If we have SSR data, use it directly
@@ -80,6 +114,12 @@ export function AuthProvider({
     initialiseAuth();
   }, [initialUser, initialSession]);
 
+  /**
+   * Handles user sign in
+   * @param {Object} credentials - User credentials (email, password)
+   * @returns {Promise<Object>} Sign in result
+   * @throws {Object} Standardized error object
+   */
   const handleSignIn = useCallback(async (credentials) => {
     setIsLoading(true);
     setError(null);
@@ -90,21 +130,10 @@ export function AuthProvider({
       setSession(data.session);
       return data;
     } catch (error) {
-      // If the error already has a type (processed by the API), use it directly
-      if (error && error.type) {
-        const formattedError = {
-          type: error.type,
-          message: error.error,
-          details: error.details,
-        };
-        setError(formattedError);
-        throw formattedError;
-      }
-
-      const standardError = processApiError(error, {
-        defaultMessage: "Unable to sign in. Please try again.",
-      });
-
+      const standardError = formatApiError(
+        error,
+        "Unable to sign in. Please try again."
+      );
       setError(standardError);
       throw standardError;
     } finally {
@@ -112,6 +141,12 @@ export function AuthProvider({
     }
   }, []);
 
+  /**
+   * Handles user sign up
+   * @param {Object} credentials - User signup information (email, password, etc)
+   * @returns {Promise<Object>} Sign up result
+   * @throws {Object} Standardized error object
+   */
   const handleSignUp = useCallback(async (credentials) => {
     setIsLoading(true);
     setError(null);
@@ -122,20 +157,10 @@ export function AuthProvider({
       setUser(data.user);
       return data;
     } catch (error) {
-      if (error && error.type) {
-        const formattedError = {
-          type: error.type,
-          message: error.error,
-          details: error.details,
-        };
-        setError(formattedError);
-        throw formattedError;
-      }
-
-      const standardError = processApiError(error, {
-        defaultMessage: "Unable to create account. Please try again.",
-      });
-
+      const standardError = formatApiError(
+        error,
+        "Unable to create account. Please try again."
+      );
       setError(standardError);
       throw standardError;
     } finally {
@@ -143,40 +168,30 @@ export function AuthProvider({
     }
   }, []);
 
+  /**
+   * Handles sign out operation
+   * @returns {Promise<Object>} Sign out result
+   * @throws {Object} Standardized error object (except for network errors)
+   */
   const handleSignOut = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
       const result = await signOut();
-      setUser(null);
-      setSession(null);
+      clearUserState();
       return result;
     } catch (error) {
       // Always clear user state on signout attempt regardless of errors
-      setUser(null);
-      setSession(null);
+      clearUserState();
 
-      if (error && error.type) {
-        const formattedError = {
-          type: error.type,
-          message: error.error,
-          details: error.details,
-        };
-        setError(formattedError);
-
-        if (formattedError.type !== ERROR_TYPES.NETWORK_ERROR) {
-          throw formattedError;
-        }
-        return;
-      }
-
-      const standardError = processApiError(error, {
-        defaultMessage:
-          "Error during sign out, but local session has been cleared.",
-      });
-
+      const standardError = formatApiError(
+        error,
+        "Error during sign out, but local session has been cleared."
+      );
       setError(standardError);
+
+      // Only throw for non-network errors
       if (standardError.type !== ERROR_TYPES.NETWORK_ERROR) {
         throw standardError;
       }
@@ -185,6 +200,19 @@ export function AuthProvider({
     }
   }, []);
 
+  /**
+   * Clears the user and session state
+   */
+  const clearUserState = () => {
+    setUser(null);
+    setSession(null);
+  };
+
+  /**
+   * Refreshes current user information from the server
+   * @returns {Promise<Object>} Updated user data
+   * @throws {Object} Standardized error object
+   */
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -196,17 +224,17 @@ export function AuthProvider({
         setUser(data.user);
         setSession(data.session);
       } else {
-        setUser(null);
-        setSession(null);
+        clearUserState();
       }
 
       return data;
     } catch (error) {
       console.error("Refresh user error:", error);
 
-      const standardError = processApiError(error, {
-        defaultMessage: "Unable to refresh user information. Please try again.",
-      });
+      const standardError = formatApiError(
+        error,
+        "Unable to refresh user information. Please try again."
+      );
 
       setError(standardError);
       throw standardError;
@@ -215,6 +243,12 @@ export function AuthProvider({
     }
   }, []);
 
+  /**
+   * Initiates password reset process
+   * @param {string} email - User's email
+   * @returns {Promise<Object>} Result of password reset request
+   * @throws {Object} Standardized error object
+   */
   const handleResetPassword = useCallback(async (email) => {
     setIsLoading(true);
     setError(null);
@@ -223,20 +257,10 @@ export function AuthProvider({
       const data = await resetPassword({ email });
       return data;
     } catch (error) {
-      if (error && error.type) {
-        const formattedError = {
-          type: error.type,
-          message: error.error,
-          details: error.details,
-        };
-        setError(formattedError);
-        throw formattedError;
-      }
-
-      const standardError = processApiError(error, {
-        defaultMessage:
-          "Unable to send password reset instructions. Please try again.",
-      });
+      const standardError = formatApiError(
+        error,
+        "Unable to send password reset instructions. Please try again."
+      );
 
       setError(standardError);
       throw standardError;
@@ -245,6 +269,15 @@ export function AuthProvider({
     }
   }, []);
 
+  /**
+   * Completes password reset with token verification
+   * @param {Object} resetData - Password reset data
+   * @param {string} resetData.email - User's email
+   * @param {string} resetData.password - New password
+   * @param {string} resetData.token - Reset token from email
+   * @returns {Promise<Object>} Result of password reset operation
+   * @throws {Object} Standardized error object
+   */
   const handleResetPasswordConfirm = useCallback(
     async ({ email, password, token }) => {
       setIsLoading(true);
@@ -254,19 +287,10 @@ export function AuthProvider({
         const data = await resetPasswordConfirm({ email, password, token });
         return data;
       } catch (error) {
-        if (error && error.type) {
-          const formattedError = {
-            type: error.type,
-            message: error.error,
-            details: error.details,
-          };
-          setError(formattedError);
-          throw formattedError;
-        }
-
-        const standardError = processApiError(error, {
-          defaultMessage: "Unable to reset password. Please try again.",
-        });
+        const standardError = formatApiError(
+          error,
+          "Unable to reset password. Please try again."
+        );
 
         setError(standardError);
         throw standardError;
@@ -277,6 +301,9 @@ export function AuthProvider({
     []
   );
 
+  /**
+   * Memoized auth context value to prevent unnecessary re-renders
+   */
   const contextValue = useMemo(
     () => ({
       user,
@@ -314,6 +341,7 @@ export function AuthProvider({
 /**
  * Custom hook to use the auth context
  * @returns {Object} Auth context value
+ * @throws {Error} If used outside of AuthProvider
  */
 export function useAuth() {
   const context = useContext(AuthContext);

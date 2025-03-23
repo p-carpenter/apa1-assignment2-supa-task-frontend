@@ -1,7 +1,7 @@
 import React from "react";
 import ConsoleSection from "../console/ConsoleSection";
 import SearchFilter from "./SearchFilter";
-import MultiSelectDropdown from "./MultiSelectDropdown";
+import MultiSelectDropdown from "./MultiSelectDropdown.jsx";
 import SortControls from "./SortControls";
 import { getCategoryIcon } from "../../../utils/ui/categoryIcons";
 import styles from "./Filters.module.css";

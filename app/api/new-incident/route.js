@@ -6,27 +6,33 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
-export async function POST(req) {
+export async function POST(request) {
   try {
-    const requestData = await req.json();
+    const incidentSubmission = await request.json();
 
-    if (!requestData.addition || !requestData.addition.name) {
-      const validationError = new Error("Incident data with a name is required");
+    if (!incidentSubmission.addition || !incidentSubmission.addition.name) {
+      const validationError = new Error(
+        "Incident data with a name is required"
+      );
       validationError.status = 400; // Bad Request
       throw validationError;
     }
 
-    const incidentData = requestData.addition;
+    const incidentData = incidentSubmission.addition;
     const payload = { addition: incidentData };
 
-    if (incidentData.artifactType === "image" && requestData.fileData) {
-      payload.fileData = requestData.fileData;
-      payload.fileName = requestData.fileName || "unknown.jpg";
-      payload.fileType = requestData.fileType || "image/jpeg";
+    if (incidentData.artifactType === "image" && incidentSubmission.fileData) {
+      payload.fileData = incidentSubmission.fileData;
+
+      payload.fileName = incidentSubmission.fileName || "unknown.jpg";
+      payload.fileType = incidentSubmission.fileType || "image/jpeg";
 
       if (typeof payload.fileData === "string") {
-        const base64Size = payload.fileData.length * 0.75;
-        if (base64Size > 5 * 1024 * 1024) {
+        // Convert base64 string length to approximate file size in bytes
+        const approximateFileSize = payload.fileData.length * 0.75;
+        const maxSizeBytes = 5 * 1024 * 1024; // 5MB limit
+
+        if (approximateFileSize > maxSizeBytes) {
           const fileSizeError = new Error("File size exceeds 5MB limit");
           fileSizeError.status = 413; // Payload Too Large
           throw fileSizeError;
@@ -34,14 +40,25 @@ export async function POST(req) {
       }
     }
 
-    const data = await fetchFromSupabase("tech-incidents", "POST", payload);
+    const creationResult = await fetchFromSupabase(
+      "tech-incidents",
+      "POST",
+      payload
+    );
 
     return new Response(
-      JSON.stringify({ data, timestamp: new Date().toISOString() }),
-      { status: 201, headers: CORS_HEADERS }
+      JSON.stringify({
+        data: creationResult,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: 201, // Created
+        headers: CORS_HEADERS,
+      }
     );
   } catch (error) {
     console.error("New incident error:", error);
+
     const standardError = processApiError(error, {
       defaultMessage: "Failed to create incident",
     });
@@ -51,7 +68,10 @@ export async function POST(req) {
         ...standardError,
         timestamp: new Date().toISOString(),
       }),
-      { status: standardError.status || 500, headers: CORS_HEADERS }
+      {
+        status: standardError.status || 500,
+        headers: CORS_HEADERS,
+      }
     );
   }
 }

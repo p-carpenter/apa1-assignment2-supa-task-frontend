@@ -26,29 +26,11 @@ const PASSWORD_REQUIREMENTS = [
   },
 ];
 
-// Email validation regex
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-// Validate the password against all requirements
-function validatePassword(password) {
-  const failedRequirements = PASSWORD_REQUIREMENTS.filter(
-    (requirement) => !requirement.test(password)
-  );
-
-  return {
-    isValid: failedRequirements.length === 0,
-    failedRequirements,
-  };
-}
-
-// Validate email format
-function validateEmail(email) {
-  return {
-    isValid: EMAIL_REGEX.test(email),
-    message: "Invalid email format. Please enter a valid email address."
-  };
-}
-
+/**
+ * Responds to CORS preflight requests to enable cross-origin API access
+ */
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
@@ -56,11 +38,15 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(req) {
+/**
+ * Handles new account registration with comprehensive validation
+ */
+export async function POST(request) {
   try {
-    const body = await req.json();
+    const body = await request.json();
     const { email, password, displayName } = body;
 
+    // Client-side validation should catch these, but double checking for security
     if (!email || !password) {
       return new Response(
         JSON.stringify({
@@ -76,13 +62,12 @@ export async function POST(req) {
       );
     }
 
-    const emailValidation = validateEmail(email);
-    if (!emailValidation.isValid) {
+    if (!EMAIL_REGEX.test(email)) {
       return new Response(
         JSON.stringify({
           error: "Invalid email format",
           type: ERROR_TYPES.BAD_REQUEST,
-          details: emailValidation.message,
+          details: "Invalid email format. Please enter a valid email address.",
           timestamp: new Date().toISOString(),
         }),
         {
@@ -92,13 +77,16 @@ export async function POST(req) {
       );
     }
 
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.isValid) {
+    const failedRequirements = PASSWORD_REQUIREMENTS.filter(
+      (requirement) => !requirement.test(password)
+    );
+    
+    if (failedRequirements.length > 0) {
       return new Response(
         JSON.stringify({
           error: "Password requirements not met",
           type: ERROR_TYPES.BAD_REQUEST,
-          details: passwordValidation.failedRequirements.map((r) => r.message),
+          details: failedRequirements.map((requirement) => requirement.message),
           timestamp: new Date().toISOString(),
         }),
         {
@@ -108,17 +96,17 @@ export async function POST(req) {
       );
     }
 
-    const data = await fetchFromSupabase("authentication/signup", "POST", {
+    const signupResult = await fetchFromSupabase("authentication/signup", "POST", {
       email,
       password,
       display_name: displayName,
     });
 
     if (
-      data &&
-      data.user &&
-      data.user.identities &&
-      data.user.identities.length === 0
+      signupResult &&
+      signupResult.user &&
+      signupResult.user.identities &&
+      signupResult.user.identities.length === 0
     ) {
       return new Response(
         JSON.stringify({
@@ -134,17 +122,18 @@ export async function POST(req) {
       );
     }
 
+    // Account successfully created but requires email verification
     if (
-      data &&
-      data.user &&
-      !data.session &&
-      data.user.identities &&
-      data.user.identities.length > 0
+      signupResult &&
+      signupResult.user &&
+      !signupResult.session &&
+      signupResult.user.identities &&
+      signupResult.user.identities.length > 0
     ) {
       return new Response(
         JSON.stringify({
           success: true,
-          user: data.user,
+          user: signupResult.user,
           timestamp: new Date().toISOString(),
         }),
         {
@@ -154,13 +143,12 @@ export async function POST(req) {
       );
     }
 
-    console.error("Unexpected Supabase response format:", data);
+    console.error("Unexpected Supabase response format:", signupResult);
     return new Response(
       JSON.stringify({
         error: "Unable to process signup",
         type: ERROR_TYPES.SERVICE_ERROR,
-        details:
-          "Received an unexpected response from the authentication service",
+        details: "Received an unexpected response from the authentication service",
         timestamp: new Date().toISOString(),
       }),
       {

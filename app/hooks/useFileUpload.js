@@ -2,13 +2,19 @@ import { useState } from "react";
 import { validateImageFile } from "../utils/validation/formValidation";
 
 /**
- * Custom hook for handling image file uploads with validation
+ * Custom hook for secure image file uploads with validation
+ * 
+ * Manages the full lifecycle of an uploaded file including:
+ * - Memory management (releasing object URLs)
+ * - Safe error recovery (cleanup on validation failures)
+ * - Progress tracking for large file uploads
+ * - Parent form state integration
  *
- * @param {Object} options - Configuration options
- * @param {Object} options.validationOptions - Options for image validation (maxSizeInMB, maxWidth, maxHeight)
- * @param {Function} options.setFormErrors - Function to update parent form errors
- * @param {Function} options.onFileLoaded - Callback when file is successfully loaded
- * @returns {Object} File state and handlers
+ * @param {Object} options - Hook configuration
+ * @param {Object} options.validationOptions - Image validation parameters
+ * @param {Function} options.setFormErrors - Form error state updater
+ * @param {Function} options.onFileLoaded - Success callback
+ * @returns {Object} File upload state and handlers
  */
 export const useFileUpload = ({
   validationOptions = {},
@@ -23,19 +29,23 @@ export const useFileUpload = ({
   const [isProcessing, setIsProcessing] = useState(false);
 
   /**
-   * Clear all file state and release resources
+   * Releases resources and cleans up file state
+   * Prevents memory leaks from abandoned blob URLs
    */
   const clearFile = () => {
+    // Explicit revocation of object URLs prevents memory leaks in long-running SPAs
     if (preview && typeof preview === "string" && preview.startsWith("blob:")) {
       URL.revokeObjectURL(preview);
     }
 
+    // Reset all state in a single batch
     setFileData(null);
     setFileName(null);
     setFileType(null);
     setFileError(null);
     setPreview(null);
 
+    // Remove file errors from parent form if provided
     if (setFormErrors) {
       setFormErrors((prev) => {
         const newErrors = { ...prev };

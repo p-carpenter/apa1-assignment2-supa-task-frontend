@@ -1,8 +1,11 @@
 import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { cookies } from "next/headers";
-import { CORS_HEADERS } from "@/app/utils/auth/config";
+import { AUTH_COOKIE_NAMES, CORS_HEADERS } from "@/app/utils/auth/config";
 
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
@@ -10,38 +13,39 @@ export async function OPTIONS() {
   });
 }
 
-export async function POST(req) {
+/**
+ * Handles user sign-out by clearing cookies and notifying Supabase
+ */
+export async function POST() {
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("sb-access-token")?.value;
-  const refreshToken = cookieStore.get("sb-refresh-token")?.value;
+  const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+  const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
 
   try {
-    cookieStore.set("sb-access-token", "", {
+    // Clear auth cookies regardless of Supabase response
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      maxAge: 0,
+      maxAge: 0, // Expires immediately
       path: "/",
       sameSite: "lax",
-    });
-    cookieStore.set("sb-refresh-token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 0,
-      path: "/",
-      sameSite: "lax",
-    });
-
+    };
+    
+    cookieStore.set(AUTH_COOKIE_NAMES.ACCESS_TOKEN, "", cookieOptions);
+    cookieStore.set(AUTH_COOKIE_NAMES.REFRESH_TOKEN, "", cookieOptions);
+    
     if (accessToken && refreshToken) {
       try {
         await fetchFromSupabase("authentication/signout", "POST", null, {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
-          Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
+          Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
         });
-      } catch (error) {
+      } catch (supabaseError) {
+        // Log but don't fail - user is still signed out locally due to cleared cookies
         console.warn(
           "Supabase signout failed, but cookies have been cleared:",
-          error.message
+          supabaseError.message
         );
       }
     } else {
@@ -60,6 +64,7 @@ export async function POST(req) {
 
     const standardError = processApiError(error);
 
+    // Still return success but with a warning since cookies were likely cleared
     return new Response(
       JSON.stringify({
         success: true,

@@ -1,3 +1,7 @@
+/**
+ * Standard error types used throughout the application
+ * @type {Object.<string, string>}
+ */
 export const ERROR_TYPES = {
   // Authentication related errors
   AUTH_REQUIRED: "auth_required",
@@ -29,6 +33,10 @@ export const ERROR_TYPES = {
   UNKNOWN_ERROR: "unknown_error",
 };
 
+/**
+ * User-friendly error messages for each error type
+ * @type {Object.<string, string>}
+ */
 export const ERROR_MESSAGES = {
   [ERROR_TYPES.BAD_REQUEST]: "Missing or invalid request data.",
   [ERROR_TYPES.AUTH_REQUIRED]: "Please sign in to continue.",

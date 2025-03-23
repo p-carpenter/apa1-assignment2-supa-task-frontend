@@ -1,8 +1,12 @@
 import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
-import { CORS_HEADERS } from "@/app/utils/auth/config";
+import { AUTH_COOKIE_NAMES, CORS_HEADERS } from "@/app/utils/auth/config";
 import { cookies } from "next/headers";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
 export async function OPTIONS() {
   return new Response(null, {
     status: 204,
@@ -10,21 +14,31 @@ export async function OPTIONS() {
   });
 }
 
-export async function GET(req) {
+/**
+ * Retrieves protected data that requires authentication
+ */
+export async function GET(request) {
   try {
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get("sb-access-token")?.value;
-    const refreshToken = cookieStore.get("sb-refresh-token")?.value;
-
+    const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+    const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
+    
     if (!accessToken || !refreshToken) {
-      throw new Error("Authentication required");
+      return new Response(
+        JSON.stringify({
+          error: "Authentication required",
+          type: ERROR_TYPES.AUTH_REQUIRED,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 401, headers: CORS_HEADERS }
+      );
     }
 
     const data = await fetchFromSupabase("protected-data", "GET", null, {
       Authorization: `Bearer ${accessToken}`,
-      Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
+      Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
     });
-
+    
     return new Response(
       JSON.stringify({
         data,
@@ -33,7 +47,7 @@ export async function GET(req) {
       { status: 200, headers: CORS_HEADERS }
     );
   } catch (error) {
-    console.error("Protected data error:", error);
+    console.error("Protected route GET error:", error);
 
     const standardError = processApiError(error, {
       defaultMessage: "Failed to access protected data",
@@ -52,32 +66,62 @@ export async function GET(req) {
   }
 }
 
-export async function POST(req) {
+/**
+ * Submits data to a protected endpoint
+ */
+export async function POST(request) {
   try {
     const cookieStore = await cookies();
-    const accessToken = cookieStore.get("sb-access-token")?.value;
-    const refreshToken = cookieStore.get("sb-refresh-token")?.value;
-
+    const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+    const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
+    
     if (!accessToken || !refreshToken) {
-      throw new Error("Authentication required");
+      return new Response(
+        JSON.stringify({
+          error: "Authentication required",
+          type: ERROR_TYPES.AUTH_REQUIRED,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 401, headers: CORS_HEADERS }
+      );
     }
 
-    const data = await req.json();
-
-    const response = await fetchFromSupabase("protected-data", "POST", data, {
-      Authorization: `Bearer ${accessToken}`,
-      Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
-    });
-
-    return new Response(
-      JSON.stringify({
-        data: response,
-        timestamp: new Date().toISOString(),
-      }),
-      { status: 201, headers: CORS_HEADERS }
-    );
+    const data = await request.json();
+    
+    if (!data || typeof data !== 'object') {
+      const validationError = new Error("Invalid data format");
+      validationError.status = 400;
+      validationError.type = ERROR_TYPES.BAD_REQUEST;
+      throw validationError;
+    }
+    
+    try {
+      const response = await fetchFromSupabase("protected-data", "POST", data, {
+        Authorization: `Bearer ${accessToken}`,
+        Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
+      });
+      
+      return new Response(
+        JSON.stringify({
+          data: response,
+          success: true,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 201, headers: CORS_HEADERS }
+      );
+    } catch (error) {
+      if (error.status === 413) {
+        const sizeError = new Error("Data exceeds maximum allowed size");
+        sizeError.status = 413;
+        sizeError.type = ERROR_TYPES.FILE_TOO_LARGE;
+        throw sizeError;
+      }
+      
+      // Re-throw the original error if no specific handling
+      throw error;
+    }
   } catch (error) {
-    console.error("Protected data submission error:", error);
+    console.error("Protected route POST error:", error);
 
     const standardError = processApiError(error, {
       defaultMessage: "Failed to submit protected data",

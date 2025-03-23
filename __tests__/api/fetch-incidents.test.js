@@ -2,15 +2,21 @@ import { server } from "../../app/utils/testing/test-utils";
 import { GET, OPTIONS } from "@/app/api/fetch-incidents/route";
 import { http, HttpResponse } from "msw";
 
+// Mock environment variables
 process.env.SUPABASE_URL = "https://test-supabase-url.com";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
+/**
+ * Test suite for the fetch-incidents API route
+ */
 describe("fetch-incidents API route", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  // Test OPTIONS method
+  /**
+   * Test OPTIONS method for CORS preflight
+   */
   it("responds correctly to OPTIONS request", async () => {
     const response = await OPTIONS();
     
@@ -20,13 +26,16 @@ describe("fetch-incidents API route", () => {
     expect(response.headers.get("Access-Control-Allow-Headers")).toBeDefined();
   });
 
-  // Basic successful cases
+  /**
+   * Test successful array response
+   */
   it("successfully fetches incidents as array", async () => {
     const mockIncidents = [
       { id: "1", name: "Y2K Bug", category: "software" },
       { id: "2", name: "Morris Worm", category: "security" },
     ];
 
+    // Mock the Supabase API response
     server.use(
       http.get(
         `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
@@ -45,6 +54,9 @@ describe("fetch-incidents API route", () => {
     expect(data.timestamp).toBeDefined();
   });
 
+  /**
+   * Test empty array response
+   */
   it("handles empty array response", async () => {
     server.use(
       http.get(
@@ -63,7 +75,9 @@ describe("fetch-incidents API route", () => {
     expect(data.data).toEqual([]);
   });
 
-  // Edge case: non-array response
+  /**
+   * Test non-array response handling
+   */
   it("handles non-array response from Supabase with 200 status", async () => {
     server.use(
       http.get(
@@ -85,6 +99,9 @@ describe("fetch-incidents API route", () => {
     expect(data.warning).toContain("Invalid response format");
   });
 
+  /**
+   * Test null response handling
+   */
   it("handles null response from Supabase with 200 status", async () => {
     server.use(
       http.get(
@@ -104,7 +121,9 @@ describe("fetch-incidents API route", () => {
     expect(data.warning).toBeDefined();
   });
 
-  // Error handling
+  /**
+   * Test error response from Supabase
+   */
   it("handles HTTP errors from Supabase", async () => {
     server.use(
       http.get(
@@ -127,6 +146,9 @@ describe("fetch-incidents API route", () => {
     expect(data.type).toBeDefined();
   });
 
+  /**
+   * Test unauthorized error handling
+   */
   it("handles unauthorized errors (401) from Supabase", async () => {
     server.use(
       http.get(
@@ -149,6 +171,9 @@ describe("fetch-incidents API route", () => {
     expect(data.type).toBeDefined();
   });
 
+  /**
+   * Test forbidden error handling
+   */
   it("handles forbidden errors (403) from Supabase", async () => {
     server.use(
       http.get(
@@ -171,6 +196,9 @@ describe("fetch-incidents API route", () => {
     expect(data.type).toBeDefined();
   });
 
+  /**
+   * Test not found error handling
+   */
   it("handles not found errors (404) from Supabase", async () => {
     server.use(
       http.get(
@@ -193,6 +221,9 @@ describe("fetch-incidents API route", () => {
     expect(data.type).toBeDefined();
   });
 
+  /**
+   * Test network error handling
+   */
   it("handles network errors", async () => {
     server.use(
       http.get(
@@ -212,7 +243,9 @@ describe("fetch-incidents API route", () => {
     expect(data.type).toBeDefined();
   });
 
-  // Request error test
+  /**
+   * Test request error handling
+   */
   it("handles request errors", async () => {
     // Mock a fetch implementation that throws an error
     server.use(
@@ -233,7 +266,9 @@ describe("fetch-incidents API route", () => {
     expect(data.type).toBeDefined();
   });
   
-  // Response structure tests
+  /**
+   * Test timestamp inclusion in successful responses
+   */
   it("includes timestamp in successful responses", async () => {
     server.use(
       http.get(
@@ -253,6 +288,9 @@ describe("fetch-incidents API route", () => {
     expect(new Date(data.timestamp)).toBeInstanceOf(Date);
   });
 
+  /**
+   * Test timestamp inclusion in error responses
+   */
   it("includes timestamp in error responses", async () => {
     server.use(
       http.get(
@@ -275,7 +313,9 @@ describe("fetch-incidents API route", () => {
     expect(new Date(data.timestamp)).toBeInstanceOf(Date);
   });
 
-  // CORS Headers tests
+  /**
+   * Test CORS headers inclusion in responses
+   */
   it("includes CORS headers in all responses", async () => {
     server.use(
       http.get(

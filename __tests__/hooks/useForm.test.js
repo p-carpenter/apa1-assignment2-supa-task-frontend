@@ -1,18 +1,18 @@
 import { renderHook, act } from '@testing-library/react';
 import { useForm } from '@/app/hooks/useForm';
 
-// Mock event objects
-const createChangeEvent = (name, value, type = 'text') => ({
+// Create standardized event mocks to ensure consistent test behavior
+const createChangeEvent = (fieldName, fieldValue, inputType = 'text') => ({
   target: {
-    name,
-    value,
-    type,
-    checked: type === 'checkbox' ? value : undefined,
+    name: fieldName,
+    value: fieldValue,
+    type: inputType,
+    checked: inputType === 'checkbox' ? fieldValue : undefined,
   },
 });
 
-const createBlurEvent = (name) => ({
-  target: { name },
+const createBlurEvent = (fieldName) => ({
+  target: { name: fieldName },
 });
 
 describe('useForm hook', () => {
