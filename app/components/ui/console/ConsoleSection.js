@@ -10,7 +10,10 @@ const ConsoleSection = ({
   children,
 }) => {
   return (
-    <div className={`${styles.consoleSection} ${className}`}>
+    <div
+      className={`${styles.consoleSection} ${className}`}
+      data-testid="console-section"
+    >
       {command && (
         <CommandLine
           command={command}

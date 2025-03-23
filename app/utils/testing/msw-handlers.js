@@ -103,6 +103,23 @@ export const handlers = [
     }
   ),
 
+  http.post("https://test-supabase-url.com/functions/v1/authentication/signup",
+    async({req}) => {
+      const { email, password } = await req.json();
+      if (!email || !password) {
+        return new HttpResponse(
+          JSON.stringify({ error: "Email and password are required" }),
+          { status: 400 }
+        );
+      }
+       return HttpResponse.json({
+          success: true,
+          user: { id: "user-123", email: email, password: password },
+          session: null,
+        });
+    }
+  ),
+
   // API route handlers
   http.get("/api/fetch-incidents", async () => {
     return HttpResponse.json({

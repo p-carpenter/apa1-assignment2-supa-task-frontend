@@ -17,7 +17,6 @@ function SignupForm({
   handleChange,
   handleSubmit,
   isSubmitting,
-  errorMessage,
   apiError,
   passwordRequirements,
 }) {
@@ -32,6 +31,7 @@ function SignupForm({
 
       <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
         <TextField
+          data-testid="email-field"
           id="email"
           name="email"
           type="email"
@@ -45,6 +45,7 @@ function SignupForm({
         />
 
         <PasswordField
+          data-testid="password-field"
           id="password"
           name="password"
           label={<PromptLabel>PASSWORD</PromptLabel>}
@@ -53,6 +54,7 @@ function SignupForm({
           onChange={handleChange}
           disabled={isSubmitting}
           error={formErrors.password}
+          helperText="Password must be at least 8 characters and include one number, one special character, and one uppercase letter."
         />
 
         {passwordRequirements && passwordRequirements.length > 0 && (
@@ -66,6 +68,7 @@ function SignupForm({
         )}
 
         <PasswordField
+          data-testid="confirmPassword-field"
           id="confirmPassword"
           name="confirmPassword"
           label={<PromptLabel>CONFIRM PASSWORD</PromptLabel>}

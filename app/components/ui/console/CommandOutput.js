@@ -12,7 +12,7 @@ const CommandOutput = ({
     <>
       {title && <h1 className={styles.title}>{title}</h1>}
       {subtitle && <h2 className={styles.subtitle}>{subtitle}</h2>}
-      <div className={styles.commandOutput}>
+      <div className={styles.commandOutput} data-testid="command-output">
         {showLoadingBar && (
           <div className={loadingStyles.loadingBar}>
             <div className={loadingStyles.loadingProgress}></div>

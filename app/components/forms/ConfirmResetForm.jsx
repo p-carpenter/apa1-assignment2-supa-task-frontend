@@ -11,11 +11,24 @@ const ConfirmResetForm = ({
   isSubmitting,
   apiError,
 }) => {
+
+  const passwordMismatchError = 
+    formData.password && 
+    formData.confirmPassword && 
+    formData.password !== formData.confirmPassword
+      ? "Passwords do not match."
+      : null;
+
   return (
     <>
       {apiError && <ApiErrorMessage error={apiError} />}
 
-      <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
+      <form
+        className={authStyles.form}
+        onSubmit={handleSubmit}
+        data-testid="form"
+        noValidate
+      >
         <TextField
           id="email"
           name="email"
@@ -51,8 +64,9 @@ const ConfirmResetForm = ({
           value={formData.confirmPassword}
           onChange={handleChange}
           disabled={isSubmitting}
-          error={formErrors.confirmPassword}
+          error={formErrors.confirmPassword || passwordMismatchError}
           required
+          data-testid="confirm-password-field"
         />
 
         <FormButtons

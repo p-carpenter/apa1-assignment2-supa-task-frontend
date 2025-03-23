@@ -82,10 +82,16 @@ const IncidentManagementForm = ({
   incident = null,
 }) => {
   return (
-    <form className={formStyles.form} onSubmit={handleSubmit} noValidate>
+    <form
+      className={formStyles.form}
+      onSubmit={handleSubmit}
+      noValidate
+      data-testid="form"
+    >
       {apiError && <ApiErrorMessage error={apiError} />}
 
       <TextField
+        data-testid="incident-name-input"
         id="name"
         name="name"
         label="Incident Name"
@@ -94,10 +100,12 @@ const IncidentManagementForm = ({
         placeholder="e.g., Morris Worm, Y2K Bug"
         error={formErrors.name}
         required
+        disabled={isSubmitting}
       />
 
       <FormRow>
         <DateField
+          data-testid="incident-date-input"
           id="incident_date"
           name="incident_date"
           label="Date"
@@ -109,6 +117,7 @@ const IncidentManagementForm = ({
           required
           className={formStyles.thirdWidth}
           helperText="Year must be between 1980-2029"
+          disabled={isSubmitting}
         />
 
         <SelectField
@@ -120,6 +129,7 @@ const IncidentManagementForm = ({
           options={categories}
           className={formStyles.thirdWidth}
           required
+          disabled={isSubmitting}
         />
 
         <SelectField
@@ -131,12 +141,14 @@ const IncidentManagementForm = ({
           options={severityOptions}
           className={formStyles.thirdWidth}
           required
+          disabled={isSubmitting}
         />
       </FormRow>
 
       {showSeverityInfo && <SeverityInfo onClose={toggleSeverityInfo} />}
 
       <TextArea
+        data-testid="incident-date-input"
         id="description"
         name="description"
         label="Description"
@@ -145,6 +157,7 @@ const IncidentManagementForm = ({
         placeholder="Provide a description of the incident..."
         error={formErrors.description}
         required
+        disabled={isSubmitting}
       />
 
       <SelectField
@@ -158,6 +171,7 @@ const IncidentManagementForm = ({
           { value: "code", label: "Code (HTML)" },
           { value: "image", label: "Image" },
         ]}
+        disabled={isSubmitting}
       />
 
       {formData.artifactType === "code" && (
@@ -169,6 +183,7 @@ const IncidentManagementForm = ({
           onChange={handleChange}
           placeholder="Enter HTML code here..."
           error={formErrors.artifactContent}
+          disabled={isSubmitting}
           helperText="HTML max individual dimensions: 863px (width), 768px (height). Anything larger and the page layout may break."
         />
       )}
@@ -195,6 +210,7 @@ const IncidentManagementForm = ({
                 accept="image/*"
                 error={formErrors.file || fileState.error}
                 helperText="Max file size: 5MB"
+                disabled={isSubmitting}
                 hideLabel
               />
             </div>
@@ -230,6 +246,7 @@ const IncidentManagementForm = ({
             label="Upload Image"
             onChange={handleFileChange}
             accept="image/*"
+            disabled={isSubmitting}
             error={formErrors.file || fileState.error}
             helperText="Max file size: 5MB"
           />
@@ -237,10 +254,12 @@ const IncidentManagementForm = ({
       )}
 
       <FormButtons
-        onCancel={onClose}
+        data-testid="submit-incident-btn"
+        onClose={onClose}
         isSubmitting={isSubmitting}
         submitLabel={submitLabel}
         loadingLabel={loadingLabel}
+        showCancelButton={true}
       />
     </form>
   );

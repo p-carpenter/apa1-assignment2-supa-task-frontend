@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useRef } from "react";
 import { ArtifactRenderer } from "@/app/components/ui/artifacts";
 import GalleryDisplaySkeleton from "@/app/gallery/GalleryDisplaySkeleton";
 import { useTheme } from "@/app/contexts/ThemeContext";
@@ -13,25 +13,19 @@ const GalleryDisplay = ({ incident, isLoading }) => {
 
   if (!incident) return null;
 
-  const { getPaddingSizeForArtifact, IncidentDetailsWindows } = useTheme();
+  const { IncidentDetailsWindows } = useTheme();
   const artifactRef = useRef(null);
   const detailsRef = useRef(null);
-
-  const paddingSize = useMemo(() => {
-    return getPaddingSizeForArtifact(incident);
-  }, [incident, getPaddingSizeForArtifact]);
 
   return (
     <div className={styles.container}>
       <div className={styles.window}>
         <div className={styles.mainContent}>
-
           <div className={styles.artifactSection}>
             <div className={styles.artifactContainer} ref={artifactRef}>
               <ArtifactRenderer
                 artifact={incident}
                 className={styles.artifactTransparent}
-                paddingSize={paddingSize}
               />
             </div>
             <div className={styles.pedestal}>
@@ -42,7 +36,6 @@ const GalleryDisplay = ({ incident, isLoading }) => {
               />
             </div>
           </div>
-
 
           <div className={styles.detailsSection} ref={detailsRef}>
             <div className={styles.detailsWindow}>

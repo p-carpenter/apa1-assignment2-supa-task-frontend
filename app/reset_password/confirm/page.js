@@ -11,6 +11,7 @@ import { ConfirmResetForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/useForm";
 import { validateAuthForm } from "@/app/utils/validation/formValidation";
 import { processApiError } from "@/app/utils/errors/errorService";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 
 import {
   ConsoleWindow,
@@ -44,6 +45,11 @@ export default function ConfirmResetPage() {
       !token &&
       !window.location.hash.includes("access_token")
     ) {
+      setApiError({
+        message: "Password reset token is missing or invalid. Please request a new password reset.",
+        type: ERROR_TYPES.TOKEN_EXPIRED
+      });
+      
       router.push("/reset_password");
     }
   }, [isAuthenticated, loading, router, token]);
@@ -58,6 +64,16 @@ export default function ConfirmResetPage() {
     setSuccessMessage("");
 
     try {
+      if (formData.password !== formData.confirmPassword) {
+        const error = {
+          type: ERROR_TYPES.BAD_REQUEST,
+          message: "Passwords do not match."
+        };
+        setApiError(error);
+        submissionInProgress.current = false;
+        return;
+      }
+
       await handleResetPasswordConfirm({
         email: formData.email,
         password: formData.password,
@@ -68,9 +84,24 @@ export default function ConfirmResetPage() {
         "Your password has been successfully reset. You can now login with your new password."
       );
     } catch (err) {
-      const standardError = processApiError(err, {
-        defaultMessage: "Failed to reset password",
-      });
+      // Handle different error types
+      let standardError;
+      if (err.message === "Token has expired" || err.type === ERROR_TYPES.TOKEN_EXPIRED) {
+        standardError = {
+          type: ERROR_TYPES.TOKEN_EXPIRED,
+          message: "Password reset token has expired. Please request a new one."
+        };
+      } else if (err.message === "Unexpected error") {
+        standardError = {
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: "An unexpected error occurred. Please try again or request a new reset link."
+        };
+      } else {
+        standardError = processApiError(err, {
+          defaultMessage: "Failed to reset password. Please try again."
+        });
+      }
+      
       setApiError(standardError);
       submissionInProgress.current = false;
     } finally {
@@ -124,6 +155,7 @@ export default function ConfirmResetPage() {
     typeof window !== "undefined" &&
     !window.location.hash.includes("access_token")
   ) {
+    // Return null as before, but we've already set an error and redirect in the useEffect
     return null;
   }
 

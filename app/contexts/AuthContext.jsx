@@ -66,7 +66,6 @@ export function AuthProvider({
         setUser(null);
         setSession(null);
 
-
         if (data.error) {
           setError({
             message: data.error,

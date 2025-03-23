@@ -3,6 +3,7 @@ export const ERROR_TYPES = {
   AUTH_REQUIRED: "auth_required",
   INVALID_CREDENTIALS: "invalid_credentials",
   SESSION_NOT_FOUND: "session_not_found",
+  TOKEN_EXPIRED: "token_expired",
 
   // Permission related errors
   PERMISSION_DENIED: "permission_denied",
@@ -35,6 +36,8 @@ export const ERROR_MESSAGES = {
     "Invalid email or password. Please try again.",
   [ERROR_TYPES.SESSION_NOT_FOUND]:
     "User session not found. Signing in is optional.",
+  [ERROR_TYPES.TOKEN_EXPIRED]:
+    "Password reset token has expired. Please request a new one.",
   [ERROR_TYPES.PERMISSION_DENIED]:
     "You don't have permission to perform this action.",
   [ERROR_TYPES.NOT_FOUND]: "The requested resource was not found.",

@@ -5,7 +5,7 @@ import styles from "./Console.module.css";
 
 const ConsoleWindow = ({ children, title, statusItems }) => {
   return (
-    <div className={styles.consoleWindow}>
+    <div className={styles.consoleWindow} data-testid="console-window">
       <TerminalHeader title={title} />
       <div className={styles.consoleContent}>{children}</div>
       <ConsoleFooter statusItems={statusItems} />

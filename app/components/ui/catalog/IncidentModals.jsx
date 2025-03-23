@@ -41,7 +41,7 @@ const IncidentModals = ({
     clearFile: clearAddFile,
   } = useFileUpload({
     validationOptions: {
-      maxSizeInMB: 2
+      maxSizeInMB: 2,
     },
     setFormErrors: (errors) => {
       if (addFormSetErrors) {
@@ -72,7 +72,7 @@ const IncidentModals = ({
     },
     validateIncidentForm,
     handleAddFormSubmit,
-    { fileState: addFileState } // Pass fileState to useForm
+    { fileState: addFileState }
   );
 
   const updateAddFormErrors = (modifyFn) => {
@@ -221,7 +221,7 @@ const IncidentModals = ({
     const incident = selectedIncidents[currentEditIndex];
     return {
       name: incident.name || "",
-      incident_date: formatDateForDisplay(incident.incident_date) || "",
+      incident_date: formatDateInput(incident.incident_date) || "",
       category: incident.category || "Software",
       severity: incident.severity || "Low",
       description: incident.description || "",
@@ -339,7 +339,6 @@ const IncidentModals = ({
       setIncidents(result.data);
       moveToNextEdit();
     } catch (error) {
-
       const standardError = processApiError(error, {
         defaultMessage: "Failed to update incident. Please try again.",
       });

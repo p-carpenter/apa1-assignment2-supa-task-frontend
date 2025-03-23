@@ -1,16 +1,8 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useRouter } from "next/navigation";
 import { LoginForm } from "@/app/components/forms";
-import { useAuth } from "@/app/contexts/AuthContext.jsx";
 
-jest.mock("next/navigation", () => ({
-  useRouter: jest.fn(),
-}));
-
-jest.mock("@/app/contexts/AuthContext", () => ({
-  useAuth: jest.fn(),
-}));
+// No need to mock useRouter or useAuth since we're mocking all props
 
 jest.mock("next/link", () => {
   return ({ children, href }) => {
@@ -23,201 +15,108 @@ jest.mock("next/link", () => {
 });
 
 describe("LoginForm", () => {
-  const mockLogin = jest.fn();
-  const mockPush = jest.fn();
+  // Mock props to simulate the props passed from LoginPage
+  const mockProps = {
+    formData: {
+      email: "",
+      password: "",
+    },
+    formErrors: {},
+    handleChange: jest.fn(),
+    handleSubmit: jest.fn((e) => e.preventDefault()),
+    isSubmitting: false,
+    apiError: null,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    useRouter.mockReturnValue({
-      push: mockPush,
-    });
-
-    useAuth.mockReturnValue({
-      login: mockLogin,
-      loading: false,
-    });
   });
 
   it("renders the login form correctly", () => {
-    render(<LoginForm />);
+    render(<LoginForm {...mockProps} />);
 
     expect(screen.getByLabelText(/EMAIL/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/PASSWORD/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /LOGIN/i })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/••••••••/i)).toBeInTheDocument();
+    expect(screen.getByTestId("login-button")).toBeInTheDocument();
   });
 
-  it("validates required fields on submission", async () => {
-    render(<LoginForm />);
+  it("calls handleChange when inputs change", () => {
+    render(<LoginForm {...mockProps} />);
 
     const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
 
-    fireEvent.change(emailInput, { target: { value: "" } });
-    fireEvent.change(passwordInput, { target: { value: "" } });
+    expect(mockProps.handleChange).toHaveBeenCalled();
+  });
 
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
+  it("calls handleSubmit when form is submitted", () => {
+    render(<LoginForm {...mockProps} />);
+
+    const form = screen.getByTestId("form");
+    fireEvent.submit(form);
+
+    expect(mockProps.handleSubmit).toHaveBeenCalled();
+  });
+
+  it("displays form errors when provided", () => {
+    const propsWithErrors = {
+      ...mockProps,
+      formErrors: {
+        email: "Email is required.",
+        password: "Password must be at least 8 characters long.",
+      },
+    };
+
+    render(<LoginForm {...propsWithErrors} />);
 
     expect(screen.getByText("Email is required.")).toBeInTheDocument();
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.click(submitButton);
-
-    expect(screen.getByText("Password is required.")).toBeInTheDocument();
-
-    expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it("validates email format", async () => {
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    fireEvent.change(passwordInput, { target: { value: "Password1!" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
-    expect(
-      screen.getByText("Please enter a valid email address.")
-    ).toBeInTheDocument();
-
-    expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it("calls login function with correct credentials", async () => {
-    mockLogin.mockResolvedValue({ user: { id: "123" } });
-
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith({
-        email: "test@example.com",
-        password: "Password123!",
-      });
-    });
-  });
-
-  it("displays error message when login fails", async () => {
-    const errorMessage = "Invalid email or password";
-    mockLogin.mockRejectedValue(new Error(errorMessage));
-
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    });
-  });
-
-  it("disables the submit button while loading", () => {
-    useAuth.mockReturnValue({
-      login: mockLogin,
-      loading: true,
-    });
-
-    render(<LoginForm />);
-
-    const submitButton = screen.getByTestId("login-button");
-
-    expect(submitButton).toBeDisabled();
-
-    expect(submitButton).toHaveTextContent("AUTHENTICATING...");
-  });
-
-  it("validates password number requirement", async () => {
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password!" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
-    expect(
-      screen.getByText("Password must contain at least one number.")
-    ).toBeInTheDocument();
-
-    expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it("validates password uppercase requirement", async () => {
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password1!" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
-    expect(
-      screen.getByText("Password must contain at least one uppercase letter.")
-    ).toBeInTheDocument();
-
-    expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it("validates password special character requirement", async () => {
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password1" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
-    expect(
-      screen.getByText("Password must contain at least one special character.")
-    ).toBeInTheDocument();
-
-    expect(mockLogin).not.toHaveBeenCalled();
-  });
-
-  it("validates password length requirement", async () => {
-    render(<LoginForm />);
-
-    const emailInput = screen.getByLabelText(/EMAIL/i);
-    const passwordInput = screen.getByLabelText(/PASSWORD/i);
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "P1!" } });
-
-    const submitButton = screen.getByRole("button", { name: /LOGIN/i });
-    fireEvent.click(submitButton);
-
     expect(
       screen.getByText("Password must be at least 8 characters long.")
     ).toBeInTheDocument();
+  });
 
-    expect(mockLogin).not.toHaveBeenCalled();
+  it("displays API error when provided", () => {
+    const propsWithApiError = {
+      ...mockProps,
+      apiError: {
+        type: "invalid_credentials",
+        message: "Invalid credentials",
+        details: "Invalid credentials",
+      },
+    };
+
+    render(<LoginForm {...propsWithApiError} />);
+
+    expect(screen.getByText("Invalid credentials")).toBeInTheDocument();
+  });
+
+  it("disables form elements when isSubmitting is true", () => {
+    const propsWhileSubmitting = {
+      ...mockProps,
+      isSubmitting: true,
+    };
+
+    render(<LoginForm {...propsWhileSubmitting} />);
+
+    expect(screen.getByLabelText(/EMAIL/i)).toBeDisabled();
+    expect(screen.getByPlaceholderText(/••••••••/i)).toBeDisabled();
+    expect(screen.getByTestId("login-button")).toBeDisabled();
+    expect(screen.getByText("AUTHENTICATING...")).toBeInTheDocument();
+  });
+
+  it("shows link to signup page", () => {
+    render(<LoginForm {...mockProps} />);
+
+    const signupLink = screen.getByText("Register account");
+    expect(signupLink).toBeInTheDocument();
+    expect(signupLink.closest("a")).toHaveAttribute("href", "/signup");
+  });
+
+  it("shows link to reset password page", () => {
+    render(<LoginForm {...mockProps} />);
+
+    const resetLink = screen.getByText("Reset password");
+    expect(resetLink).toBeInTheDocument();
+    expect(resetLink.closest("a")).toHaveAttribute("href", "/reset_password");
   });
 });

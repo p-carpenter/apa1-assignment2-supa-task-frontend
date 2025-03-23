@@ -146,7 +146,7 @@ export const validatePassword = (password, data = {}, options = {}) => {
     minLength = 8,
     requireUppercase = true,
     requireNumbers = true,
-    requireSpecial = false,
+    requireSpecial = true,
     requirePasswordConfirmation = false,
   } = options;
 
@@ -323,7 +323,6 @@ const validateField = (data, fieldName, fieldSchema) => {
   return { isValid: true, errorMessage: "" };
 };
 
-
 export const incidentFormSchema = {
   name: {
     type: "text",
@@ -375,8 +374,31 @@ export const AuthFormSchema = {
   confirmPassword: {
     type: "confirmPassword",
     required: false,
+    validate: (value, data) => {
+      if (!value && data.password) {
+        return {
+          isValid: false,
+          errorMessage: "Please confirm your password."
+        };
+      }
+      if (value !== data.password) {
+        return {
+          isValid: false,
+          errorMessage: "Passwords do not match."
+        };
+      }
+      return { isValid: true, errorMessage: "" };
+    }
+  },
+};
+
+export const resetSchema = {
+  email: {
+    type: "email",
+    required: true,
   },
 };
 
 export const validateIncidentForm = createFormValidator(incidentFormSchema);
 export const validateAuthForm = createFormValidator(AuthFormSchema);
+export const validateResetPasswordForm = createFormValidator(resetSchema);

@@ -8,8 +8,9 @@ import authStyles from "@/app/components/forms/Auth.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ResetPasswordForm } from "@/app/components/forms";
 import { useForm } from "@/app/hooks/useForm";
-import { validateAuthForm } from "@/app/utils/validation/formValidation";
+import { validateResetPasswordForm } from "@/app/utils/validation/formValidation";
 import { processApiError } from "@/app/utils/errors/errorService";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 
 import {
   ConsoleWindow,
@@ -22,45 +23,65 @@ export default function ResetPasswordPage() {
   const router = useRouter();
   const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-
+  const submissionInProgress = useRef(false);
   useEffect(() => {
     if (!loading && isAuthenticated) {
       router.push("/profile");
     }
   }, [isAuthenticated, loading, router]);
 
-  // Declare this outside of useEffect to avoid dependency issues
   const handleFormSubmit = async (formData) => {
-    // The key issue: don't check submissionInProgress here because useForm already prevents duplicate submissions
-    // This creates a race condition with the useForm's own isSubmitting state
+    if (submissionInProgress.current) {
+      return;
+    }
 
-    console.log("handleFormSubmit called with:", formData);
+    submissionInProgress.current = true;
     setApiError(null);
     setSuccessMessage("");
 
     try {
-      console.log("Calling handleResetPassword with email:", formData.email);
       await handleResetPassword(formData.email);
-      console.log("Password reset instructions sent successfully");
 
       setSuccessMessage(
         "Password reset instructions have been sent to your email."
       );
 
-      // Don't call resetForm here, it's not stable
-      // resetForm();
-
-      // Return success to signal to useForm that submission was successful
+      submissionInProgress.current = false;
       return { success: true };
     } catch (err) {
       console.error("Password reset error:", err);
-      const standardError = processApiError(err, {
-        defaultMessage: "Failed to process request",
-      });
-      setApiError(standardError);
+      
+      // Handle the error differently based on the type
+      let standardError;
+      if (err.message === "Network error") {
+        standardError = {
+          type: ERROR_TYPES.NETWORK_ERROR,
+          message: "Network error. Please check your connection and try again.",
+          details: "Network error. Please check your connection and try again."
+        };
+      } else if (err.message === "Unexpected error") {
+        standardError = {
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: "An unexpected error occurred. Please try again.",
+          details: "An unexpected error occurred. Please try again."
+        };
+      } else if (err.message === "Failed to send reset email") {
+        standardError = {
+          type: ERROR_TYPES.BAD_REQUEST,
+          message: "Failed to send reset email. Please try again later.",
+          details: "Failed to send reset email. Please try again later."
+        };
+      } else {
+        standardError = processApiError(err, {
+          defaultMessage: "Failed to send password reset instructions. Please try again."
+        });
+      }
 
-      // Important: throw the error to let useForm know submission failed
+      setApiError(standardError);
+      submissionInProgress.current = false;
       throw standardError;
+    } finally {
+      submissionInProgress.current = false;
     }
   };
 
@@ -73,7 +94,7 @@ export default function ResetPasswordPage() {
     handleChange,
     handleSubmit,
     resetForm,
-  } = useForm(initialFormState, validateAuthForm, handleFormSubmit);
+  } = useForm(initialFormState, validateResetPasswordForm, handleFormSubmit);
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",

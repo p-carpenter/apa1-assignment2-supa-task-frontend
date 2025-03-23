@@ -40,7 +40,6 @@ export async function PUT(req) {
       }
     }
 
-    console.log(`Updating incident ID: ${id}`);
     const data = await fetchFromSupabase("tech-incidents", "PUT", payload);
 
     return new Response(

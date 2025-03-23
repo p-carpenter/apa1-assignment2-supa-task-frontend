@@ -45,7 +45,7 @@ export async function signIn({ email, password }) {
 
 /**
  * Sign up a new user with email and password
- * @param {Object} credentials - User signup data with email, password, and displayName
+ * @param {Object} credentials - User signup data with email, password
  * @returns {Promise<Object>} Authentication data with user and session
  */
 export async function signUp({ email, password, displayName }) {
@@ -227,7 +227,7 @@ export async function getProtectedData() {
 export async function addProtectedData(data) {
   if (!data || typeof data !== "object") {
     const validationError = new Error("Invalid data. Expected an object.");
-    validationError.type = ERROR_TYPES.VALIDATION_ERROR;
+    validationError.type = ERROR_TYPES.BAD_REQUEST;
     throw validationError;
   }
 

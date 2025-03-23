@@ -85,7 +85,11 @@ const MultiSelectDropdown = ({
     >
       {label && <div className={styles.dropdownLabel}>{label}</div>}
 
-      <div className={styles.sortSelect} onClick={toggleDropdown}>
+      <div
+        className={styles.sortSelect}
+        onClick={toggleDropdown}
+        data-testid="dropdown-header"
+      >
         {selectedCount}
         <span
           className={`${styles.dropdownArrow} ${isOpen ? styles.open : ""}`}
@@ -105,6 +109,7 @@ const MultiSelectDropdown = ({
 
           {items.map((item) => (
             <div
+              data-testid="dropdown-option"
               key={`item-${getDisplayValue(item)}`}
               className={`${styles.dropdownOption} ${selectedItems.includes(item) ? styles.selected : ""}`}
               onClick={() => handleItemSelect(item)}

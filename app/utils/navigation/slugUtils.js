@@ -9,15 +9,16 @@ export const generateSlug = (incidentName) => {
     const name = incidentName.toString().trim();
 
     const words = name.split(/\s+/).filter(Boolean);
-    const firstTwoWords = words.slice(0, 2).join("-");
 
-    return (
-      firstTwoWords
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/--+/g, "-")
-        .trim() || "unknown"
-    );
+    let slug = words.slice(0, 2).join("-");
+
+    slug = slug
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    return slug || "unknown";
   } catch (e) {
     console.error("Error generating slug:", e);
     return "unknown";
@@ -38,10 +39,12 @@ export const findIncidentBySlug = (incidents, slug) => {
   if (incident) return incident;
 
   const firstWordOfSlug = slug.split("-")[0];
-  return incidents.find((inc) => {
+  const partialMatch = incidents.find((inc) => {
     const incSlug = generateSlug(inc.name);
     return incSlug.startsWith(firstWordOfSlug);
   });
+
+  return partialMatch || null;
 };
 
 /**

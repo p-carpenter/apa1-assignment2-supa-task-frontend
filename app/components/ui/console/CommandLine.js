@@ -12,7 +12,6 @@ const CommandLine = ({
   const username = user?.displayName || user?.email?.split("@")[0] || "guest";
   const prompt = customPrompt || `${username}@archive:~$`;
 
-  // If commandParts is not provided, just render the command as a whole
   if (!commandParts) {
     return (
       <div className={styles.commandLine}>

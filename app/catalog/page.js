@@ -262,7 +262,7 @@ const Catalog = () => {
                 )}
               </CommandOutput>
 
-              {/* Admin Controls Component */}
+ 
               {isAuthenticated && (
                 <AdminControls
                   selectionMode={selectionMode}

@@ -43,7 +43,7 @@ describe("GalleryNavButtons", () => {
     render(<GalleryNavButtons {...mockProps} />);
 
     const currentYearButton = screen.getByRole("button", { name: /2001/ });
-    expect(currentYearButton).toHaveClass("year-button--active");
+    expect(currentYearButton).toHaveClass("activeYearButton");
   });
 
   it("displays incident count indicators for years with multiple incidents", () => {

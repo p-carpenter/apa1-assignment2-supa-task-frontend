@@ -1,207 +1,178 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useRouter } from "next/navigation";
 import SignupForm from "@/app/components/forms/SignupForm";
-import { useAuth } from "@/app/contexts/AuthContext.jsx";
 
-jest.mock("next/navigation", () => ({
-  useRouter: jest.fn(),
-}));
-
-jest.mock("@/app/contexts/AuthContext", () => ({
-  useAuth: jest.fn(),
-}));
+// No need to mock useRouter or useAuth since we're mocking all props
+// following the pattern from LoginForm.test.jsx
 
 jest.mock("next/link", () => {
-  return ({ children, href }) => (
-    <a href={href} className="auth-link">
-      {children}
-    </a>
-  );
+  return ({ children, href }) => {
+    return (
+      <a href={href} className="auth-link">
+        {children}
+      </a>
+    );
+  };
 });
 
 describe("SignupForm", () => {
-  const mockRegister = jest.fn();
-  const mockPush = jest.fn();
-
-  let emailInput, passwordInput, confirmPasswordInput, submitButton;
+  // Mock props to simulate the props passed from SignupPage
+  const mockProps = {
+    formData: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    formErrors: {},
+    handleChange: jest.fn(),
+    handleSubmit: jest.fn((e) => e.preventDefault()),
+    isSubmitting: false,
+    apiError: null,
+    passwordRequirements: [],
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    useRouter.mockReturnValue({ push: mockPush });
-    useAuth.mockReturnValue({ register: mockRegister });
-
-    render(<SignupForm />);
-
-    emailInput = screen.getByRole("textbox", { name: /\$ email/i });
-    passwordInput = screen.getByLabelText(/\$ password/i);
-    confirmPasswordInput = screen.getByLabelText(/\$ confirm password/i);
-    submitButton = screen.getByRole("button", { name: /create account/i });
   });
 
   it("renders the signup form correctly", () => {
+    render(<SignupForm {...mockProps} />);
+
+    expect(screen.getByText("Register for archive access")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("your@email.com")).toBeInTheDocument();
+
+    expect(screen.getByPlaceholderText("••••••••")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /create account/i })
+      screen.getByPlaceholderText("Re-enter password")
     ).toBeInTheDocument();
-    expect(emailInput).toBeInTheDocument();
-    expect(passwordInput).toBeInTheDocument();
-    expect(confirmPasswordInput).toBeInTheDocument();
-    expect(submitButton).toBeInTheDocument();
+    expect(screen.getByTestId("signup-button")).toBeInTheDocument();
   });
 
-  it("validates required fields on submission", async () => {
-    fireEvent.click(submitButton);
+  it("calls handleChange when inputs change", () => {
+    render(<SignupForm {...mockProps} />);
+
+    const emailInput = screen.getByPlaceholderText("your@email.com");
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+
+    const passwordInput = screen.getByPlaceholderText("••••••••");
+    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
+
+    const confirmPasswordInput =
+      screen.getByPlaceholderText("Re-enter password");
+    fireEvent.change(confirmPasswordInput, {
+      target: { value: "Password123!" },
+    });
+
+    expect(mockProps.handleChange).toHaveBeenCalledTimes(3);
+  });
+
+  it("calls handleSubmit when form is submitted", () => {
+    render(<SignupForm {...mockProps} />);
+
+    const form = screen.getByTestId("signup-button").closest("form");
+    fireEvent.submit(form);
+
+    expect(mockProps.handleSubmit).toHaveBeenCalled();
+  });
+
+  it("displays form errors when provided", () => {
+    const propsWithErrors = {
+      ...mockProps,
+      formErrors: {
+        email: "Email is required.",
+        password: "Password must be at least 8 characters long.",
+        confirmPassword: "Passwords do not match.",
+      },
+    };
+
+    render(<SignupForm {...propsWithErrors} />);
 
     expect(screen.getByText("Email is required.")).toBeInTheDocument();
-    expect(screen.getByText("Password is required.")).toBeInTheDocument();
-    expect(
-      screen.getByText("Please confirm your password.")
-    ).toBeInTheDocument();
-    expect(mockRegister).not.toHaveBeenCalled();
-  });
-
-  it("validates email format", async () => {
-    fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    fireEvent.click(submitButton);
-
-    expect(
-      screen.getByText("Please enter a valid email address.")
-    ).toBeInTheDocument();
-    expect(mockRegister).not.toHaveBeenCalled();
-  });
-
-  it("validates password requirements", async () => {
-    fireEvent.change(passwordInput, { target: { value: "short" } });
-    fireEvent.click(submitButton);
-
     expect(
       screen.getByText("Password must be at least 8 characters long.")
     ).toBeInTheDocument();
-  });
-
-  it("validates password complexity", async () => {
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
-    fireEvent.click(submitButton);
-    expect(
-      screen.getByText("Password must contain at least one special character.")
-    ).toBeInTheDocument();
-
-    fireEvent.change(passwordInput, { target: { value: "Password!" } });
-    fireEvent.click(submitButton);
-    expect(
-      screen.getByText("Password must contain at least one number.")
-    ).toBeInTheDocument();
-
-    fireEvent.change(passwordInput, { target: { value: "password123!" } });
-    fireEvent.click(submitButton);
-    expect(
-      screen.getByText("Password must contain at least one uppercase letter.")
-    ).toBeInTheDocument();
-  });
-
-  it("validates password matching", async () => {
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-    fireEvent.change(confirmPasswordInput, {
-      target: { value: "DifferentPassword123!" },
-    });
-
-    fireEvent.click(submitButton);
-
-    expect(screen.getByText("Passwords do not match.")).toBeInTheDocument();
-    expect(mockRegister).not.toHaveBeenCalled();
-  });
-
-  it("validates password matching in real-time", async () => {
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-    fireEvent.change(confirmPasswordInput, {
-      target: { value: "Password123!" },
-    });
-
-    expect(
-      screen.queryByText("Passwords do not match.")
-    ).not.toBeInTheDocument();
-
-    fireEvent.change(passwordInput, { target: { value: "NewPassword123!" } });
-
     expect(screen.getByText("Passwords do not match.")).toBeInTheDocument();
   });
 
-  it("calls register function with correct credentials", async () => {
-    mockRegister.mockResolvedValue({ user: { id: "123" } });
+  it("displays password requirements helper text", () => {
+    render(<SignupForm {...mockProps} />);
 
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-    fireEvent.change(confirmPasswordInput, {
-      target: { value: "Password123!" },
-    });
+    expect(
+      screen.getByText(
+        "Password must be at least 8 characters and include one number, one special character, and one uppercase letter."
+      )
+    ).toBeInTheDocument();
+  });
 
-    fireEvent.click(submitButton);
+  it("displays API error when provided", () => {
+    const propsWithApiError = {
+      ...mockProps,
+      apiError: {
+        type: "email_already_exists",
+        message: "An account with this email already exists",
+        details: "Email already in use",
+      },
+    };
 
-    await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalledWith({
+    render(<SignupForm {...propsWithApiError} />);
+
+    expect(screen.getByText("Email already in use")).toBeInTheDocument();
+  });
+
+  it("disables form elements when isSubmitting is true", () => {
+    const propsWhileSubmitting = {
+      ...mockProps,
+      formData: {
         email: "test@example.com",
         password: "Password123!",
-        displayName: "test",
-      });
-    });
+        confirmPassword: "Password123!",
+      },
+      isSubmitting: true,
+    };
+
+    render(<SignupForm {...propsWhileSubmitting} />);
+
+    const emailInput = screen.getByPlaceholderText("your@email.com");
+    const passwordInput = screen.getByPlaceholderText("••••••••");
+    const confirmPasswordInput =
+      screen.getByPlaceholderText("Re-enter password");
+
+    expect(emailInput).toBeDisabled();
+    expect(emailInput).toHaveValue("test@example.com");
+    expect(passwordInput).toBeDisabled();
+    expect(passwordInput).toHaveValue("Password123!");
+    expect(confirmPasswordInput).toBeDisabled();
+    expect(confirmPasswordInput).toHaveValue("Password123!");
+    expect(screen.getByTestId("signup-button")).toBeDisabled();
+    expect(screen.getByText("REGISTERING...")).toBeInTheDocument();
   });
 
-  it("displays error message when registration fails", async () => {
-    mockRegister.mockRejectedValue(new Error("Email already in use"));
+  it("shows link to login page", () => {
+    render(<SignupForm {...mockProps} />);
 
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-    fireEvent.change(confirmPasswordInput, {
-      target: { value: "Password123!" },
-    });
-
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Email already in use")).toBeInTheDocument();
-    });
+    const loginLink = screen.getByText("Login here");
+    expect(loginLink).toBeInTheDocument();
+    expect(loginLink.closest("a")).toHaveAttribute("href", "/login");
   });
 
-  it("disables form inputs and shows loading state while submitting", async () => {
-    mockRegister.mockImplementation(
-      () =>
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ user: { id: "123" } }), 100)
-        )
+  it("renders with prefilled form data", () => {
+    const propsWithData = {
+      ...mockProps,
+      formData: {
+        email: "test@example.com",
+        password: "Password123!",
+        confirmPassword: "Password123!",
+      },
+    };
+
+    render(<SignupForm {...propsWithData} />);
+
+    expect(screen.getByPlaceholderText("your@email.com")).toHaveValue(
+      "test@example.com"
     );
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-    fireEvent.change(confirmPasswordInput, {
-      target: { value: "Password123!" },
-    });
-
-    fireEvent.click(submitButton);
-
-    expect(submitButton).toHaveAttribute("disabled");
-    expect(emailInput).toHaveAttribute("disabled");
-    expect(passwordInput).toHaveAttribute("disabled");
-    expect(confirmPasswordInput).toHaveAttribute("disabled");
-
-    await waitFor(() => {
-      expect(mockRegister).toHaveBeenCalled();
-    });
-  });
-
-  it("shows validation errors with proper styling", async () => {
-    fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    fireEvent.blur(emailInput);
-    expect(emailInput).toHaveClass("input-error");
-    expect(screen.getByText("Please enter a valid email address.")).toHaveClass(
-      "form-error"
+    expect(screen.getByPlaceholderText("••••••••")).toHaveValue("Password123!");
+    expect(screen.getByPlaceholderText("Re-enter password")).toHaveValue(
+      "Password123!"
     );
-
-    fireEvent.change(passwordInput, { target: { value: "short" } });
-    fireEvent.blur(passwordInput);
-    expect(passwordInput).toHaveClass("input-error");
-    expect(
-      screen.getByText("Password must be at least 8 characters long.")
-    ).toHaveClass("form-error");
   });
 });

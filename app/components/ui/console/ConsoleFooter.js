@@ -23,6 +23,7 @@ const ConsoleFooter = ({ statusItems = [] }) => {
         } else {
           return (
             <div
+              data-testid="status-item"
               key={index}
               className={`${styles.statusItem} ${item.blink ? styles.blinkSlow : ""}`}
             >

@@ -106,7 +106,6 @@
   overflow: hidden;
 }
 
-/* Top glossy highlight with sharp cutoff and arc */
 .header::before {
   content: "";
   position: absolute;
@@ -120,7 +119,6 @@
   pointer-events: none;
 }
 
-/* Bottom subtle lighter blue glow */
 .header::after {
   content: "";
   position: absolute;
@@ -327,7 +325,6 @@
   overflow: hidden;
 }
 
-/* Top glossy highlight with sharp cutoff and arc for section titles */
 .sectionTitle::before {
   content: "";
   position: absolute;
@@ -341,7 +338,6 @@
   pointer-events: none;
 }
 
-/* Bottom subtle lighter blue glow for section titles */
 .sectionTitle::after {
   content: "";
   position: absolute;

@@ -16,8 +16,14 @@ const ResetPasswordForm = ({
     <>
       {apiError && <ApiErrorMessage error={apiError} />}
 
-      <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
+      <form
+        className={authStyles.form}
+        onSubmit={handleSubmit}
+        data-testid="form"
+        noValidate
+      >
         <TextField
+          data-testid="email-field"
           id="email"
           name="email"
           type="email"
@@ -37,6 +43,7 @@ const ResetPasswordForm = ({
           useAuthStyle={true}
           testId="reset-password-button"
           isSubmitting={isSubmitting}
+          data-testid="reset-password-button"
         />
       </form>
     </>

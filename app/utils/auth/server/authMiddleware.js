@@ -15,13 +15,9 @@ export const withAuth = (handler) => async (req) => {
     if (!accessToken || !refreshToken) {
       return new Response(
         JSON.stringify({
-          error: "Unauthorized",
-          message: "Authentication required",
-        }),
-        {
-          status: 401,
-          headers: { "Content-Type": "application/json" },
-        }
+          message:
+            "Could not find authentication details. If you wish to contribute, please register.",
+        })
       );
     }
 
@@ -47,5 +43,3 @@ export const withAuth = (handler) => async (req) => {
     );
   }
 };
-
-

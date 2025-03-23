@@ -10,6 +10,7 @@ const SearchFilter = ({
     <>
       <div className={styles.dropdownLabel}>SEARCH</div>
       <input
+        data-testid="search-input"
         type="text"
         placeholder={placeholder}
         value={searchQuery}

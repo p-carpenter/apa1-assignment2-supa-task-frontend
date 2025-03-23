@@ -7,7 +7,6 @@ import {
   useMemo,
   useCallback,
   useEffect,
-  useRef,
 } from "react";
 import { processApiError, getErrorMessage } from "../utils/errors/errorService";
 
@@ -25,11 +24,8 @@ export const IncidentProvider = ({
   const [currentIncidentIndex, setCurrentIncidentIndex] = useState(0);
   const [currentDecade, setCurrentDecade] = useState(null);
   const [currentYear, setCurrentYear] = useState(null);
-  const [activeFilter, setActiveFilter] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // First load from initial incidents or session storage
     if (initialIncidents.length > 0) {
       setIncidents(initialIncidents);
       setIsLoading(false);
@@ -44,10 +40,7 @@ export const IncidentProvider = ({
           }
         }
       } catch (error) {
-        console.error(
-          "Error parsing session storage data:",
-          error
-        );
+        console.error("Error parsing session storage data:", error);
       }
     }
     fetchIncidents();
@@ -153,48 +146,6 @@ export const IncidentProvider = ({
     }, {});
   }, [incidents]);
 
-  const filteredIncidents = useMemo(() => {
-    if (!Array.isArray(incidents) || !incidents.length) return [];
-
-    let result = [...incidents];
-
-    if (activeFilter) {
-      result = result.filter(
-        (incident) =>
-          incident &&
-          incident.category &&
-          incident.category.toLowerCase() === activeFilter.toLowerCase()
-      );
-    }
-
-    if (searchQuery && searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter((incident) => {
-        if (!incident) return false;
-
-        return (
-          (incident.name && incident.name.toLowerCase().includes(query)) ||
-          (incident.description &&
-            incident.description.toLowerCase().includes(query)) ||
-          (incident.category && incident.category.toLowerCase().includes(query))
-        );
-      });
-    }
-
-    return result;
-  }, [incidents, activeFilter, searchQuery]);
-
-  const clearFilters = useCallback(() => {
-    setActiveFilter(null);
-    setSearchQuery("");
-  }, []);
-
-  const handleFilterClick = useCallback((category) => {
-    setActiveFilter((prevFilter) =>
-      prevFilter === category ? null : category
-    );
-  }, []);
-
   const handleIncidentNavigation = useCallback(
     (newIndex) => {
       if (!Array.isArray(incidents) || incidents.length === 0) {
@@ -243,12 +194,6 @@ export const IncidentProvider = ({
     }
   }, []);
 
-  const refreshIncidents = useCallback(async () => {
-    // Force a refresh of the incidents data
-    setError(null);
-    return fetchIncidents();
-  }, [fetchIncidents]);
-
   const value = useMemo(
     () => ({
       // Data
@@ -256,7 +201,6 @@ export const IncidentProvider = ({
       setIncidents,
       incidentsByDecade,
       fetchIncidents,
-      refreshIncidents,
       isLoading,
       setIsLoading,
       error,
@@ -272,14 +216,6 @@ export const IncidentProvider = ({
       setCurrentDecade,
       currentYear,
       setCurrentYear,
-      // Filter state
-      activeFilter,
-      setActiveFilter,
-      searchQuery,
-      setSearchQuery,
-      filteredIncidents,
-      clearFilters,
-      handleFilterClick,
       // Action handlers
       handleIncidentNavigation,
       navigateToRoot,
@@ -288,7 +224,6 @@ export const IncidentProvider = ({
       incidents,
       incidentsByDecade,
       fetchIncidents,
-      refreshIncidents,
       isLoading,
       error,
       selectedIncidents,
@@ -296,11 +231,6 @@ export const IncidentProvider = ({
       currentIncidentIndex,
       currentDecade,
       currentYear,
-      activeFilter,
-      searchQuery,
-      filteredIncidents,
-      clearFilters,
-      handleFilterClick,
       handleIncidentNavigation,
       navigateToRoot,
     ]

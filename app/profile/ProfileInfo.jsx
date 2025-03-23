@@ -79,13 +79,16 @@ export default function ProfileInfo() {
           href="/catalog"
         />
 
-        <button
+        <Button
           onClick={handlePasswordReset}
-          className={`${authStyles.authButton}`}
+          className={`${layoutStyles.homeButton} ${authStyles.authButton}`}
           disabled={resetStatus?.loading}
+          label="RESET PASSWORD"
+          href="/reset-password"
+          icon=""
         >
           {resetStatus?.loading ? "SENDING..." : "RESET PASSWORD"}
-        </button>
+        </Button>
 
         <button
           onClick={handleLogout}

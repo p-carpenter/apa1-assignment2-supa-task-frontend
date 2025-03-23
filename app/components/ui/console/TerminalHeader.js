@@ -15,7 +15,6 @@ const TerminalHeader = ({
   // Get username from user object, fallback to email if not available
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
-  // Handle logout button click
   const handleLogout = async () => {
     try {
       await signOut();

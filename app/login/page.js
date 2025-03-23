@@ -81,6 +81,7 @@ export default function LoginPage() {
           className={authStyles.console}
         >
           <ConsoleSection
+            data-testid="console-section"
             command="security --auth"
             commandParts={{
               baseCommand: "security",

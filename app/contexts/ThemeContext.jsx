@@ -2,28 +2,23 @@
 
 import React, { createContext, useContext, useMemo } from "react";
 import { useIncidents } from "./IncidentContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
-import MacintoshDetailsWindow from "@/app/components/ui/detail-windows/MacintoshDetailsWindow";
-import AeroDetailsWindow from "@/app/components/ui/detail-windows/AeroDetailsWindow";
-import MaterialDetailsWindow from "@/app/components/ui/detail-windows/MaterialDetailsWindow";
-import GlassmorphicDetailsWindow from "@/app/components/ui/detail-windows/GlassmorphicDetailsWindow";
-import Win98DetailsWindow from "@/app/components/ui/detail-windows/Win98DetailsWindow";
+import DetailsWindow1980s from "@/app/components/ui/detail-windows/DetailsWindow1980s";
+import DetailsWindow2000s from "@/app/components/ui/detail-windows/DetailsWindow2000s";
+import DetailsWindow2010s from "@/app/components/ui/detail-windows/DetailsWindow2010s";
+import DetailsWindow2020s from "@/app/components/ui/detail-windows/DetailsWindow2020s";
+import DetailsWindow1990s from "@/app/components/ui/detail-windows/DetailsWindow1990s";
 
 const IncidentDetailsWindows = {
-  1980: MacintoshDetailsWindow,
-  1990: Win98DetailsWindow,
-  2000: AeroDetailsWindow,
-  2010: MaterialDetailsWindow,
-  2020: GlassmorphicDetailsWindow,
+  1980: DetailsWindow1980s,
+  1990: DetailsWindow1990s,
+  2000: DetailsWindow2000s,
+  2010: DetailsWindow2010s,
+  2020: DetailsWindow2020s,
 };
-
-const StandardArtifactWidth = 863;
 
 const defaultContextValue = {
   decade: 1990,
-  getPaddingSizeForArtifact: getPaddingSizeForArtifact,
-  artifactWidth: StandardArtifactWidth,
   IncidentDetailsWindows: IncidentDetailsWindows[1990],
 };
 
@@ -44,10 +39,8 @@ export const ThemeProvider = ({ children }) => {
     return {
       decade: decadeKey,
       IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
-      getPaddingSizeForArtifact: getPaddingSizeForArtifact,
-      artifactWidth: StandardArtifactWidth,
     };
-  }, [currentDecade]); // Only re-compute when currentDecade changes
+  }, [currentDecade]);
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>

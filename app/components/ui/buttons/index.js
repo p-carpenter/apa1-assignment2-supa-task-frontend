@@ -1,3 +1,2 @@
-// Button component exports
-export { default as CTAButton } from './CTAButton';
-export { default as Button } from './Button';
+export { default as CTAButton } from "./CTAButton";
+export { default as Button } from "./Button";

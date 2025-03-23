@@ -31,8 +31,14 @@ function LoginForm({
 
       {apiError && <ApiErrorMessage error={apiError} />}
 
-      <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
+      <form
+        className={authStyles.form}
+        onSubmit={handleSubmit}
+        noValidate
+        data-testid="form"
+      >
         <TextField
+          data-testid="email-field"
           id="email"
           name="email"
           type="email"
@@ -46,6 +52,7 @@ function LoginForm({
         />
 
         <PasswordField
+          data-testid="password-field"
           id="password"
           name="password"
           label={<PromptLabel>PASSWORD</PromptLabel>}

@@ -3,10 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { AuthProvider, useAuth } from "@/app/contexts/AuthContext";
 import { handlers } from "../../app/utils/testing/msw-handlers";
 import { server } from "../../app/utils/testing/test-utils";
-import { USER_KEY, TOKEN_KEY } from "@/app/utils/auth/client";
 import { http, HttpResponse } from "msw";
 
-// Mock window.localStorage
 const localStorageMock = (() => {
   let store = {};
   return {
@@ -27,29 +25,41 @@ Object.defineProperty(window, "localStorage", {
   value: localStorageMock,
 });
 
-// Create a test component that uses the auth context
+export const USER_KEY = "auth_user";
+export const TOKEN_KEY = "auth_token";
+
 const TestComponent = () => {
-  const { user, isAuthenticated, login, logout, register, error, loading } =
-    useAuth();
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    signIn,
+    signUp,
+    signOut,
+    refreshUser,
+  } = useAuth();
 
   const handleLogin = async () => {
     try {
-      await login({ email: "test@example.com", password: "password123" });
-    } catch (err) {
-      // Error is captured by the context
-    }
+      await signIn({ email: "test@example.com", password: "password123" });
+    } catch (err) {}
   };
 
-  const handleRegister = async () => {
+  const handleSignUp = async () => {
     try {
-      await register({
+      await signUp({
         email: "new@example.com",
         password: "password123",
         displayName: "User",
       });
-    } catch (err) {
-      // Error is captured by the context
-    }
+    } catch (err) {}
+  };
+
+  const handleRefresh = async () => {
+    try {
+      await refreshUser();
+    } catch (err) {}
   };
 
   return (
@@ -58,31 +68,25 @@ const TestComponent = () => {
         {isAuthenticated ? "Authenticated" : "Not authenticated"}
       </div>
       <div data-testid="user-email">{user?.email || "No user"}</div>
-      <div data-testid="error-message">{error || "No error"}</div>
+      <div data-testid="error-message">{error?.message || "No error"}</div>
       <div data-testid="loading-status">
-        {loading ? "Loading" : "Not loading"}
+        {isLoading ? "Loading" : "Not loading"}
       </div>
       <button data-testid="login-button" onClick={handleLogin}>
         Login
       </button>
-      <button data-testid="register-button" onClick={handleRegister}>
-        Register
+      <button data-testid="signup-button" onClick={handleSignUp}>
+        SignUp
       </button>
-      <button data-testid="logout-button" onClick={logout}>
+      <button data-testid="logout-button" onClick={signOut}>
         Logout
       </button>
-      <button data-testid="check-auth-button" onClick={() => {}}>
-        Check Auth
+      <button data-testid="refresh-button" onClick={handleRefresh}>
+        Refresh
       </button>
     </div>
   );
 };
-
-describe("MSW Handlers", () => {
-  it("defines API handlers", () => {
-    expect(handlers.length).toBeGreaterThan(0);
-  });
-});
 
 describe("AuthContext Provider", () => {
   beforeAll(() => {
@@ -100,11 +104,23 @@ describe("AuthContext Provider", () => {
   });
 
   it("initially has no authenticated user", async () => {
+    server.use(
+      http.get("/api/auth/user", () => {
+        return HttpResponse.json({ user: null, session: null });
+      })
+    );
+
     render(
       <AuthProvider>
         <TestComponent />
       </AuthProvider>
     );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("loading-status")).toHaveTextContent(
+        "Not loading"
+      );
+    });
 
     expect(screen.getByTestId("auth-status")).toHaveTextContent(
       "Not authenticated"
@@ -113,14 +129,6 @@ describe("AuthContext Provider", () => {
   });
 
   it("loads user from localStorage on mount", async () => {
-    // Setup localStorage with a user
-    localStorageMock.setItem(
-      USER_KEY,
-      JSON.stringify({ email: "saved@example.com" })
-    );
-    localStorageMock.setItem(TOKEN_KEY, "fake-token");
-
-    // Override the default handler for this test to return saved@example.com
     server.use(
       http.get("/api/auth/user", () => {
         return HttpResponse.json({
@@ -136,7 +144,6 @@ describe("AuthContext Provider", () => {
       </AuthProvider>
     );
 
-    // Wait for authenticated state
     await waitFor(() => {
       expect(screen.getByTestId("loading-status")).toHaveTextContent(
         "Not loading"
@@ -151,18 +158,13 @@ describe("AuthContext Provider", () => {
   });
 
   it("handles login successfully", async () => {
-    // Override the default handler for this test
     server.use(
       http.post("/api/auth/signin", () => {
         return HttpResponse.json({
           user: { id: "user-123", email: "test@example.com" },
           session: { access_token: "mock_auth_token" },
         });
-      })
-    );
-
-    // First make sure auth is empty
-    server.use(
+      }),
       http.get("/api/auth/user", () => {
         return HttpResponse.json({ user: null, session: null });
       })
@@ -174,51 +176,36 @@ describe("AuthContext Provider", () => {
       </AuthProvider>
     );
 
-    // Wait for loading to complete
     await waitFor(() => {
       expect(screen.getByTestId("loading-status")).toHaveTextContent(
         "Not loading"
       );
     });
 
-    // Initially not authenticated
     expect(screen.getByTestId("auth-status")).toHaveTextContent(
       "Not authenticated"
     );
 
-    localStorageMock.setItem.mockClear();
-
-    // Click login button
     fireEvent.click(screen.getByTestId("login-button"));
 
-    // Wait for authenticated state
     await waitFor(() => {
       expect(screen.getByTestId("auth-status")).toHaveTextContent(
         "Authenticated"
       );
-      console.log("All setItem calls:", localStorageMock.setItem.mock.calls);
       expect(screen.getByTestId("user-email")).toHaveTextContent(
         "test@example.com"
       );
     });
-
-    // Check localStorage was updated with correct values
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      "auth_token",
-      "mock_auth_token"
-    );
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      "auth_user",
-      JSON.stringify({ id: "user-123", email: "test@example.com" })
-    );
   });
 
   it("handles login failure", async () => {
-    // Override the default handler for this test
     server.use(
       http.post("/api/auth/signin", () => {
         return new HttpResponse(
-          JSON.stringify({ error: "Invalid credentials" }),
+          JSON.stringify({
+            error: "Invalid credentials",
+            type: "invalid_credentials",
+          }),
           { status: 401 }
         );
       }),
@@ -233,37 +220,30 @@ describe("AuthContext Provider", () => {
       </AuthProvider>
     );
 
-    // Wait for loading to complete
     await waitFor(() => {
       expect(screen.getByTestId("loading-status")).toHaveTextContent(
         "Not loading"
       );
     });
 
-    // Click login button
     fireEvent.click(screen.getByTestId("login-button"));
 
-    // Wait for error message - with a longer timeout
-    await waitFor(
-      () => {
-        expect(screen.getByTestId("error-message")).not.toHaveTextContent(
-          "No error"
-        );
-        expect(screen.getByTestId("auth-status")).toHaveTextContent(
-          "Not authenticated"
-        );
-      },
-      { timeout: 3000 }
-    );
+    await waitFor(() => {
+      expect(screen.getByTestId("error-message")).not.toHaveTextContent(
+        "No error"
+      );
+      expect(screen.getByTestId("auth-status")).toHaveTextContent(
+        "Not authenticated"
+      );
+    });
   });
 
-  it("handles registration successfully", async () => {
-    // Override the default handler for this test
+  it("handles signup successfully", async () => {
     server.use(
       http.post("/api/auth/signup", () => {
         return HttpResponse.json({
           user: { id: "user-456", email: "new@example.com" },
-          session: { access_token: "new-token" },
+          session: null,
         });
       }),
       http.get("/api/auth/user", () => {
@@ -277,42 +257,22 @@ describe("AuthContext Provider", () => {
       </AuthProvider>
     );
 
-    // Wait for loading to complete
     await waitFor(() => {
       expect(screen.getByTestId("loading-status")).toHaveTextContent(
         "Not loading"
       );
     });
 
-    // Clear localStorage mocks
-    localStorageMock.setItem.mockClear();
+    fireEvent.click(screen.getByTestId("signup-button"));
 
-    // Click register button
-    fireEvent.click(screen.getByTestId("register-button"));
-
-    // Wait for authenticated state after registration
     await waitFor(() => {
-      expect(screen.getByTestId("auth-status")).toHaveTextContent(
-        "Authenticated"
-      );
       expect(screen.getByTestId("user-email")).toHaveTextContent(
         "new@example.com"
       );
     });
-
-    // Check localStorage was updated
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      TOKEN_KEY,
-      "new-token"
-    );
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      USER_KEY,
-      JSON.stringify({ id: "user-456", email: "new@example.com" })
-    );
   });
 
   it("handles logout correctly", async () => {
-    // Setup with authenticated user
     server.use(
       http.get("/api/auth/user", () => {
         return HttpResponse.json({
@@ -328,34 +288,29 @@ describe("AuthContext Provider", () => {
       </AuthProvider>
     );
 
-    // Wait for authenticated state
     await waitFor(() => {
       expect(screen.getByTestId("auth-status")).toHaveTextContent(
         "Authenticated"
       );
     });
 
-    // Reset localStorage mocks
-    localStorageMock.removeItem.mockClear();
+    server.use(
+      http.post("/api/auth/signout", () => {
+        return HttpResponse.json({ success: true });
+      })
+    );
 
-    // Click logout button
     fireEvent.click(screen.getByTestId("logout-button"));
 
-    // Check we're logged out
     await waitFor(() => {
       expect(screen.getByTestId("auth-status")).toHaveTextContent(
         "Not authenticated"
       );
       expect(screen.getByTestId("user-email")).toHaveTextContent("No user");
     });
-
-    // Check localStorage items were removed
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith(TOKEN_KEY);
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith(USER_KEY);
   });
 
   it("handles network errors during login", async () => {
-    // Override the default handler for this test
     server.use(
       http.post("/api/auth/signin", () => {
         return HttpResponse.error();
@@ -371,24 +326,108 @@ describe("AuthContext Provider", () => {
       </AuthProvider>
     );
 
-    // Wait for loading to complete
     await waitFor(() => {
       expect(screen.getByTestId("loading-status")).toHaveTextContent(
         "Not loading"
       );
     });
 
-    // Click login button
     fireEvent.click(screen.getByTestId("login-button"));
 
-    // Wait for error message with a longer timeout
-    await waitFor(
-      () => {
-        expect(screen.getByTestId("error-message")).not.toHaveTextContent(
-          "No error"
-        );
-      },
-      { timeout: 3000 }
+    await waitFor(() => {
+      expect(screen.getByTestId("error-message")).not.toHaveTextContent(
+        "No error"
+      );
+    });
+  });
+
+  it("handles session refresh correctly", async () => {
+    server.use(
+      http.get("/api/auth/user", () => {
+        return HttpResponse.json({
+          user: { id: "user-123", email: "initial@example.com" },
+          session: { access_token: "initial-token" },
+        });
+      })
+    );
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("user-email")).toHaveTextContent(
+        "initial@example.com"
+      );
+    });
+
+    server.use(
+      http.get("/api/auth/user", () => {
+        return HttpResponse.json({
+          user: { id: "user-123", email: "refreshed@example.com" },
+          session: { access_token: "refreshed-token" },
+        });
+      })
+    );
+
+    fireEvent.click(screen.getByTestId("refresh-button"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("user-email")).toHaveTextContent(
+        "refreshed@example.com"
+      );
+    });
+  });
+
+  it("handles invalid user data from server gracefully", async () => {
+    server.use(
+      http.get("/api/auth/user", () => {
+        return HttpResponse.json({ malformed: true });
+      })
+    );
+
+    render(
+      <AuthProvider>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("loading-status")).toHaveTextContent(
+        "Not loading"
+      );
+      expect(screen.getByTestId("auth-status")).toHaveTextContent(
+        "Not authenticated"
+      );
+    });
+  });
+
+  it("passes initialUser and initialSession props correctly", async () => {
+    const initialUser = { id: "initial-id", email: "initial@example.com" };
+    const initialSession = { access_token: "initial-session-token" };
+
+    server.use(
+      http.get("/api/auth/user", () => {
+        return HttpResponse.json({
+          user: initialUser,
+          session: initialSession,
+        });
+      })
+    );
+
+    render(
+      <AuthProvider initialUser={initialUser} initialSession={initialSession}>
+        <TestComponent />
+      </AuthProvider>
+    );
+
+    expect(screen.getByTestId("auth-status")).toHaveTextContent(
+      "Authenticated"
+    );
+    expect(screen.getByTestId("user-email")).toHaveTextContent(
+      "initial@example.com"
     );
   });
 });

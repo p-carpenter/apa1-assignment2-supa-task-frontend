@@ -13,6 +13,8 @@ const FormButtons = ({
   useAuthStyle = false,
   className = "",
   testId,
+  onClose,
+  showCancelButton = false,
 }) => {
   const buttonClass = useAuthStyle
     ? `${authStyles.authButton} ${authStyles.authSubmit}`
@@ -20,6 +22,16 @@ const FormButtons = ({
 
   return (
     <div className={`${formStyles.formButtons} ${className}`}>
+      {showCancelButton && (
+        <button
+          className={buttonClass}
+          onClick={onClose}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+      )}
+
       <button
         type="submit"
         className={`${buttonClass} ${isSubmitting && !useAuthStyle ? buttonStyles.loading : ""}`}

@@ -234,16 +234,18 @@ describe("Auth Utils", () => {
       });
     });
 
-    it("returns null with error info for offline scenario", async () => {
+    it("fetches user session from session storage when offline", async () => {
       Object.defineProperty(global.navigator, "onLine", { value: false });
 
       const result = await getCurrentUser();
       expect(result).toEqual({
-        user: null,
-        session: null,
-        error:
-          "No internet connection. Authentication status cannot be verified.",
-        type: "network_error",
+        session: {
+          token: "mock-token",
+        },
+        user: {
+          email: "test@example.com",
+          id: "user-123",
+        },
       });
     });
   });
@@ -356,7 +358,7 @@ describe("Auth Utils", () => {
     it("throws validation error for invalid data", async () => {
       const invalidData = null;
       await expect(addProtectedData(invalidData)).rejects.toMatchObject({
-        type: "validation_error",
+        type: "bad_request",
       });
     });
   });

@@ -26,8 +26,6 @@ export async function GET(req) {
       );
     }
 
-    console.log(`Successfully fetched ${data.length} incidents`);
-
     return new Response(
       JSON.stringify({ data, timestamp: new Date().toISOString() }),
       { status: 200, headers: CORS_HEADERS }

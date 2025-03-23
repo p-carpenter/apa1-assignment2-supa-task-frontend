@@ -19,9 +19,8 @@ export const ApiErrorMessage = ({ error, className = "" }) => {
   if (!hasErrorMessage(message)) return null;
 
   return (
-    <div className={`${styles.errorContainer} ${className}`}>
+    <div className={`${styles.errorContainer} ${className}`} data-testid="api-error">
       <div className={styles.errorContent}>
-        <span className={styles.errorIcon}>⚠️</span>
         <p className={styles.errorText}>{message}</p>
       </div>
     </div>

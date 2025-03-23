@@ -1,6 +1,3 @@
-/**
- * CRUD operations for incident management
- */
 import { ERROR_TYPES } from "../utils/errors/errorTypes";
 
 /**

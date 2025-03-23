@@ -28,7 +28,6 @@ const ArtifactRenderer = ({
   const contentRef = useRef(null);
   const imageRef = useRef(null);
 
-
   useEffect(() => {
     if (!iframeRef.current || artifact?.artifactType !== "code") return;
 
@@ -73,7 +72,6 @@ const ArtifactRenderer = ({
       handleLoad();
     }
   }, [artifact, maxWidth, maxHeight, minHeight]);
-
 
   const handleImageLoad = (e) => {
     if (!imageRef.current) return;
@@ -243,7 +241,6 @@ export default React.memo(ArtifactRenderer, (prevProps, nextProps) => {
       nextProps.artifact?.artifactContent &&
     prevProps.maxWidth === nextProps.maxWidth &&
     prevProps.maxHeight === nextProps.maxHeight &&
-    prevProps.className === nextProps.className &&
-    prevProps.paddingSize === nextProps.paddingSize
+    prevProps.className === nextProps.className
   );
 });

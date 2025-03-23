@@ -71,18 +71,34 @@ export const parseDate = (dateString) => {
 
 /**
  * Formats a date input dynamically with automatic hyphen insertion.
+ * Automatically detects ISO dates and converts them to DD-MM-YYYY format.
  *
- * @param {string} input - Raw user input for a date.
+ * @param {string} input - Raw user input for a date or ISO date string.
  * @returns {string} Formatted input with hyphens (DD-MM-YYYY).
  */
 export const formatDateInput = (input) => {
   if (!input) return "";
 
-  // Remove non-digit characters
+  // Check if input looks like an ISO date (YYYY-MM-DD)
+  const isoDatePattern = /^\d{4}-\d{2}-\d{2}/;
+  if (isoDatePattern.test(input)) {
+    try {
+      const date = new Date(input);
+      if (!isNaN(date.getTime())) {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
+    } catch (error) {
+      console.warn(`Error processing ISO date: ${error.message}`);
+      // Fall through to regular formatting if date parsing fails
+    }
+  }
+
   const digits = input.replace(/\D/g, "");
 
-  // Apply formatting dynamically
   return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)]
-    .filter(Boolean) // Remove empty parts
+    .filter(Boolean)
     .join("-");
 };

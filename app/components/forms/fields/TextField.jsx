@@ -39,6 +39,7 @@ const TextField = ({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
+        required={required}
         {...props}
       />
       {helperText && <small className={styles.helperText}>{helperText}</small>}

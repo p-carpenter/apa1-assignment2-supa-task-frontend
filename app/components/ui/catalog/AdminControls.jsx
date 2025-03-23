@@ -34,6 +34,7 @@ const AdminControls = ({
         <>
           <button
             className={`${layoutStyles.homeButton} ${styles.adminButton}`}
+            data-testid="add-incident-button"
             id="add-incident"
             onClick={handleAddNew}
             disabled={isLoading}

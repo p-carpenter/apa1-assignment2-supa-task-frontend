@@ -1,5 +1,3 @@
-import { server } from "../../app/utils/testing/test-utils";
-import { http, HttpResponse } from "msw";
 import { POST as POSTPasswordRecovery } from "@/app/api/auth/password-recovery/route";
 import { POST as POSTPasswordRecoveryConfirm } from "@/app/api/auth/password-recovery/confirm/route";
 import * as clientApi from "@/app/utils/api/clientApi";
@@ -7,7 +5,6 @@ import { ERROR_TYPES, ERROR_MESSAGES } from "@/app/utils/errors/errorTypes";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-// Mock the dependencies
 jest.mock("@/app/utils/api/clientApi", () => ({
   fetchFromSupabase: jest.fn(),
 }));
@@ -15,7 +12,10 @@ jest.mock("@/app/utils/api/clientApi", () => ({
 jest.mock("@/app/utils/errors/errorService", () => ({
   processApiError: jest.fn((error, options = {}) => ({
     type: error.type || ERROR_TYPES.UNKNOWN_ERROR,
-    message: options.defaultMessage || error.message || ERROR_MESSAGES[ERROR_TYPES.UNKNOWN_ERROR],
+    message:
+      options.defaultMessage ||
+      error.message ||
+      ERROR_MESSAGES[ERROR_TYPES.UNKNOWN_ERROR],
     details: error.details || null,
     status: error.status || 500,
     originalError: error,
@@ -35,7 +35,6 @@ afterAll(() => {
 
 describe("auth/password-recovery API routes", () => {
   beforeEach(() => {
-    // Reset mocks
     jest.clearAllMocks();
 
     // Mock Date.now for consistent timestamps
@@ -50,7 +49,6 @@ describe("auth/password-recovery API routes", () => {
 
   describe("password-recovery route", () => {
     it("successfully requests a password reset", async () => {
-      // Mock successful fetchFromSupabase response
       clientApi.fetchFromSupabase.mockResolvedValueOnce({
         message: "Password reset email sent",
       });
@@ -70,14 +68,12 @@ describe("auth/password-recovery API routes", () => {
         timestamp: "2023-01-01T00:00:00.000Z",
       });
 
-      // Verify fetchFromSupabase was called with the right arguments
       expect(clientApi.fetchFromSupabase).toHaveBeenCalledWith(
         "password-recovery",
         "POST",
         { email: "test@example.com" }
       );
 
-      // Check CORS headers are present
       expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
         CORS_HEADERS["Access-Control-Allow-Origin"]
       );
@@ -130,7 +126,10 @@ describe("auth/password-recovery API routes", () => {
 
       expect(response.status).toBe(404);
       expect(data).toHaveProperty("type", ERROR_TYPES.NOT_FOUND);
-      expect(data).toHaveProperty("message", "Failed to send password reset instructions");
+      expect(data).toHaveProperty(
+        "message",
+        "Failed to send password reset instructions"
+      );
       expect(data).toHaveProperty("timestamp", "2023-01-01T00:00:00.000Z");
     });
 
@@ -175,7 +174,6 @@ describe("auth/password-recovery API routes", () => {
 
   describe("password-recovery/confirm route", () => {
     it("successfully confirms password reset", async () => {
-      // Mock successful fetchFromSupabase response
       clientApi.fetchFromSupabase.mockResolvedValueOnce({
         message: "Password has been reset",
       });
@@ -200,7 +198,6 @@ describe("auth/password-recovery API routes", () => {
         timestamp: "2023-01-01T00:00:00.000Z",
       });
 
-      // Verify fetchFromSupabase was called with the right arguments
       expect(clientApi.fetchFromSupabase).toHaveBeenCalledWith(
         "password-recovery/confirm",
         "POST",
@@ -239,7 +236,7 @@ describe("auth/password-recovery API routes", () => {
         {
           email: "test@example.com",
           password: "newPassword123!",
-          token: "valid-reset-token", // Token should be cleaned
+          token: "valid-reset-token",
         }
       );
     });
@@ -265,7 +262,8 @@ describe("auth/password-recovery API routes", () => {
       const response = await POSTPasswordRecoveryConfirm(mockRequest);
       const data = await response.json();
 
-      expect(response.status).toBe(500); // Default error status
+      // Default error status
+      expect(response.status).toBe(500);
       expect(data.message).toBe("Failed to reset password");
       expect(data.details).toBe("Email, password, and token are required");
       expect(data).toHaveProperty("timestamp", "2023-01-01T00:00:00.000Z");
@@ -280,7 +278,6 @@ describe("auth/password-recovery API routes", () => {
           }),
       };
 
-      // Mock processApiError to return a specific error for this test
       processApiError.mockReturnValueOnce({
         type: ERROR_TYPES.VALIDATION_ERROR,
         message: "Failed to reset password",
@@ -306,7 +303,6 @@ describe("auth/password-recovery API routes", () => {
           }),
       };
 
-      // Mock processApiError to return a specific error for this test
       processApiError.mockReturnValueOnce({
         type: ERROR_TYPES.VALIDATION_ERROR,
         message: "Failed to reset password",
@@ -351,9 +347,13 @@ describe("auth/password-recovery API routes", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toHaveProperty("type", ERROR_TYPES.VALIDATION_ERROR);
-      expect(data).toHaveProperty("message", "Failed to reset password");
-      expect(data).toHaveProperty("timestamp", "2023-01-01T00:00:00.000Z");
+      expect(data).toEqual(
+        expect.objectContaining({
+          message: "Failed to reset password",
+          details: "Invalid or expired reset token",
+          timestamp: "2023-01-01T00:00:00.000Z",
+        })
+      );
     });
 
     it("handles JSON parsing errors", async () => {

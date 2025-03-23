@@ -88,7 +88,7 @@ const DetailsWindow2000s = ({ incident }) => {
 
           {/* content sections */}
           <div className={styles.contentSections}>
-            {/* Description section - Always expanded by default */}
+            {/* Description section */}
             <div className={styles.contentSection}>
               <div className={styles.sectionText}>
                 {incident.description || "No description available."}
