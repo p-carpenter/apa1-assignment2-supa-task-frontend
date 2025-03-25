@@ -1,18 +1,18 @@
 import React from "react";
 
 const categoryIcons = {
-  Hardware: "🔧", // wrench
-  Software: "💻", // laptop
-  "Human Error": "👤", // person
-  Security: "🔒", // lock
-  Infrastructure: "🏗️", // building construction
-  "External Factors": "🌍", // earth globe
+  Hardware: "🔧",
+  Software: "💻",
+  "Human Error": "👤",
+  Security: "🔒",
+  Infrastructure: "🏗️",
+  "External Factors": "🌍",
 };
 
 /**
- * Returns a category icon component
+ * Returns a category icon component for use in 2000sDetailsWindow.jsx
  * @param {string} category - Category name
- * @returns {React.JSX.Element} - Icon span element
+ * @returns {JSX.Element} - Icon span element
  */
 export const getCategoryIcon = (category) => {
   const icon = category ? categoryIcons[category] || "❓" : "❓";

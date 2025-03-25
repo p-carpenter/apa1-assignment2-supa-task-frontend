@@ -7,7 +7,7 @@ import { AuthProvider } from "./AuthContext";
  * Server Auth Provider
  * Fetches authentication data on the server and passes it to client components
  */
-export default async function ServerAuthProvider({ children }) {
+const ServerAuthProvider = async ({ children }) => {
   const { user, session } = await getServerSession();
 
   // Pass server data to client provider
@@ -16,4 +16,6 @@ export default async function ServerAuthProvider({ children }) {
       {children}
     </AuthProvider>
   );
-}
+};
+
+export default ServerAuthProvider;

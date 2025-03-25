@@ -319,7 +319,7 @@ describe("LoginPage", () => {
 
   it("displays API error when signIn fails", async () => {
     const errorMessage = "Invalid email or password";
-    mockSignIn.mockRejectedValue(new Error(errorMessage));
+    mockSignIn.mockRejectedValue(errorMessage);
 
     render(<LoginPage />);
 
@@ -421,7 +421,7 @@ describe("LoginPage", () => {
   });
 
   it("resets API error when submitting form again", async () => {
-    mockSignIn.mockRejectedValueOnce(new Error("Invalid credentials"));
+    mockSignIn.mockRejectedValueOnce("Invalid credentials");
 
     render(<LoginPage />);
 
@@ -476,7 +476,7 @@ describe("LoginPage", () => {
   });
 
   it("cleans up submission state after failed login", async () => {
-    mockSignIn.mockRejectedValue(new Error("Invalid credentials"));
+    mockSignIn.mockRejectedValue("Invalid credentials");
 
     render(<LoginPage />);
 
@@ -499,5 +499,21 @@ describe("LoginPage", () => {
       fireEvent.submit(form);
       expect(mockSignIn).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it("shows link to signup page", () => {
+    render(<LoginPage />);
+
+    const signupLink = screen.getByText("Register account");
+    expect(signupLink).toBeInTheDocument();
+    expect(signupLink.closest("a")).toHaveAttribute("href", "/signup");
+  });
+
+  it("shows link to reset password page", () => {
+    render(<LoginPage />);
+
+    const resetLink = screen.getByText("Reset password");
+    expect(resetLink).toBeInTheDocument();
+    expect(resetLink.closest("a")).toHaveAttribute("href", "/reset_password");
   });
 });

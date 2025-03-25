@@ -1,8 +1,18 @@
 import React from "react";
-import { ApiErrorMessage } from "../ui/errors";
+import { ApiMessage } from "./ApiMessage";
 import { TextField, PasswordField, FormButtons, PromptLabel } from "./fields";
 import authStyles from "./Auth.module.css";
 
+/**
+ * Form component for setting a new password after reset confirmation.
+ *
+ * @param {Object} formData - The current form data state including email, password, and confirmPassword
+ * @param {Object} formErrors - Form validation errors
+ * @param {Function} handleChange - Function to handle input changes
+ * @param {Function} handleSubmit - Function to handle form submission
+ * @param {boolean} isSubmitting - Whether the form is currently submitting
+ * @param {Object|null} apiError - Error response from the API
+ */
 const ConfirmResetForm = ({
   formData,
   formErrors,
@@ -11,17 +21,16 @@ const ConfirmResetForm = ({
   isSubmitting,
   apiError,
 }) => {
-
-  const passwordMismatchError = 
-    formData.password && 
-    formData.confirmPassword && 
+  const passwordMismatchError =
+    formData.password &&
+    formData.confirmPassword &&
     formData.password !== formData.confirmPassword
       ? "Passwords do not match."
       : null;
 
   return (
     <>
-      {apiError && <ApiErrorMessage error={apiError} />}
+      {apiError && <ApiMessage response={apiError} />}
 
       <form
         className={authStyles.form}

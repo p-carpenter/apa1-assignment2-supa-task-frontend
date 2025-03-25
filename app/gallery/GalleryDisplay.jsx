@@ -6,6 +6,12 @@ import styles from "./GalleryDisplay.module.css";
 import "/public/css-reskins/systemcss/systemcss.css";
 import "/public/css-reskins/98css/style.css";
 
+/**
+ * Component that displays an incident artifact with its details
+ * @param {Object} props - The component props
+ * @param {Object} props.incident - The incident data to display
+ * @param {boolean} props.isLoading - Flag indicating if the data is still loading
+ */
 const GalleryDisplay = ({ incident, isLoading }) => {
   if (isLoading) {
     return <GalleryDisplaySkeleton />;

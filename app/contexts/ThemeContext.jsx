@@ -38,14 +38,14 @@ const ThemeContext = createContext(defaultContextValue);
 
 /**
  * Custom hook to use the theme context
- * 
+ *
  * @returns {Object} Theme context value with decade and detail component
  */
 export const useTheme = () => useContext(ThemeContext);
 
 /**
  * Provider component for decade-specific UI themes
- * 
+ *
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  * @returns {JSX.Element} Theme provider component
@@ -58,7 +58,7 @@ export const ThemeProvider = ({ children }) => {
    */
   const value = useMemo(() => {
     const decadeKey = getValidDecadeKey(currentDecade);
-    
+
     return {
       decade: decadeKey,
       IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
@@ -72,12 +72,12 @@ export const ThemeProvider = ({ children }) => {
 
 /**
  * Gets a valid decade key for theme selection
- * 
+ *
  * @param {number|null} decade - Current decade
  * @returns {number} Valid decade key (defaults to 2020 if invalid)
  */
-function getValidDecadeKey(decade) {
+const getValidDecadeKey = (decade) => {
   return Object.keys(IncidentDetailsWindows).includes(String(decade))
     ? decade
     : 2020;
-}
+};

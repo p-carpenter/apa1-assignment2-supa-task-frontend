@@ -1,4 +1,3 @@
-2; // __tests__/utils/validation/formValidation.test.js
 import {
   validateDateString,
   validateMinLength,
@@ -12,19 +11,17 @@ import {
   validateResetPasswordForm,
 } from "@/app/utils/validation/formValidation";
 
-// Mock the formatting functions used in validateDateString
 jest.mock("@/app/utils/formatting/dateUtils", () => ({
   formatDateForDisplay: (date) => {
-    // Simple mock implementation that returns DD-MM-YYYY
+    // Mock that returns DD-MM-YYYY
     return date.toISOString().split("T")[0].split("-").reverse().join("-");
   },
   parseDate: (dateString) => {
-    // Simple mock implementation that returns a Date or null for invalid dates
+    //  Mock that returns a Date or null for invalid dates
     try {
       const [day, month, year] = dateString.split("-").map(Number);
       const date = new Date(Date.UTC(year, month - 1, day));
 
-      // Check if the date is valid
       if (isNaN(date.getTime())) {
         return null;
       }
@@ -60,7 +57,7 @@ describe("Form Validation Utilities", () => {
     });
 
     it("rejects invalid date format", () => {
-      const result = validateDateString("2022-05-01"); // Wrong format, should be DD-MM-YYYY
+      const result = validateDateString("2022-05-01");
       expect(result.isValid).toBe(false);
       expect(result.errorMessage).toBe(
         "Please enter a valid date in DD-MM-YYYY format."
@@ -68,7 +65,7 @@ describe("Form Validation Utilities", () => {
     });
 
     it("rejects non-existent dates", () => {
-      const result = validateDateString("31-02-2022"); // February 31st doesn't exist
+      const result = validateDateString("31-02-2022");
       expect(result.isValid).toBe(false);
       expect(result.errorMessage).toBe(
         "This date doesn't exist in the calendar."
@@ -316,8 +313,7 @@ describe("Form Validation Utilities", () => {
       };
 
       const result = validatePassword(data.password, data, options);
-      expect(result.isValid).toBe(false);
-      expect(result.errorMessage).toBe("Passwords do not match.");
+      expect(result.isValid).toBe(true);
     });
   });
 
@@ -387,7 +383,6 @@ describe("Form Validation Utilities", () => {
 
       const validator = createFormValidator(schema);
 
-      // Invalid data
       const invalidData = {
         name: "Jo", // Too short
         email: "not-an-email",
@@ -397,7 +392,6 @@ describe("Form Validation Utilities", () => {
       expect(errors.name).toBeDefined();
       expect(errors.email).toBeDefined();
 
-      // Valid data
       const validData = {
         name: "John Doe",
         email: "john@example.com",

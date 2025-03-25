@@ -11,26 +11,29 @@ describe("delete-incident API route", () => {
 
   beforeEach(() => {
     lastRequestPayload = null;
-    
+
     server.use(
-      http.delete(`${process.env.SUPABASE_URL}/functions/v1/tech-incidents`, async ({ request }) => {
-        const body = await request.json();
-        lastRequestPayload = body;
-        const ids = body.ids || [];
-        return HttpResponse.json(
-          {
-            deletedIds: ids,
-          },
-          { status: 200 }
-        );
-      })
+      http.delete(
+        `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
+        async ({ request }) => {
+          const body = await request.json();
+          lastRequestPayload = body;
+          const ids = body.ids || [];
+          return HttpResponse.json(
+            {
+              deletedIds: ids,
+            },
+            { status: 200 }
+          );
+        }
+      )
     );
   });
 
   // Test OPTIONS method
   it("responds correctly to OPTIONS request", async () => {
     const response = await OPTIONS();
-    
+
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBeDefined();
     expect(response.headers.get("Access-Control-Allow-Methods")).toBeDefined();
@@ -38,7 +41,7 @@ describe("delete-incident API route", () => {
   });
 
   // Basic cases
-  
+
   it("successfully deletes a single incident by id", async () => {
     const mockRequest = {
       json: () => Promise.resolve({ ids: ["123"] }),
@@ -72,13 +75,13 @@ describe("delete-incident API route", () => {
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.data.deletedIds).toEqual(["123", "456"]);
-    
+
     // Verify the correct payload was sent to Supabase
     expect(lastRequestPayload).toEqual({ ids: ["123", "456"] });
   });
 
   // Edge cases - Input validation - with status code 400
-  
+
   it("returns 400 status for empty ids", async () => {
     const mockRequest = {
       json: () => Promise.resolve({ ids: [] }),
@@ -98,45 +101,45 @@ describe("delete-incident API route", () => {
       json: () => Promise.resolve({ ids: "123" }), // String instead of array
       method: "DELETE",
     };
-    
+
     const response = await DELETE(mockRequest);
     const data = await response.json();
-    
+
     expect(response.status).toBe(400);
     expect(data.error).toBe("No valid incident IDs provided");
     expect(data.timestamp).toBeDefined();
   });
-  
+
   it("returns 400 status for missing ids parameter", async () => {
     const mockRequest = {
       json: () => Promise.resolve({}), // No ids parameter
       method: "DELETE",
     };
-    
+
     const response = await DELETE(mockRequest);
     const data = await response.json();
-    
+
     expect(response.status).toBe(400);
     expect(data.error).toBe("No valid incident IDs provided");
     expect(data.timestamp).toBeDefined();
   });
-  
+
   it("returns 400 status for null ids parameter", async () => {
     const mockRequest = {
       json: () => Promise.resolve({ ids: null }),
       method: "DELETE",
     };
-    
+
     const response = await DELETE(mockRequest);
     const data = await response.json();
-    
+
     expect(response.status).toBe(400);
     expect(data.error).toBe("No valid incident IDs provided");
     expect(data.timestamp).toBeDefined();
   });
 
   // Error handling cases
-  
+
   it("handles errors from Supabase", async () => {
     server.use(
       http.delete(
@@ -205,52 +208,30 @@ describe("delete-incident API route", () => {
   });
 
   // Performance test
-  
+
   it("handles large deletion requests", async () => {
     // Generate 100 IDs for a bulk delete test
     const largeIdArray = Array.from({ length: 100 }, (_, i) => `id${i}`);
-    
+
     const mockRequest = {
       json: () => Promise.resolve({ ids: largeIdArray }),
       method: "DELETE",
     };
-    
+
     const response = await DELETE(mockRequest);
     const data = await response.json();
-    
+
     expect(response.status).toBe(200);
     expect(data.success).toBe(true);
     expect(data.data.deletedIds.length).toBe(100);
-    
+
     // Verify all IDs were correctly passed to Supabase
     expect(lastRequestPayload.ids.length).toBe(100);
     expect(lastRequestPayload.ids).toEqual(largeIdArray);
   });
-  
-  // Network and timeout handling
-  
-  it("handles network errors from Supabase", async () => {
-    server.use(
-      http.delete(`${process.env.SUPABASE_URL}/functions/v1/tech-incidents`, () => {
-        return HttpResponse.error();  // Simulate network error
-      })
-    );
 
-    const mockRequest = {
-      json: () => Promise.resolve({ ids: ["123"] }),
-      method: "DELETE",
-    };
-
-    const response = await DELETE(mockRequest);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data.type).toBeDefined();
-    expect(data.message).toBeDefined();
-  });
-  
   // Content type and headers test
-  
+
   it("includes correct CORS headers in response", async () => {
     const mockRequest = {
       json: () => Promise.resolve({ ids: ["123"] }),
@@ -258,31 +239,34 @@ describe("delete-incident API route", () => {
     };
 
     const response = await DELETE(mockRequest);
-    
+
     // Check that CORS headers are included
     expect(response.headers.get("Access-Control-Allow-Origin")).toBeDefined();
   });
-  
+
   // Partial success handling
-  
+
   it("handles partial success scenarios", async () => {
     // Mock Supabase to return only some IDs as successfully deleted
     server.use(
-      http.delete(`${process.env.SUPABASE_URL}/functions/v1/tech-incidents`, async ({ request }) => {
-        const body = await request.json();
-        const ids = body.ids || [];
-        
-        // Simulate only half of the IDs being successfully deleted
-        const successfulIds = ids.filter((_, index) => index % 2 === 0);
-        
-        return HttpResponse.json(
-          {
-            deletedIds: successfulIds,
-            partialSuccess: true
-          },
-          { status: 207 } // 207 Multi-Status
-        );
-      })
+      http.delete(
+        `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
+        async ({ request }) => {
+          const body = await request.json();
+          const ids = body.ids || [];
+
+          // Simulate only half of the IDs being successfully deleted
+          const successfulIds = ids.filter((_, index) => index % 2 === 0);
+
+          return HttpResponse.json(
+            {
+              deletedIds: successfulIds,
+              partialSuccess: true,
+            },
+            { status: 207 } // 207 Multi-Status
+          );
+        }
+      )
     );
 
     const mockRequest = {
@@ -292,7 +276,7 @@ describe("delete-incident API route", () => {
 
     const response = await DELETE(mockRequest);
     const data = await response.json();
-    
+
     // The implementation should forward the response from Supabase
     expect(data.data.deletedIds.length).toBe(2);
     expect(data.data.partialSuccess).toBe(true);

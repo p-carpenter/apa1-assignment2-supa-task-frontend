@@ -2,9 +2,6 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import SignupForm from "@/app/components/forms/SignupForm";
 
-// No need to mock useRouter or useAuth since we're mocking all props
-// following the pattern from LoginForm.test.jsx
-
 jest.mock("next/link", () => {
   return ({ children, href }) => {
     return (
@@ -16,7 +13,6 @@ jest.mock("next/link", () => {
 });
 
 describe("SignupForm", () => {
-  // Mock props to simulate the props passed from SignupPage
   const mockProps = {
     formData: {
       email: "",
@@ -145,14 +141,6 @@ describe("SignupForm", () => {
     expect(confirmPasswordInput).toHaveValue("Password123!");
     expect(screen.getByTestId("signup-button")).toBeDisabled();
     expect(screen.getByText("REGISTERING...")).toBeInTheDocument();
-  });
-
-  it("shows link to login page", () => {
-    render(<SignupForm {...mockProps} />);
-
-    const loginLink = screen.getByText("Login here");
-    expect(loginLink).toBeInTheDocument();
-    expect(loginLink.closest("a")).toHaveAttribute("href", "/login");
   });
 
   it("renders with prefilled form data", () => {

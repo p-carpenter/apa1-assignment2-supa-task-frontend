@@ -5,9 +5,8 @@ import Link from "next/link";
 import styles from "./Button.module.css";
 
 /**
- * Navigation button styled according to the app's retro-futuristic theme
- * Used for core navigation actions throughout the application
- * 
+ * Navigation button used for core navigation actions throughout the application
+ *
  * @param {Object} props - Component props
  * @param {string} props.className - Additional CSS classes for custom styling scenarios
  * @param {string} props.href - Target URL for navigation

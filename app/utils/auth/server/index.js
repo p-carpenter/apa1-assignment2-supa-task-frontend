@@ -13,10 +13,10 @@ const EDGE_FUNCTION_BASE_URL = `${SUPABASE_URL}/functions/v1`;
 
 /**
  * Get the current user and session from server
- * 
+ *
  * @returns {Promise<{user: Object|null, session: Object|null}>} User and session data
  */
-export async function getServerSession() {
+export const getServerSession = async () => {
   const { accessToken, refreshToken } = await getAuthTokensFromCookies();
 
   if (!accessToken || !refreshToken) {
@@ -39,14 +39,14 @@ export async function getServerSession() {
     console.error("Server session error:", error);
     return { user: null, session: null };
   }
-}
+};
 
 /**
  * Fetch protected data from server component
- * 
+ *
  * @returns {Promise<Object|null>} Protected data or null if unauthorized
  */
-export async function getProtectedServerData() {
+export const getProtectedServerData = async () => {
   const { accessToken, refreshToken } = await getAuthTokensFromCookies();
 
   if (!accessToken || !refreshToken) {
@@ -69,30 +69,30 @@ export async function getProtectedServerData() {
     console.error("Protected server data error:", error);
     return null;
   }
-}
+};
 
 /**
  * Retrieves authentication tokens from cookies
- * 
+ *
  * @returns {Promise<{accessToken: string|undefined, refreshToken: string|undefined}>} Auth tokens
  */
-async function getAuthTokensFromCookies() {
+const getAuthTokensFromCookies = async () => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
   const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
-  
+
   return { accessToken, refreshToken };
-}
+};
 
 /**
  * Performs a fetch request with authentication cookies
- * 
+ *
  * @param {string} url - URL to fetch
  * @param {string} accessToken - Access token
  * @param {string} refreshToken - Refresh token
  * @returns {Promise<Response>} Fetch response
  */
-async function fetchWithAuthCookies(url, accessToken, refreshToken) {
+const fetchWithAuthCookies = async (url, accessToken, refreshToken) => {
   return fetch(url, {
     method: "GET",
     headers: {
@@ -101,4 +101,4 @@ async function fetchWithAuthCookies(url, accessToken, refreshToken) {
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
     },
   });
-}
+};

@@ -7,22 +7,24 @@ import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 /**
  * Handles OPTIONS requests for CORS preflight
  */
-export async function OPTIONS() {
+export const OPTIONS = async () => {
   return new Response(null, {
     status: 204,
     headers: CORS_HEADERS,
   });
-}
+};
 
 /**
  * Retrieves protected data that requires authentication
  */
-export async function GET(request) {
+export const GET = async (request) => {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
-    const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
-    
+    const refreshToken = cookieStore.get(
+      AUTH_COOKIE_NAMES.REFRESH_TOKEN
+    )?.value;
+
     if (!accessToken || !refreshToken) {
       return new Response(
         JSON.stringify({
@@ -38,7 +40,7 @@ export async function GET(request) {
       Authorization: `Bearer ${accessToken}`,
       Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
     });
-    
+
     return new Response(
       JSON.stringify({
         data,
@@ -64,17 +66,19 @@ export async function GET(request) {
       }
     );
   }
-}
+};
 
 /**
  * Submits data to a protected endpoint
  */
-export async function POST(request) {
+export const POST = async (request) => {
   try {
     const cookieStore = await cookies();
     const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
-    const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
-    
+    const refreshToken = cookieStore.get(
+      AUTH_COOKIE_NAMES.REFRESH_TOKEN
+    )?.value;
+
     if (!accessToken || !refreshToken) {
       return new Response(
         JSON.stringify({
@@ -87,20 +91,20 @@ export async function POST(request) {
     }
 
     const data = await request.json();
-    
-    if (!data || typeof data !== 'object') {
+
+    if (!data || typeof data !== "object") {
       const validationError = new Error("Invalid data format");
       validationError.status = 400;
       validationError.type = ERROR_TYPES.BAD_REQUEST;
       throw validationError;
     }
-    
+
     try {
       const response = await fetchFromSupabase("protected-data", "POST", data, {
         Authorization: `Bearer ${accessToken}`,
         Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
       });
-      
+
       return new Response(
         JSON.stringify({
           data: response,
@@ -116,7 +120,7 @@ export async function POST(request) {
         sizeError.type = ERROR_TYPES.FILE_TOO_LARGE;
         throw sizeError;
       }
-      
+
       // Re-throw the original error if no specific handling
       throw error;
     }
@@ -138,4 +142,4 @@ export async function POST(request) {
       }
     );
   }
-}
+};

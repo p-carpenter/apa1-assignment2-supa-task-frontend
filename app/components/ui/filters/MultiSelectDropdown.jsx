@@ -3,13 +3,13 @@ import styles from "./Filters.module.css";
 
 /**
  * Multi-select dropdown component with "All" option functionality
- * 
+ *
  * Maintains a logically consistent state where:
  * - "All" option cannot coexist with other selections
  * - Empty selection automatically defaults to "All"
  * - Automatically closes when clicking outside for cleaner UX
  *
- * @param {Object} props - Component props 
+ * @param {Object} props - Component props
  * @param {string} [props.label] - Category label
  * @param {Array} [props.items=[]] - Selection options
  * @param {Array} [props.selectedItems=[]] - Current selections
@@ -39,12 +39,15 @@ const MultiSelectDropdown = ({
   // Separate effect with single responsibility - outside click handling
   useEffect(() => {
     const handleClickOutside = (outsideClickEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(outsideClickEvent.target)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(outsideClickEvent.target)
+      ) {
         setIsOpen(false);
       }
     };
-    
-    // Register for global mousedown events to detect clicks outside component 
+
+    // Register for global mousedown events to detect clicks outside component
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -55,16 +58,18 @@ const MultiSelectDropdown = ({
     setIsOpen(!isOpen);
   };
 
-  // Pure function to get selection when "All" is clicked
+  // Gets selection when "All" is clicked
   const handleAllItemSelect = () => [allItemsKey];
 
-  // Pure function to handle item removal and maintain logical selection state
+  // Handles item removal and maintain logical selection state
   const handleItemDeselect = (itemToRemove) => {
-    const updatedSelection = selectedItems.filter((item) => item !== itemToRemove);
+    const updatedSelection = selectedItems.filter(
+      (item) => item !== itemToRemove
+    );
 
     // Auto-select "All" when removing the last filter
     if (updatedSelection.length === 0) return [allItemsKey];
-    
+
     // Remove "All" if it's present with other selections (logically inconsistent)
     if (updatedSelection.includes(allItemsKey)) {
       return updatedSelection.filter((item) => item !== allItemsKey);
@@ -73,11 +78,11 @@ const MultiSelectDropdown = ({
     return updatedSelection;
   };
 
-  // Pure function to add an item to selection - "All" handling included
+  // Adds an item to selection - "All" handling included
   const handleItemSelect = (itemToAdd) => {
     // When "All" is selected and user picks another item, replace "All" with the selection
     if (selectedItems.includes(allItemsKey)) return [itemToAdd];
-    
+
     // Otherwise add to existing selection
     return [...selectedItems, itemToAdd];
   };

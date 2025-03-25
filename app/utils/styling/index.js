@@ -1,1 +1,1 @@
-export { default as macintoshUtils } from "./macintoshUtils";
+export { default as getIncidentMetadataStyles } from "./getIncidentMetadataStyles";

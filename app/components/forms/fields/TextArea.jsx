@@ -1,6 +1,23 @@
 import React from "react";
 import styles from "../FormStyles.module.css";
 
+/**
+ * Multiline text input field component with error handling and styling.
+ * 
+ * @param {string} id - The ID of the textarea field
+ * @param {string} name - The name attribute of the textarea field
+ * @param {React.ReactNode} label - The label for the textarea field
+ * @param {string} value - The current value of the textarea field
+ * @param {Function} onChange - Handler for when the textarea value changes
+ * @param {string} [placeholder] - Placeholder text for the textarea field
+ * @param {string} [error] - Error message to display
+ * @param {boolean} [required=false] - Whether the field is required
+ * @param {boolean} [disabled=false] - Whether the field is disabled
+ * @param {number} [rows=4] - Number of visible text lines
+ * @param {string} [helperText] - Helper text to display below the textarea field
+ * @param {string} [className=""] - Additional CSS class names
+ * @param {Object} [props] - Additional props to pass to the textarea element
+ */
 const TextArea = ({
   id,
   name,

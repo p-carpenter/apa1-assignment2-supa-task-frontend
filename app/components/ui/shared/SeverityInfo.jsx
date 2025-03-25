@@ -2,8 +2,10 @@ import React from 'react';
 import styles from './SeverityInfo.module.css';
 
 /**
- * SeverityInfo component
- * Displays information about severity levels
+ * Informational panel explaining incident severity classification levels
+ * Provides users with contextual guidance for understanding security incidents
+ * 
+ * @param {Function} onClose - Handler function called when the panel is closed
  */
 const SeverityInfo = ({ onClose }) => {
   return (

@@ -12,6 +12,10 @@ import {
 } from "@/app/utils/navigation/slugUtils";
 import styles from "./GalleryNavigator.module.css";
 
+/**
+ * Main component for the gallery page that handles incident navigation and display
+ * Manages the state of the currently displayed incident and provides navigation controls
+ */
 const GalleryPageContent = () => {
   const { theme } = useTheme();
   const {
@@ -37,11 +41,17 @@ const GalleryPageContent = () => {
     {}
   );
 
+  /**
+   * Memoised check for whether there are any incidents available
+   */
   const hasIncidents = useMemo(
     () => Array.isArray(incidents) && incidents.length > 0,
     [incidents]
   );
 
+  /**
+   * Memoised list of incidents currently available based on filters
+   */
   const availableIncidents = useMemo(() => {
     if (!hasIncidents) return [];
     return (activeFilter || searchQuery) && filteredIncidents.length
@@ -49,6 +59,9 @@ const GalleryPageContent = () => {
       : incidents;
   }, [incidents, filteredIncidents, activeFilter, searchQuery, hasIncidents]);
 
+  /**
+   * Memoised mapping of incidents grouped by their year
+   */
   const incidentsByYear = useMemo(() => {
     if (!availableIncidents.length) return {};
 
@@ -75,12 +88,18 @@ const GalleryPageContent = () => {
     return grouped;
   }, [availableIncidents]);
 
+  /**
+   * Memoised list of years with incidents, sorted chronologically
+   */
   const incidentYears = useMemo(() => {
     return Object.keys(incidentsByYear)
       .map(Number)
       .sort((a, b) => a - b);
   }, [incidentsByYear]);
 
+  /**
+   * Memoised year of the currently displayed incident
+   */
   const currentIncidentYear = useMemo(() => {
     try {
       return currentIncident?.incident_date
@@ -120,6 +139,9 @@ const GalleryPageContent = () => {
     }
   }, [currentIncident, setCurrentDecade]);
 
+  /**
+   * Memoised index of current incident in the global incidents array
+   */
   const currentIndex = useMemo(() => {
     if (!currentIncident || !hasIncidents) return -1;
     return incidents.findIndex((inc) => inc.id === currentIncident.id);
@@ -169,6 +191,10 @@ const GalleryPageContent = () => {
     incidentsLoading,
   ]);
 
+  /**
+   * Handles navigation between incidents
+   * @param {string} direction - Direction to navigate ('next' or 'prev')
+   */
   const handleNavigation = (direction) => {
     if (!hasIncidents || !currentIncident) return;
 
@@ -223,6 +249,10 @@ const GalleryPageContent = () => {
     }
   };
 
+  /**
+   * Navigates to next/previous incident without considering year context
+   * @param {string} direction - Direction to navigate ('next' or 'prev')
+   */
   const navigateWithoutYearContext = (direction) => {
     const newIndex =
       direction === "next"
@@ -233,6 +263,12 @@ const GalleryPageContent = () => {
     navigateToIncident(nextIncident);
   };
 
+  /**
+   * Navigates to a specific incident and updates state and URL
+   * @param {Object} incident - The incident to navigate to
+   * @param {number|null} year - Year of the incident (optional)
+   * @param {number|null} indexInYear - Index of incident within its year (optional)
+   */
   const navigateToIncident = (incident, year = null, indexInYear = null) => {
     if (!incident) return;
 
@@ -256,6 +292,11 @@ const GalleryPageContent = () => {
     }
   };
 
+  /**
+   * Handles click on a specific year in the timeline
+   * @param {number} year - Year that was clicked
+   * @param {number} indexInYear - Index of incident to show within that year
+   */
   const handleYearClick = (year, indexInYear = 0) => {
     if (!incidentsByYear[year] || incidentsByYear[year].length === 0) {
       console.log(`No incidents for year ${year}`);
@@ -289,6 +330,9 @@ const GalleryPageContent = () => {
     ? currentIncidentIndexByYear[currentIncidentYear] || 0
     : 0;
 
+  /**
+   * Placeholder incident for when no incident data is available yet
+   */
   const placeholderIncident = useMemo(() => {
     return {
       name: "Loading...",

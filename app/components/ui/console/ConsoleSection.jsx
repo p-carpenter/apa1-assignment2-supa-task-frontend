@@ -4,7 +4,7 @@ import styles from "./Console.module.css";
 
 /**
  * Renders a section in the console with an optional command line and content
- * 
+ *
  * @param {Object} props - Component props
  * @param {string} [props.command] - Command text to display in the command line
  * @param {Object} [props.commandParts] - Parts of the command for syntax highlighting
@@ -14,7 +14,6 @@ import styles from "./Console.module.css";
  * @param {string} [props.customPrompt] - Custom prompt text to display
  * @param {string} [props.className=""] - Additional CSS class
  * @param {React.ReactNode} props.children - Content to display in the console section
- * @returns {JSX.Element} Console section component
  */
 const ConsoleSection = ({
   command,

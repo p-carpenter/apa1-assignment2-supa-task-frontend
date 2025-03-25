@@ -1,18 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
-import { Button } from "../components/ui/buttons";
+import { Button } from "@/app/components/ui/buttons";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
 import styles from "./ProfileInfo.module.css";
-import authStyles from "../components/forms/Auth.module.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
 import layoutStyles from "@/app/components/layouts/Layout.module.css";
 
-export default function ProfileInfo() {
+/**
+ * Component displaying user profile information and account management options
+ * Shows user details and provides buttons for password reset and logout
+ */
+const ProfileInfo = () => {
   const { user, signOut, handleResetPassword } = useAuth();
-  const [resetStatus, setResetStatus] = useState(null);
+  const [apiMessage, setApiMessage] = useState(null);
+  const [isResetting, setIsResetting] = useState(false);
+  const messageTimeoutRef = useRef(null);
 
-  const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, []);
 
+  /**
+   * Handles user logout
+   */
   const handleLogout = async () => {
     try {
       await signOut();
@@ -21,26 +37,49 @@ export default function ProfileInfo() {
     }
   };
 
+  /**
+   * Initiates password reset process for the authenticated user
+   */
   const handlePasswordReset = async () => {
     try {
-      setResetStatus({ loading: true });
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+        messageTimeoutRef.current = null;
+      }
+
+      setIsResetting(true);
+      setApiMessage(null);
+
       await handleResetPassword(user.email);
-      setResetStatus({
-        success: true,
+
+      setApiMessage({
+        type: "success",
         message: "Password reset instructions sent to your email",
       });
+
+      messageTimeoutRef.current = setTimeout(() => {
+        setApiMessage(null);
+      }, 3000);
     } catch (error) {
       console.error("Password reset error:", error);
-      setResetStatus({
-        error: true,
+      setApiMessage({
+        type: "error",
         message: error.message || "Failed to send reset instructions",
       });
+
+      messageTimeoutRef.current = setTimeout(() => {
+        setApiMessage(null);
+      }, 3000);
+    } finally {
+      setIsResetting(false);
     }
   };
 
   if (!user) {
     return null;
   }
+
+  const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
   return (
     <div className={`${styles.profileContainer}`}>
@@ -64,13 +103,7 @@ export default function ProfileInfo() {
         </div>
       </div>
 
-      {resetStatus && (
-        <div
-          className={`${styles.resetStatus} ${resetStatus.error ? authStyles.success : authStyles.error}`}
-        >
-          <p>{resetStatus.message}</p>
-        </div>
-      )}
+      {apiMessage && <ApiMessage response={apiMessage} />}
 
       <div className={styles.buttonContainer}>
         <Button
@@ -82,13 +115,10 @@ export default function ProfileInfo() {
         <Button
           onClick={handlePasswordReset}
           className={`${layoutStyles.homeButton} ${authStyles.authButton}`}
-          disabled={resetStatus?.loading}
-          label="RESET PASSWORD"
-          href="/reset-password"
+          disabled={isResetting}
+          label={isResetting ? "SENDING..." : "RESET PASSWORD"}
           icon=""
-        >
-          {resetStatus?.loading ? "SENDING..." : "RESET PASSWORD"}
-        </Button>
+        />
 
         <button
           onClick={handleLogout}
@@ -99,4 +129,6 @@ export default function ProfileInfo() {
       </div>
     </div>
   );
-}
+};
+
+export default ProfileInfo;

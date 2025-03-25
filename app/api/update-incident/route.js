@@ -6,9 +6,9 @@ import { CORS_HEADERS } from "@/app/utils/auth/config";
  * Handles OPTIONS requests for CORS preflight
  * Required to support cross-origin requests in production environment
  */
-export async function OPTIONS() {
+export const OPTIONS = async () => {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
-}
+};
 
 /**
  * Updates an existing tech incident in the database
@@ -21,7 +21,7 @@ export async function OPTIONS() {
  *
  * @returns {Response} JSON response with updated data or error details
  */
-export async function PUT(request) {
+export const PUT = async (request) => {
   try {
     const requestData = await request.json();
 
@@ -85,4 +85,4 @@ export async function PUT(request) {
       { status: standardError.status || 500, headers: CORS_HEADERS }
     );
   }
-}
+};

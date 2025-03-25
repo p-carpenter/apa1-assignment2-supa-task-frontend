@@ -11,6 +11,7 @@ import { useForm } from "@/app/hooks/useForm";
 import { validateResetPasswordForm } from "@/app/utils/validation/formValidation";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
 
 import {
   ConsoleWindow,
@@ -18,7 +19,12 @@ import {
   CommandOutput,
 } from "../components/ui/console";
 
-export default function ResetPasswordPage() {
+/**
+ * Password reset request page
+ * Allows users to request a password reset by providing their email address
+ * Sends a password reset link to the user's email when submitted
+ */
+const ResetPasswordPage = () => {
   const { isAuthenticated, loading, handleResetPassword } = useAuth();
   const router = useRouter();
   const [apiError, setApiError] = useState(null);
@@ -30,6 +36,11 @@ export default function ResetPasswordPage() {
     }
   }, [isAuthenticated, loading, router]);
 
+  /**
+   * Handles the form submission for password reset request
+   * @param {Object} formData - The form data containing email
+   * @returns {Object} Result object indicating success
+   */
   const handleFormSubmit = async (formData) => {
     if (submissionInProgress.current) {
       return;
@@ -49,36 +60,36 @@ export default function ResetPasswordPage() {
       submissionInProgress.current = false;
       return { success: true };
     } catch (err) {
-      console.error("Password reset error:", err);
-      
+      submissionInProgress.current = false;
+
       // Handle the error differently based on the type
       let standardError;
       if (err.message === "Network error") {
         standardError = {
           type: ERROR_TYPES.NETWORK_ERROR,
           message: "Network error. Please check your connection and try again.",
-          details: "Network error. Please check your connection and try again."
+          details: "Network error. Please check your connection and try again.",
         };
       } else if (err.message === "Unexpected error") {
         standardError = {
           type: ERROR_TYPES.UNKNOWN_ERROR,
           message: "An unexpected error occurred. Please try again.",
-          details: "An unexpected error occurred. Please try again."
+          details: "An unexpected error occurred. Please try again.",
         };
       } else if (err.message === "Failed to send reset email") {
         standardError = {
           type: ERROR_TYPES.BAD_REQUEST,
           message: "Failed to send reset email. Please try again later.",
-          details: "Failed to send reset email. Please try again later."
+          details: "Failed to send reset email. Please try again later.",
         };
       } else {
         standardError = processApiError(err, {
-          defaultMessage: "Failed to send password reset instructions. Please try again."
+          defaultMessage:
+            "Failed to send password reset instructions. Please try again.",
         });
       }
 
       setApiError(standardError);
-      submissionInProgress.current = false;
       throw standardError;
     } finally {
       submissionInProgress.current = false;
@@ -141,7 +152,9 @@ export default function ResetPasswordPage() {
               </div>
 
               {successMessage ? (
-                <div className={authStyles.authSuccess}>{successMessage}</div>
+                <ApiMessage
+                  response={{ type: "success", message: successMessage }}
+                />
               ) : (
                 <ResetPasswordForm
                   formData={formData}
@@ -167,4 +180,6 @@ export default function ResetPasswordPage() {
       </div>
     </>
   );
-}
+};
+
+export default ResetPasswordPage;

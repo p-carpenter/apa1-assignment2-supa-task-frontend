@@ -5,6 +5,18 @@ import { getSeverityIcon } from "@/app/utils/ui/severityIcons";
 import { getCategoryIcon } from "@/app/utils/ui/categoryIcons";
 import { generateSlug } from "@/app/utils/navigation/slugUtils";
 
+/**
+ * Displays a responsive grid of incident cards with selection capabilities
+ * Handles various display states including loading, empty results, and selection mode
+ * 
+ * @param {Object[]} [props.incidents=[]] - Array of incident objects to display in the grid
+ * @param {boolean} [props.isLoading=false] - Whether the grid is in a loading state
+ * @param {Function} props.onIncidentSelect - Handler called when an incident is clicked
+ * @param {Function} props.getIncidentYear - Function to extract the year from an incident object
+ * @param {string} [props.emptyMessage="No incidents found."] - Message shown when no incidents are available
+ * @param {boolean} [props.selectionMode=false] - Whether the grid is in selection mode (allows multiple selections)
+ * @param {Object[]} [props.selectedIncidents=[]] - Array of currently selected incident objects
+ */
 const IncidentGrid = ({
   incidents = [],
   isLoading = false,

@@ -17,7 +17,16 @@ import { processApiError } from "../../../utils/errors/errorService";
 import IncidentManagementForm from "../../forms/IncidentManagementForm";
 
 /**
- * Component for incident-related modals (add/edit) with form logic
+ * Component for incident-related modals with form handling for adding and editing incidents
+ * Manages form state, validation, file uploads, and API interactions for both add and edit operations
+ * 
+ * @param {boolean} showAddModal - Controls visibility of the add incident modal
+ * @param {Function} closeAddModal - Handler to close the add incident modal
+ * @param {boolean} showEditModal - Controls visibility of the edit incident modal
+ * @param {Function} closeEditModal - Handler to close the edit incident modal
+ * @param {Array} selectedIncidents - Array of incident objects currently selected for editing
+ * @param {number} currentEditIndex - Current index in the selectedIncidents array being edited
+ * @param {Function} moveToNextEdit - Handler to advance to the next incident in the edit queue
  */
 const IncidentModals = ({
   showAddModal,

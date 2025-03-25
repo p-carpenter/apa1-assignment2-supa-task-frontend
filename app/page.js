@@ -16,13 +16,7 @@ import { CTAButton } from "./components/ui/buttons";
 import { MuseumInfo, Illustrations, InfoModal } from "./components/ui/homepage";
 
 /**
- * Landing page that introduces users to the tech incidents archive
- * 
- * Designed with a retro-futuristic CLI aesthetic to evoke nostalgia 
- * while providing modern navigation options. Access level changes 
- * dynamically based on authentication status.
- * 
- * @returns {JSX.Element} Home page component
+ * Landing page that introduces users to the Tech Incidents Archive
  */
 const Home = () => {
   const { user } = useAuth();

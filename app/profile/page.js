@@ -13,8 +13,12 @@ import {
   ConsoleSection,
   CommandOutput,
 } from "../components/ui/console";
-import { Button } from "../components/ui/buttons";
 
+/**
+ * User profile page component that displays user information
+ * Shows user profile details within a console-themed interface
+ * Requires authentication - redirects to login if user is not authenticated
+ */
 const ProfilePage = () => {
   const { loading, user } = useAuth();
   const router = useRouter();

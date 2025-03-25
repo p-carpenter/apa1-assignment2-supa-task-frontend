@@ -6,17 +6,17 @@ import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 /**
  * Handles OPTIONS requests for CORS preflight
  */
-export async function OPTIONS() {
+export const OPTIONS = async () => {
   return new Response(null, {
     status: 204,
     headers: CORS_HEADERS,
   });
-}
+};
 
 /**
  * Confirms password reset with token, email, and new password
  */
-export async function POST(request) {
+export const POST = async (request) => {
   try {
     const { email, password, token } = await request.json();
 
@@ -116,4 +116,4 @@ export async function POST(request) {
       }
     );
   }
-}
+};

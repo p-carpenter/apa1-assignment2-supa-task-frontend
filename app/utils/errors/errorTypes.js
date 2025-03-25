@@ -1,6 +1,5 @@
 /**
  * Standard error types used throughout the application
- * @type {Object.<string, string>}
  */
 export const ERROR_TYPES = {
   // Authentication related errors

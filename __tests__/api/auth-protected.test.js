@@ -6,18 +6,26 @@ import { GET, POST } from "@/app/api/auth/protected/route";
 process.env.SUPABASE_URL = "https://test-supabase-url.com";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
-// Mock the processApiError function
 jest.mock("@/app/utils/errors/errorService", () => ({
   processApiError: jest.fn((error, options = {}) => {
     if (error.message === "Authentication required") {
-      return { error: "Unauthorized", status: 401 };
+      return {
+        error: "Authentication required",
+        type: "auth_required",
+        status: 401,
+      };
     }
     if (error.status) {
-      return { error: error.message || "API Error", status: error.status };
+      return {
+        error: error.message || "API Error",
+        status: error.status,
+        type: "unknown_error",
+      };
     }
-    return { 
-      error: options.defaultMessage || error.message || "Unknown error", 
-      status: error.status || 500 
+    return {
+      error: options.defaultMessage || error.message || "Unknown error",
+      status: error.status || 500,
+      type: "unknown_error",
     };
   }),
 }));
@@ -27,23 +35,31 @@ jest.mock("@/app/utils/api/clientApi", () => ({
   fetchFromSupabase: jest.fn(async (path, method, body, headers) => {
     // This will be mocked differently for each test
     if (path === "protected-data" && method === "GET") {
-      if (headers.Cookie && headers.Cookie.includes("sb-access-token") && headers.Cookie.includes("sb-refresh-token")) {
+      if (
+        headers.Cookie &&
+        headers.Cookie.includes("sb-access-token") &&
+        headers.Cookie.includes("sb-refresh-token")
+      ) {
         return "This is protected data";
       }
       throw new Error("Session expired");
     }
-    
+
     if (path === "protected-data" && method === "POST") {
-      if (headers.Cookie && headers.Cookie.includes("sb-access-token") && headers.Cookie.includes("sb-refresh-token")) {
+      if (
+        headers.Cookie &&
+        headers.Cookie.includes("sb-access-token") &&
+        headers.Cookie.includes("sb-refresh-token")
+      ) {
         return {
           success: true,
           message: "Data saved successfully",
-          received: body
+          received: body,
         };
       }
       throw new Error("Session expired");
     }
-    
+
     throw new Error("Unhandled request in mock");
   }),
 }));
@@ -81,7 +97,7 @@ describe("auth/protected API route", () => {
       expect(response.status).toBe(200);
       expect(data).toEqual({
         data: "This is protected data",
-        timestamp: expect.any(String)
+        timestamp: expect.any(String),
       });
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-access-token");
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-refresh-token");
@@ -97,10 +113,10 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ 
-        error: "Unauthorized",
-        status: 401,
-        timestamp: expect.any(String)
+      expect(data).toEqual({
+        error: "Authentication required",
+        type: "auth_required",
+        timestamp: expect.any(String),
       });
     });
 
@@ -122,10 +138,12 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ 
+      // Update expected data to include type
+      expect(data).toEqual({
         error: "Session expired",
         status: 401,
-        timestamp: expect.any(String)
+        type: "unknown_error",
+        timestamp: expect.any(String),
       });
     });
 
@@ -147,10 +165,12 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ 
+      // Update expected data to include type
+      expect(data).toEqual({
         error: "Failed to fetch",
         status: 500,
-        timestamp: expect.any(String)
+        type: "unknown_error",
+        timestamp: expect.any(String),
       });
     });
   });
@@ -184,7 +204,8 @@ describe("auth/protected API route", () => {
             action: "update",
           }),
         },
-        timestamp: expect.any(String)
+        success: true,
+        timestamp: expect.any(String),
       });
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-access-token");
       expect(mockCookieStore.get).toHaveBeenCalledWith("sb-refresh-token");
@@ -208,10 +229,10 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(401);
-      expect(data).toEqual({ 
-        error: "Unauthorized",
-        status: 401,
-        timestamp: expect.any(String)
+      expect(data).toEqual({
+        error: "Authentication required",
+        type: "auth_required",
+        timestamp: expect.any(String),
       });
     });
 
@@ -240,10 +261,12 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ 
+      // Update expected data to include type
+      expect(data).toEqual({
         error: "Invalid data format",
         status: 400,
-        timestamp: expect.any(String)
+        type: "unknown_error",
+        timestamp: expect.any(String),
       });
     });
 
@@ -267,10 +290,10 @@ describe("auth/protected API route", () => {
       const data = await response.json();
 
       expect(response.status).toBe(500);
-      expect(data).toEqual({ 
+      expect(data).toEqual({
         error: "Failed to process request",
         status: 500,
-        timestamp: expect.any(String)
+        timestamp: expect.any(String),
       });
     });
   });

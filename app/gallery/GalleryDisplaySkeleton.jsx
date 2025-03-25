@@ -1,5 +1,9 @@
 import styles from "@/app/gallery/GalleryDisplay.module.css";
 
+/**
+ * Loading skeleton component for the GalleryDisplay
+ * Renders a placeholder with pulsing animation while content is loading
+ */
 const GalleryDisplaySkeleton = () => {
   return (
     <div className={styles.container}>

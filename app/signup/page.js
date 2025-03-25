@@ -9,6 +9,8 @@ import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 import { validateAuthForm } from "@/app/utils/validation/formValidation";
 import { processApiError } from "@/app/utils/errors/errorService";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
+import { FormFooterLinks } from "@/app/components/forms/fields";
 
 import {
   ConsoleWindow,
@@ -16,49 +18,43 @@ import {
   CommandOutput,
 } from "../components/ui/console";
 
-export default function SignupPage() {
+/**
+ * User registration page component
+ * Provides a form for new users to create an account with email and password
+ * Handles form validation and account creation process
+ */
+const SignupPage = () => {
   const { isLoading: authLoading, signUp } = useAuth();
   const [apiError, setApiError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
   const submissionInProgress = useRef(false);
 
+  /**
+   * Handles the form submission for user registration
+   * @param {Object} formData - The form data containing email and password
+   * @returns {Object} Result of the signup operation
+   */
   const handleFormSubmit = async (formData) => {
     if (submissionInProgress.current) {
       return;
     }
 
     submissionInProgress.current = true;
-
     setApiError(null);
+    setSuccessMessage("");
 
     try {
-      if (formData.password === "weak") {
-        await signUp({
-          email: formData.email,
-          password: formData.password,
-          displayName: formData.email.split("@")[0],
-        });
+      const result = await signUp({
+        email: formData.email,
+        password: formData.password,
+        displayName: formData.email.split("@")[0],
+      });
 
-        // But we should still show an error for weak passwords
-        throw new Error("Password doesn't meet security requirements");
-      } else {
-        const result = await signUp({
-          email: formData.email,
-          password: formData.password,
-          displayName: formData.email.split("@")[0],
-        });
+      setSuccessMessage("Account created successfully! You can now login.");
 
-        console.log("Sign up successful:", result);
-
-        setApiError({
-          type: "success",
-          message:
-            "Account created successfully! Please check your inbox for a confirmation email.",
-        });
-
-        return result;
-      }
+      return result;
     } catch (err) {
-      // Special handling for weak passwords in tests
+      submissionInProgress.current = false;
       if (err.message === "Password doesn't meet security requirements") {
         setApiError({
           type: ERROR_TYPES.BAD_REQUEST,
@@ -81,6 +77,12 @@ export default function SignupPage() {
     confirmPassword: "",
   };
 
+  /**
+   * Validates the signup form fields with enhanced password requirements
+   * @param {Object} data - The form data to validate
+   * @param {string} fieldName - The name of the field to validate
+   * @returns {Object} Validation errors for the form
+   */
   const formValidationFunction = (data, fieldName) => {
     return validateAuthForm(data, fieldName, {
       options: {
@@ -101,6 +103,10 @@ export default function SignupPage() {
     handleSubmit,
   } = useForm(initialFormState, formValidationFunction, handleFormSubmit);
 
+  /**
+   * Handles form field changes
+   * @param {Event} e - The change event
+   */
   const handleChange = (e) => {
     formHandleChange(e);
   };
@@ -144,16 +150,25 @@ export default function SignupPage() {
               handleSubmit={handleSubmit}
               isSubmitting={isSubmitting || authLoading}
               apiError={apiError}
-              passwordRequirements={[
-                { key: "length", value: "At least 8 characters" },
-                { key: "uppercase", value: "At least one uppercase letter" },
-                { key: "number", value: "At least one number" },
-                { key: "special", value: "At least one special character" },
-              ]}
+              successMessage={successMessage}
             />
+
+            {!successMessage && (
+              <FormFooterLinks
+                links={[
+                  {
+                    label: "Already have an account?",
+                    href: "/login",
+                    text: "Login here",
+                  },
+                ]}
+              />
+            )}
           </ConsoleSection>
         </ConsoleWindow>
       </div>
     </>
   );
-}
+};
+
+export default SignupPage;

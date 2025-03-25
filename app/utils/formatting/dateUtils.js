@@ -2,7 +2,7 @@
  * Formats a date to medium display format (DD MMM YYYY, e.g., "13 Jan 2023").
  *
  * @param {string|Date|number} date - A date string (any valid format including ISO), Date object, or timestamp.
- * @returns {string} Formatted date in medium format (DD MMM YYYY) or an empty string if invalid.
+ * @returns {string} Formatted date in medium format (DD-MMM-YYYY) or an empty string if invalid.
  */
 export const formatDateForDisplay = (date) => {
   if (!date) return "";

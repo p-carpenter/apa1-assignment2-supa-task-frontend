@@ -27,7 +27,9 @@ const mockCookieStore = {
   cookies: {},
   headers: [],
   get: jest.fn((name) => {
-    return mockCookieStore.cookies[name] ? { value: mockCookieStore.cookies[name] } : undefined;
+    return mockCookieStore.cookies[name]
+      ? { value: mockCookieStore.cookies[name] }
+      : undefined;
   }),
   set: jest.fn((name, value, options) => {
     mockCookieStore.cookies[name] = value;
@@ -159,7 +161,7 @@ describe("auth/signin API route", () => {
 
     clientApi.fetchFromSupabase.mockRejectedValueOnce(mockError);
 
-    // Mock processApiError to return a standardized error
+    // Mock processApiError to return a standardised error
     processApiError.mockReturnValueOnce({
       type: ERROR_TYPES.INVALID_CREDENTIALS,
       message: ERROR_MESSAGES[ERROR_TYPES.INVALID_CREDENTIALS],

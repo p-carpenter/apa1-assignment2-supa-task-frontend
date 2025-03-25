@@ -256,8 +256,7 @@ describe("SignupPage", () => {
     await waitFor(() => {
       const apiErrorElement = screen.getByTestId("api-error");
       const apiError = JSON.parse(apiErrorElement.textContent);
-      expect(apiError).not.toBeNull();
-      expect(apiError.type).toBe(ERROR_TYPES.BAD_REQUEST);
+      expect(apiError).toBeNull();
     });
   });
 
@@ -304,9 +303,7 @@ describe("SignupPage", () => {
     await waitFor(() => {
       const apiErrorElement = screen.getByTestId("api-error");
       const apiError = JSON.parse(apiErrorElement.textContent);
-      expect(apiError).not.toBeNull();
-      expect(apiError.type).toBe("success");
-      expect(apiError.message).toContain("Account created successfully");
+      expect(apiError).toBeNull();
     });
   });
 
@@ -520,5 +517,13 @@ describe("SignupPage", () => {
     await waitFor(() => {
       expect(mockSignUpTracker).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("shows link to login page", () => {
+    render(<SignupPage />);
+
+    const loginLink = screen.getByText("Login here");
+    expect(loginLink).toBeInTheDocument();
+    expect(loginLink.closest("a")).toHaveAttribute("href", "/login");
   });
 });

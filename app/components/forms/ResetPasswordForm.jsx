@@ -1,8 +1,19 @@
 import React from "react";
-import { ApiErrorMessage } from "../ui/errors";
+import { ApiMessage } from "./ApiMessage";
 import { TextField, FormButtons, PromptLabel } from "./fields";
 import authStyles from "./Auth.module.css";
 
+/**
+ * Form component for requesting a password reset link.
+ *
+ * @param {Object} formData - The current form data state
+ * @param {Object} formErrors - Form validation errors
+ * @param {Function} handleChange - Function to handle input changes
+ * @param {Function} handleSubmit - Function to handle form submission
+ * @param {boolean} isSubmitting - Whether the form is currently submitting
+ * @param {Object|null} apiError - Error response from the API
+ * @param {string} [buttonText="SEND RESET LINK"] - Custom text for the submit button
+ */
 const ResetPasswordForm = ({
   formData,
   formErrors,
@@ -14,7 +25,7 @@ const ResetPasswordForm = ({
 }) => {
   return (
     <>
-      {apiError && <ApiErrorMessage error={apiError} />}
+      {apiError && <ApiMessage response={apiError} />}
 
       <form
         className={authStyles.form}

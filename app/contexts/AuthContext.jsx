@@ -38,18 +38,17 @@ export const AuthContext = createContext({
 
 /**
  * Manages authentication state and provides authentication methods
- * 
+ *
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  * @param {Object} [props.initialUser=null] - Initial user data from SSR
  * @param {Object} [props.initialSession=null] - Initial session data from SSR
- * @returns {JSX.Element} AuthProvider component
  */
-export function AuthProvider({
+export const AuthProvider = ({
   children,
   initialUser = null,
   initialSession = null,
-}) {
+}) => {
   const [user, setUser] = useState(initialUser);
   const [session, setSession] = useState(initialSession);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,10 +56,10 @@ export function AuthProvider({
   const isAuthenticated = Boolean(user);
 
   /**
-   * Processes API errors into a standardized format
+   * Processes API errors into a standardised format
    * @param {Error} error - The error object
    * @param {string} defaultMessage - Default message to use if error is not formatted
-   * @returns {Object} Standardized error object
+   * @returns {Object} Standardised error object
    */
   const formatApiError = (error, defaultMessage) => {
     // If the error already has a type (processed by the API), use it directly
@@ -78,7 +77,7 @@ export function AuthProvider({
   };
 
   /**
-   * Initializes authentication state from server or stored session
+   * Initialises authentication state from server or stored session
    */
   useEffect(() => {
     const initialiseAuth = async () => {
@@ -118,7 +117,7 @@ export function AuthProvider({
    * Handles user sign in
    * @param {Object} credentials - User credentials (email, password)
    * @returns {Promise<Object>} Sign in result
-   * @throws {Object} Standardized error object
+   * @throws {Object} Standardised error object
    */
   const handleSignIn = useCallback(async (credentials) => {
     setIsLoading(true);
@@ -145,7 +144,7 @@ export function AuthProvider({
    * Handles user sign up
    * @param {Object} credentials - User signup information (email, password, etc)
    * @returns {Promise<Object>} Sign up result
-   * @throws {Object} Standardized error object
+   * @throws {Object} Standardised error object
    */
   const handleSignUp = useCallback(async (credentials) => {
     setIsLoading(true);
@@ -153,8 +152,6 @@ export function AuthProvider({
 
     try {
       const data = await signUp(credentials);
-      // cannot set session here as session is null until email confirmation
-      setUser(data.user);
       return data;
     } catch (error) {
       const standardError = formatApiError(
@@ -171,7 +168,7 @@ export function AuthProvider({
   /**
    * Handles sign out operation
    * @returns {Promise<Object>} Sign out result
-   * @throws {Object} Standardized error object (except for network errors)
+   * @throws {Object} Standardised error object (except for network errors)
    */
   const handleSignOut = useCallback(async () => {
     setIsLoading(true);
@@ -211,7 +208,7 @@ export function AuthProvider({
   /**
    * Refreshes current user information from the server
    * @returns {Promise<Object>} Updated user data
-   * @throws {Object} Standardized error object
+   * @throws {Object} Standardised error object
    */
   const refreshUser = useCallback(async () => {
     setIsLoading(true);
@@ -247,7 +244,7 @@ export function AuthProvider({
    * Initiates password reset process
    * @param {string} email - User's email
    * @returns {Promise<Object>} Result of password reset request
-   * @throws {Object} Standardized error object
+   * @throws {Object} Standardised error object
    */
   const handleResetPassword = useCallback(async (email) => {
     setIsLoading(true);
@@ -276,7 +273,7 @@ export function AuthProvider({
    * @param {string} resetData.password - New password
    * @param {string} resetData.token - Reset token from email
    * @returns {Promise<Object>} Result of password reset operation
-   * @throws {Object} Standardized error object
+   * @throws {Object} Standardised error object
    */
   const handleResetPasswordConfirm = useCallback(
     async ({ email, password, token }) => {
@@ -302,7 +299,7 @@ export function AuthProvider({
   );
 
   /**
-   * Memoized auth context value to prevent unnecessary re-renders
+   * Memoised auth context value to prevent unnecessary re-renders
    */
   const contextValue = useMemo(
     () => ({
@@ -336,14 +333,14 @@ export function AuthProvider({
   return (
     <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
-}
+};
 
 /**
  * Custom hook to use the auth context
  * @returns {Object} Auth context value
  * @throws {Error} If used outside of AuthProvider
  */
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
 
   if (context === undefined) {
@@ -351,6 +348,6 @@ export function useAuth() {
   }
 
   return context;
-}
+};
 
 export default AuthProvider;

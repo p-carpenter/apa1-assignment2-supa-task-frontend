@@ -3,7 +3,23 @@ import styles from "../FormStyles.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
 /**
- * Password input field with show/hide toggle functionality
+ * Password input field with show/hide toggle functionality.
+ * 
+ * @param {string} id - The ID of the password field
+ * @param {string} name - The name attribute of the password field
+ * @param {React.ReactNode} label - The label for the password field
+ * @param {string} value - The current value of the password field
+ * @param {Function} onChange - Handler for when the password value changes
+ * @param {string} [error] - Error message to display
+ * @param {boolean} [required=false] - Whether the field is required
+ * @param {boolean} [disabled=false] - Whether the field is disabled
+ * @param {string} [autoComplete="current-password"] - The autocomplete attribute value
+ * @param {string} [placeholder="••••••••"] - Placeholder text for the password field
+ * @param {string} [helperText] - Helper text to display below the password field
+ * @param {string} [className=""] - Additional CSS class names
+ * @param {boolean} [usePrompt=false] - Whether to display terminal-style prompt
+ * @param {boolean} [showToggle=true] - Whether to show the password visibility toggle button
+ * @param {Object} [props] - Additional props to pass to the input element
  */
 const PasswordField = ({
   id,

@@ -9,6 +9,7 @@ import { LoginForm } from "@/app/components/forms";
 import authStyles from "@/app/components/forms/Auth.module.css";
 import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 import { processApiError } from "@/app/utils/errors/errorService";
+import { FormFooterLinks } from "@/app/components/forms/fields";
 
 import {
   ConsoleWindow,
@@ -16,7 +17,11 @@ import {
   CommandOutput,
 } from "../components/ui/console";
 
-export default function LoginPage() {
+/**
+ * Login page component that handles user authentication
+ * Provides a form for users to enter their credentials and manages the login process
+ */
+const LoginPage = () => {
   const { isAuthenticated, isLoading, signIn } = useAuth();
   const router = useRouter();
   const [apiError, setApiError] = useState(null);
@@ -28,6 +33,10 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
+  /**
+   * Handles the form submission for user login
+   * @param {Object} formData - The form data containing email and password
+   */
   const handleFormSubmit = async (formData) => {
     if (submissionInProgress.current) {
       return;
@@ -41,13 +50,17 @@ export default function LoginPage() {
         email: formData.email,
         password: formData.password,
       });
-      submissionInProgress.current = false;
     } catch (err) {
       const standardError = processApiError(err, {
         defaultMessage: "An error occurred during login",
       });
       setApiError(standardError);
-      submissionInProgress.current = false;
+
+      setTimeout(() => {
+        submissionInProgress.current = false;
+      }, 0);
+
+      throw err;
     } finally {
       submissionInProgress.current = false;
     }
@@ -58,6 +71,12 @@ export default function LoginPage() {
     password: "",
   };
 
+  /**
+   * Validates the login form fields
+   * @param {Object} data - The form data to validate
+   * @param {string} fieldName - The name of the field to validate
+   * @returns {Object} Validation errors for the form
+   */
   const validateFormFunction = (data, fieldName) => {
     return validateAuthForm(data, fieldName);
   };
@@ -111,9 +130,26 @@ export default function LoginPage() {
               isSubmitting={isSubmitting || isLoading}
               apiError={apiError}
             />
+
+            <FormFooterLinks
+              links={[
+                {
+                  label: "Don't have access?",
+                  href: "/signup",
+                  text: "Register account",
+                },
+                {
+                  label: "Forgot password?",
+                  href: "/reset_password",
+                  text: "Reset password",
+                },
+              ]}
+            />
           </ConsoleSection>
         </ConsoleWindow>
       </div>
     </>
   );
-}
+};
+
+export default LoginPage;

@@ -1,6 +1,12 @@
 /**
  * Generates a URL-friendly slug from an incident name
  * Uses first 2 words of the title for efficiency
+ * 
+ * @param {string} incidentName - The name of the incident to convert to a slug
+ * @returns {string} A URL-friendly slug generated from the incident name, or "unknown" if generation fails
+ * @example
+ * // returns "database-outage"
+ * generateSlug("Database Outage in Production")
  */
 export const generateSlug = (incidentName) => {
   if (!incidentName) return "unknown";
@@ -26,7 +32,15 @@ export const generateSlug = (incidentName) => {
 };
 
 /**
- * Find an incident by its slug
+ * Find an incident by its slug in an array of incidents
+ * First tries exact slug match, then falls back to partial match using the first word
+ * 
+ * @param {Array<Object>} incidents - Array of incident objects to search through
+ * @param {string} slug - The slug to search for
+ * @returns {Object|null} The matched incident object or null if no match is found
+ * @example
+ * // returns the incident object if found
+ * findIncidentBySlug(incidentsList, "database-outage")
  */
 export const findIncidentBySlug = (incidents, slug) => {
   if (!slug || !incidents?.length) return null;
@@ -48,7 +62,14 @@ export const findIncidentBySlug = (incidents, slug) => {
 };
 
 /**
- * Get incident index by slug
+ * Get the index of an incident in an array by its slug
+ * 
+ * @param {Array<Object>} incidents - Array of incident objects to search through
+ * @param {string} slug - The slug to search for
+ * @returns {number} The index of the incident in the array, or -1 if not found
+ * @example
+ * // returns the index number (e.g., 3) if found, or -1 if not found
+ * getIncidentIndexBySlug(incidentsList, "database-outage")
  */
 export const getIncidentIndexBySlug = (incidents, slug) => {
   const incident = findIncidentBySlug(incidents, slug);

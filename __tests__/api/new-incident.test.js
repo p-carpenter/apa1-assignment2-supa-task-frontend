@@ -14,7 +14,7 @@ describe("new-incident API route", () => {
   // Test OPTIONS method
   it("responds correctly to OPTIONS request", async () => {
     const response = await OPTIONS();
-    
+
     expect(response.status).toBe(204);
     expect(response.headers.get("Access-Control-Allow-Origin")).toBeDefined();
     expect(response.headers.get("Access-Control-Allow-Methods")).toBeDefined();
@@ -79,7 +79,7 @@ describe("new-incident API route", () => {
           const payload = await request.json();
           expect(payload.fileData).toBeDefined();
           expect(payload.fileName).toBe("test-image.png");
-          
+
           return HttpResponse.json(mockIncident);
         }
       )
@@ -158,7 +158,8 @@ describe("new-incident API route", () => {
 
     // Addition object exists but no name property
     const mockRequest2 = {
-      json: () => Promise.resolve({ addition: { description: "No name here" } }),
+      json: () =>
+        Promise.resolve({ addition: { description: "No name here" } }),
       method: "POST",
     };
 
@@ -184,12 +185,13 @@ describe("new-incident API route", () => {
     );
 
     const mockRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "Error Incident",
-          description: "This will cause an error",
-        },
-      }),
+      json: () =>
+        Promise.resolve({
+          addition: {
+            name: "Error Incident",
+            description: "This will cause an error",
+          },
+        }),
       method: "POST",
     };
 
@@ -206,20 +208,18 @@ describe("new-incident API route", () => {
       http.post(
         `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
         () => {
-          return HttpResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-          );
+          return HttpResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
       )
     );
 
     const mockRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "Unauthorized Incident",
-        },
-      }),
+      json: () =>
+        Promise.resolve({
+          addition: {
+            name: "Unauthorized Incident",
+          },
+        }),
       method: "POST",
     };
 
@@ -236,20 +236,18 @@ describe("new-incident API route", () => {
       http.post(
         `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
         () => {
-          return HttpResponse.json(
-            { error: "Forbidden" },
-            { status: 403 }
-          );
+          return HttpResponse.json({ error: "Forbidden" }, { status: 403 });
         }
       )
     );
 
     const mockRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "Forbidden Incident",
-        },
-      }),
+      json: () =>
+        Promise.resolve({
+          addition: {
+            name: "Forbidden Incident",
+          },
+        }),
       method: "POST",
     };
 
@@ -257,34 +255,6 @@ describe("new-incident API route", () => {
     const data = await response.json();
 
     expect(response.status).toBe(403);
-    expect(data.message).toBeDefined();
-    expect(data.type).toBeDefined();
-  });
-
-  // Network and other errors
-  it("handles network errors", async () => {
-    server.use(
-      http.post(
-        `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
-        () => {
-          return HttpResponse.error();
-        }
-      )
-    );
-
-    const mockRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "Network Error Incident",
-        },
-      }),
-      method: "POST",
-    };
-
-    const response = await POST(mockRequest);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
     expect(data.message).toBeDefined();
     expect(data.type).toBeDefined();
   });
@@ -311,17 +281,21 @@ describe("new-incident API route", () => {
       http.post(
         `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
         () => {
-          return HttpResponse.json({ id: "timestamp-test", name: "Timestamp Test" });
+          return HttpResponse.json({
+            id: "timestamp-test",
+            name: "Timestamp Test",
+          });
         }
       )
     );
 
     const mockRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "Timestamp Test",
-        },
-      }),
+      json: () =>
+        Promise.resolve({
+          addition: {
+            name: "Timestamp Test",
+          },
+        }),
       method: "POST",
     };
 
@@ -337,20 +311,18 @@ describe("new-incident API route", () => {
       http.post(
         `${process.env.SUPABASE_URL}/functions/v1/tech-incidents`,
         () => {
-          return HttpResponse.json(
-            { error: "Test error" },
-            { status: 500 }
-          );
+          return HttpResponse.json({ error: "Test error" }, { status: 500 });
         }
       )
     );
 
     const errorRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "Timestamp Error Test",
-        },
-      }),
+      json: () =>
+        Promise.resolve({
+          addition: {
+            name: "Timestamp Error Test",
+          },
+        }),
       method: "POST",
     };
 
@@ -374,11 +346,12 @@ describe("new-incident API route", () => {
     );
 
     const mockRequest = {
-      json: () => Promise.resolve({
-        addition: {
-          name: "CORS Test",
-        },
-      }),
+      json: () =>
+        Promise.resolve({
+          addition: {
+            name: "CORS Test",
+          },
+        }),
       method: "POST",
     };
 

@@ -5,7 +5,7 @@ import { getServerSession } from "../../../utils/auth/server";
 /**
  * Retrieves the current authenticated user's information
  */
-export async function GET() {
+export const GET = async () => {
   try {
     const { user, session } = await getServerSession();
 
@@ -52,4 +52,4 @@ export async function GET() {
       }
     );
   }
-}
+};

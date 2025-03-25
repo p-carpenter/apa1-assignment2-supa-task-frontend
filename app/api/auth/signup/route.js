@@ -80,7 +80,7 @@ export async function POST(request) {
     const failedRequirements = PASSWORD_REQUIREMENTS.filter(
       (requirement) => !requirement.test(password)
     );
-    
+
     if (failedRequirements.length > 0) {
       return new Response(
         JSON.stringify({
@@ -96,40 +96,18 @@ export async function POST(request) {
       );
     }
 
-    const signupResult = await fetchFromSupabase("authentication/signup", "POST", {
-      email,
-      password,
-      display_name: displayName,
-    });
+    const signupResult = await fetchFromSupabase(
+      "authentication/signup",
+      "POST",
+      {
+        email,
+        password,
+        display_name: displayName,
+      }
+    );
 
-    if (
-      signupResult &&
-      signupResult.user &&
-      signupResult.user.identities &&
-      signupResult.user.identities.length === 0
-    ) {
-      return new Response(
-        JSON.stringify({
-          error: "Email already exists",
-          type: ERROR_TYPES.ALREADY_EXISTS,
-          details: "This email is already registered",
-          timestamp: new Date().toISOString(),
-        }),
-        {
-          status: 409,
-          headers: CORS_HEADERS,
-        }
-      );
-    }
-
-    // Account successfully created but requires email verification
-    if (
-      signupResult &&
-      signupResult.user &&
-      !signupResult.session &&
-      signupResult.user.identities &&
-      signupResult.user.identities.length > 0
-    ) {
+    // Account successfully created
+    if (signupResult && signupResult.user) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -148,7 +126,8 @@ export async function POST(request) {
       JSON.stringify({
         error: "Unable to process signup",
         type: ERROR_TYPES.SERVICE_ERROR,
-        details: "Received an unexpected response from the authentication service",
+        details:
+          "Received an unexpected response from the authentication service",
         timestamp: new Date().toISOString(),
       }),
       {
@@ -158,6 +137,43 @@ export async function POST(request) {
     );
   } catch (error) {
     console.error("Signup error:", error);
+
+    if (error?.message === "User already registered") {
+      return new Response(
+        JSON.stringify({
+          error: "Email already exists",
+          type: ERROR_TYPES.ALREADY_EXISTS,
+          details: "This email is already registered",
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 409,
+          headers: CORS_HEADERS,
+        }
+      );
+    }
+
+    if (
+      error.data &&
+      error.data.error &&
+      error.data.error.includes("Email address") &&
+      error.data.error.includes("is invalid")
+    ) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid email address",
+          type: ERROR_TYPES.BAD_REQUEST,
+          details:
+            "Please use a real email address. Test email domains are not accepted by Supabase",
+          originalError: error.data.error,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: 400,
+          headers: CORS_HEADERS,
+        }
+      );
+    }
 
     const standardError = processApiError(error, {
       defaultMessage: "Failed to create account",

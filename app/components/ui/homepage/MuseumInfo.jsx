@@ -2,6 +2,10 @@ import React from "react";
 import styles from "@/app/Homepage.module.css";
 import { useAuth } from "@/app/contexts/AuthContext";
 
+/**
+ * Displays formatted information about the incident archive/museum
+ * Includes a title, description, and link to the registration page
+ */
 const MuseumInfo = () => {
   const { isAuthenticated } = useAuth();
 

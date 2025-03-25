@@ -6,17 +6,17 @@ import { AUTH_COOKIE_NAMES, CORS_HEADERS } from "@/app/utils/auth/config";
 /**
  * Handles OPTIONS requests for CORS preflight
  */
-export async function OPTIONS() {
+export const OPTIONS = async () => {
   return new Response(null, {
     status: 204,
     headers: CORS_HEADERS,
   });
-}
+};
 
 /**
  * Handles user sign-out by clearing cookies and notifying Supabase
  */
-export async function POST() {
+export const POST = async () => {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
   const refreshToken = cookieStore.get(AUTH_COOKIE_NAMES.REFRESH_TOKEN)?.value;
@@ -30,10 +30,10 @@ export async function POST() {
       path: "/",
       sameSite: "lax",
     };
-    
+
     cookieStore.set(AUTH_COOKIE_NAMES.ACCESS_TOKEN, "", cookieOptions);
     cookieStore.set(AUTH_COOKIE_NAMES.REFRESH_TOKEN, "", cookieOptions);
-    
+
     if (accessToken && refreshToken) {
       try {
         await fetchFromSupabase("authentication/signout", "POST", null, {
@@ -75,4 +75,4 @@ export async function POST() {
       { status: 200, headers: CORS_HEADERS }
     );
   }
-}
+};

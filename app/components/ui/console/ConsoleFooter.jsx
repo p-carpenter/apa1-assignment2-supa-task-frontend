@@ -3,11 +3,10 @@ import styles from "./Terminal.module.css";
 
 /**
  * Renders the footer of the console with status items
- * 
+ *
  * @param {Object} props - Component props
  * @param {Array} [props.statusItems=[]] - Items to display in the footer
  *   Each item can be either a string or an object with {text, blink} properties
- * @returns {JSX.Element} Console footer component
  */
 const ConsoleFooter = ({ statusItems = [] }) => {
   // Use default status items if none provided
@@ -22,25 +21,25 @@ const ConsoleFooter = ({ statusItems = [] }) => {
 
 /**
  * Returns default status items if none were provided
- * 
+ *
  * @returns {Array} Default status items
  */
-function getDefaultStatusItems() {
+const getDefaultStatusItems = () => {
   return [
     "TECH INCIDENTS DATABASE",
     "CATALOG VIEW",
     { text: "0 RECORDS RETRIEVED", blink: true },
   ];
-}
+};
 
 /**
  * Renders a single status item
- * 
+ *
  * @param {string|Object} item - Status item to render
  * @param {number} index - Item index for key
  * @returns {JSX.Element} Status item element
  */
-function renderStatusItem(item, index) {
+const renderStatusItem = (item, index) => {
   // Handle string format
   if (typeof item === "string") {
     return (
@@ -49,7 +48,7 @@ function renderStatusItem(item, index) {
       </div>
     );
   }
-  
+
   // Handle object format with optional blinking
   return (
     <div
@@ -60,6 +59,6 @@ function renderStatusItem(item, index) {
       {item.text}
     </div>
   );
-}
+};
 
 export default ConsoleFooter;

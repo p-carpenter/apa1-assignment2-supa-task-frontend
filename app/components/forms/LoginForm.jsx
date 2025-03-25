@@ -2,24 +2,27 @@
 
 import React from "react";
 import authStyles from "./Auth.module.css";
-import { ApiErrorMessage } from "../ui/errors";
-import {
-  TextField,
-  PasswordField,
-  FormFooterLinks,
-  FormButtons,
-  PromptLabel,
-} from "./fields";
+import { ApiMessage } from "./ApiMessage";
+import { TextField, PasswordField, FormButtons, PromptLabel } from "./fields";
 
-function LoginForm({
+/**
+ * Component for handling user login.
+ *
+ * @param {Object} formData - The current form data state
+ * @param {Object} formErrors - Form validation errors
+ * @param {Function} handleChange - Function to handle input changes
+ * @param {Function} handleSubmit - Function to handle form submission
+ * @param {boolean} isSubmitting - Whether the form is currently submitting
+ * @param {Object|null} apiError - Error response from the API
+ */
+const LoginForm = ({
   formData,
   formErrors,
   handleChange,
   handleSubmit,
   isSubmitting,
-  errorMessage,
   apiError,
-}) {
+}) => {
   return (
     <div className={authStyles.formContainer}>
       <div className={authStyles.header}>
@@ -29,7 +32,7 @@ function LoginForm({
         </p>
       </div>
 
-      {apiError && <ApiErrorMessage error={apiError} />}
+      {apiError && <ApiMessage response={apiError} />}
 
       <form
         className={authStyles.form}
@@ -60,7 +63,6 @@ function LoginForm({
           onChange={handleChange}
           error={formErrors.password}
           disabled={isSubmitting}
-          helperText="Password must be at least 8 characters and include one number, one special character, and one uppercase letter."
         />
 
         <FormButtons
@@ -71,23 +73,8 @@ function LoginForm({
           isSubmitting={isSubmitting}
         />
       </form>
-
-      <FormFooterLinks
-        links={[
-          {
-            label: "Don't have access?",
-            href: "/signup",
-            text: "Register account",
-          },
-          {
-            label: "Forgot password?",
-            href: "/reset_password",
-            text: "Reset password",
-          },
-        ]}
-      />
     </div>
   );
-}
+};
 
 export default LoginForm;

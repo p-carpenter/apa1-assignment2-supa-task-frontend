@@ -10,19 +10,14 @@ import {
 } from "react";
 import { processApiError, getErrorMessage } from "../utils/errors/errorService";
 
-/**
- * Context for managing tech incidents data and state
- * @type {React.Context}
- */
 const IncidentContext = createContext(null);
 
 /**
  * Provider component for incident data and operations
- * 
+ *
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  * @param {Array} [props.incidents=[]] - Initial incidents data
- * @returns {JSX.Element} Incident provider component
  */
 export const IncidentProvider = ({
   children,
@@ -38,7 +33,7 @@ export const IncidentProvider = ({
   const [currentYear, setCurrentYear] = useState(null);
 
   /**
-   * Initializes incidents data from props or session storage
+   * initialises incidents data from props or session storage
    */
   useEffect(() => {
     if (initialIncidents.length > 0) {
@@ -52,7 +47,7 @@ export const IncidentProvider = ({
 
   /**
    * Attempts to load incidents from session storage
-   * 
+   *
    * @returns {boolean} Whether incidents were successfully loaded
    */
   const loadIncidentsFromSessionStorage = () => {
@@ -74,7 +69,7 @@ export const IncidentProvider = ({
 
   /**
    * Saves incidents data to session storage
-   * 
+   *
    * @param {Array} data - Incidents data to save
    */
   const saveIncidentsToSessionStorage = (data) => {
@@ -115,7 +110,7 @@ export const IncidentProvider = ({
 
   /**
    * Fetches incidents with a timeout
-   * 
+   *
    * @returns {Promise<Array>} Fetched incidents data
    * @throws {Error} Fetch error
    */
@@ -153,7 +148,7 @@ export const IncidentProvider = ({
 
   /**
    * Handles errors during incident fetching
-   * 
+   *
    * @param {Error} error - The error that occurred
    */
   const handleFetchError = (error) => {
@@ -176,7 +171,7 @@ export const IncidentProvider = ({
 
   /**
    * Calculates the decade from a given year
-   * 
+   *
    * @param {number} year - Year to calculate decade from
    * @returns {number|null} Decade (e.g., 1990) or null if year is invalid
    */
@@ -211,7 +206,7 @@ export const IncidentProvider = ({
 
   /**
    * Handles navigation to a specific incident by index
-   * 
+   *
    * @param {number} newIndex - Index of the incident to navigate to
    */
   const handleIncidentNavigation = useCallback(
@@ -319,7 +314,7 @@ export const IncidentProvider = ({
 
 /**
  * Custom hook to use the incident context
- * 
+ *
  * @returns {Object} Incident context value
  * @throws {Error} If used outside of IncidentProvider
  */

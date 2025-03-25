@@ -4,6 +4,17 @@ import { useState, useEffect, useRef } from "react";
 import Button from "../components/ui/buttons/Button";
 import styles from "./GalleryNavButtons.module.css";
 
+/**
+ * Navigation component for gallery view with year timeline and next/previous buttons
+ * @param {Object} props - The component props
+ * @param {Function} props.onPreviousClick - Handler for previous button click
+ * @param {Function} props.onNextClick - Handler for next button click
+ * @param {Array<number>} props.incidentYears - List of years with incidents
+ * @param {number} props.currentIncidentYear - Currently selected year
+ * @param {Function} props.onYearClick - Handler for when a year is clicked
+ * @param {Object} props.incidentCounts - Object mapping years to number of incidents
+ * @param {number} props.currentIncidentIndexInYear - Index of current incident within selected year
+ */
 const GalleryNavButtons = ({
   onPreviousClick,
   onNextClick,
@@ -17,6 +28,10 @@ const GalleryNavButtons = ({
   const previousYearRef = useRef(currentIncidentYear);
   const timelineInnerRef = useRef(null);
 
+  /**
+   * Calculates the transform value for the timeline to center the current year
+   * @returns {number} The translateX value in pixels
+   */
   const calculateTransform = () => {
     if (!incidentYears || incidentYears.length === 0 || !currentIncidentYear) {
       return 0;
@@ -57,6 +72,10 @@ const GalleryNavButtons = ({
     }
   }, [currentIncidentYear, incidentYears]);
 
+  /**
+   * Handles click on a year button in the timeline
+   * @param {number} year - The year that was clicked
+   */
   const handleYearClick = (year) => {
     if (isAnimating && year === currentIncidentYear) {
       return;

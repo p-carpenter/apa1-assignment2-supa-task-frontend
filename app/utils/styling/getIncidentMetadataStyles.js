@@ -52,6 +52,13 @@ export const CATEGORY_STYLES = {
   },
 };
 
+/**
+ * Returns the appropriate style object for an incident severity level
+ *
+ * @param {string} severity - The severity level of the incident ('critical', 'high', 'moderate', 'low', or any value which defaults to 'unknown')
+ * @param {boolean} [isDarkMode=false] - Whether to use dark mode styles
+ * @returns {Object} An object containing the backgroundColor style property
+ */
 export const getSeverityStyle = (severity, isDarkMode = false) => {
   if (!severity) return SEVERITY_STYLES.unknown[isDarkMode ? "dark" : "light"];
 
@@ -61,6 +68,13 @@ export const getSeverityStyle = (severity, isDarkMode = false) => {
   return styleObj[isDarkMode ? "dark" : "light"];
 };
 
+/**
+ * Returns the appropriate style object for an incident category
+ *
+ * @param {string} category - The category of the incident ('security', 'hardware', 'software', 'infrastructure', 'externalFactor', 'humanError', or any value which defaults to 'unknown')
+ * @param {boolean} [isDarkMode=false] - Whether to use dark mode styles
+ * @returns {Object} An object containing the backgroundColor style property
+ */
 export const getCategoryStyle = (category, isDarkMode = false) => {
   if (!category) return CATEGORY_STYLES.unknown[isDarkMode ? "dark" : "light"];
 

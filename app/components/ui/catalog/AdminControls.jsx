@@ -15,7 +15,6 @@ import styles from "../../../catalog/Catalog.module.css";
  * @param {boolean} props.hasFilteredIncidents - Whether there are incidents to select
  * @param {Array} props.selectedIncidents - Array of selected incidents
  * @param {boolean} props.isDeleting - Whether delete operation is in progress
- * @returns {React.ReactElement} Admin controls component
  */
 const AdminControls = ({
   selectionMode,

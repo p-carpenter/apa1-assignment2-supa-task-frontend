@@ -246,7 +246,7 @@ describe("Gallery Page", () => {
       });
     });
 
-    it("initializes correctly without a slug parameter", async () => {
+    it("initialises correctly without a slug parameter", async () => {
       useSearchParams().get.mockReturnValue(null);
 
       const { default: GalleryPageContent } = jest.requireActual(

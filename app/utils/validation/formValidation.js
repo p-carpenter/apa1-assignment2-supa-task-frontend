@@ -132,7 +132,6 @@ export const validateEmail = (email) => {
 /**
  * Validates a password
  * @param {string} password - Password to validate
- * @param {object} data - Form data for validating password field against confirm password field if present
  * @param {object} options - Validation options
  * @param {number} options.minLength - Minimum password length
  * @param {boolean} options.requireUppercase - Whether to require uppercase letters
@@ -183,15 +182,6 @@ export const validatePassword = (password, data = {}, options = {}) => {
       isValid: false,
       errorMessage: "Password must include at least one special character.",
     };
-  }
-
-  if (requirePasswordConfirmation) {
-    if (data.confirmPassword && password !== data.confirmPassword) {
-      return {
-        isValid: false,
-        errorMessage: "Passwords do not match.",
-      };
-    }
   }
 
   return { isValid: true, errorMessage: "" };
@@ -374,22 +364,7 @@ export const AuthFormSchema = {
   confirmPassword: {
     type: "confirmPassword",
     required: false,
-    validate: (value, data) => {
-      if (!value && data.password) {
-        return {
-          isValid: false,
-          errorMessage: "Please confirm your password."
-        };
-      }
-      if (value !== data.password) {
-        return {
-          isValid: false,
-          errorMessage: "Passwords do not match."
-        };
-      }
-      return { isValid: true, errorMessage: "" };
     }
-  },
 };
 
 export const resetSchema = {
@@ -399,6 +374,7 @@ export const resetSchema = {
   },
 };
 
+// pre-built form validators
 export const validateIncidentForm = createFormValidator(incidentFormSchema);
 export const validateAuthForm = createFormValidator(AuthFormSchema);
 export const validateResetPasswordForm = createFormValidator(resetSchema);

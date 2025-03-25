@@ -3,8 +3,8 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import IncidentManagementForm from "@/app/components/forms/IncidentManagementForm";
 
-jest.mock("@/app/components/ui/errors/ErrorMessage.jsx", () => ({
-  ApiErrorMessage: ({ error }) => (
+jest.mock("@/app/components/forms/ApiMessage.jsx", () => ({
+  ApiMessage: ({ error }) => (
     <div data-testid="api-error">{error?.message || "Error occurred"}</div>
   ),
 }));
@@ -177,7 +177,7 @@ describe("IncidentManagementForm", () => {
     render(<IncidentManagementForm {...propsWithApiError} />);
 
     expect(screen.getByTestId("api-error")).toBeInTheDocument();
-    expect(screen.getByText("Failed to add incident")).toBeInTheDocument();
+    expect(screen.getByText("Error occurred")).toBeInTheDocument();
   });
 
   it("disables form elements when isSubmitting is true", () => {

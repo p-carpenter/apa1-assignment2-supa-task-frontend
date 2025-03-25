@@ -2,11 +2,11 @@ import { fetchFromSupabase } from "@/app/utils/api/clientApi";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-export async function OPTIONS() {
+export const OPTIONS = async () => {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
-}
+};
 
-export async function POST(request) {
+export const POST = async (request) => {
   try {
     const incidentSubmission = await request.json();
 
@@ -74,4 +74,4 @@ export async function POST(request) {
       }
     );
   }
-}
+};

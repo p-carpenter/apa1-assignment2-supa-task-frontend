@@ -1,6 +1,23 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./ArtifactRenderer.module.css";
 
+/**
+ * Renders different types of artifacts with adaptive sizing and optimised display
+ * @param {Object} props - Component props
+ * @param {Object} props.artifact - The artifact object to render
+ * @param {string} props.artifact.artifactType - Type of artifact ('image', 'code', etc.)
+ * @param {string} props.artifact.artifactContent - Content of the artifact
+ * @param {string} [props.artifact.name] - Optional name of the artifact
+ * @param {number} [props.maxWidth=863] - Maximum width in pixels
+ * @param {number} [props.maxHeight=768] - Maximum height in pixels
+ * @param {number} [props.minHeight=0] - Minimum height in pixels
+ * @param {string} [props.title] - Title for the artifact
+ * @param {string} [props.className=""] - Additional CSS class names
+ * @param {string} [props.containerId="artifact-container"] - ID for the container element
+ * @param {number} [props.idealWidth=863] - Ideal width for scaling calculations
+ * @param {number} [props.idealHeight=650] - Ideal height for scaling calculations
+ * @param {boolean} [props.scaleUpSmallImages=true] - Whether to scale up small images
+ */
 const ArtifactRenderer = ({
   artifact,
   maxWidth = 863,

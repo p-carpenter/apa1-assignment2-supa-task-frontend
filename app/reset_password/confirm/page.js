@@ -12,6 +12,7 @@ import { useForm } from "@/app/hooks/useForm";
 import { validateAuthForm } from "@/app/utils/validation/formValidation";
 import { processApiError } from "@/app/utils/errors/errorService";
 import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
 
 import {
   ConsoleWindow,
@@ -19,7 +20,12 @@ import {
   CommandOutput,
 } from "../../components/ui/console";
 
-export default function ConfirmResetPage() {
+/**
+ * Password reset confirmation page
+ * Allows users to set a new password after receiving a reset token via email
+ * Extracts the token from the URL hash and validates it before allowing password reset
+ */
+const ConfirmResetPage = () => {
   const { isAuthenticated, loading, handleResetPasswordConfirm } = useAuth();
   const router = useRouter();
 
@@ -46,14 +52,19 @@ export default function ConfirmResetPage() {
       !window.location.hash.includes("access_token")
     ) {
       setApiError({
-        message: "Password reset token is missing or invalid. Please request a new password reset.",
-        type: ERROR_TYPES.TOKEN_EXPIRED
+        message:
+          "Password reset token is missing or invalid. Please request a new password reset.",
+        type: ERROR_TYPES.TOKEN_EXPIRED,
       });
-      
+
       router.push("/reset_password");
     }
   }, [isAuthenticated, loading, router, token]);
 
+  /**
+   * Handles the form submission for password reset confirmation
+   * @param {Object} formData - The form data containing email and new password
+   */
   const handleFormSubmit = async (formData) => {
     if (submissionInProgress.current) {
       return;
@@ -67,7 +78,7 @@ export default function ConfirmResetPage() {
       if (formData.password !== formData.confirmPassword) {
         const error = {
           type: ERROR_TYPES.BAD_REQUEST,
-          message: "Passwords do not match."
+          message: "Passwords do not match.",
         };
         setApiError(error);
         submissionInProgress.current = false;
@@ -84,26 +95,31 @@ export default function ConfirmResetPage() {
         "Your password has been successfully reset. You can now login with your new password."
       );
     } catch (err) {
+      submissionInProgress.current = false;
       // Handle different error types
       let standardError;
-      if (err.message === "Token has expired" || err.type === ERROR_TYPES.TOKEN_EXPIRED) {
+      if (
+        err.message === "Token has expired" ||
+        err.type === ERROR_TYPES.TOKEN_EXPIRED
+      ) {
         standardError = {
           type: ERROR_TYPES.TOKEN_EXPIRED,
-          message: "Password reset token has expired. Please request a new one."
+          message:
+            "Password reset token has expired. Please request a new one.",
         };
       } else if (err.message === "Unexpected error") {
         standardError = {
           type: ERROR_TYPES.UNKNOWN_ERROR,
-          message: "An unexpected error occurred. Please try again or request a new reset link."
+          message:
+            "An unexpected error occurred. Please try again or request a new reset link.",
         };
       } else {
         standardError = processApiError(err, {
-          defaultMessage: "Failed to reset password. Please try again."
+          defaultMessage: "Failed to reset password. Please try again.",
         });
       }
-      
+
       setApiError(standardError);
-      submissionInProgress.current = false;
     } finally {
       submissionInProgress.current = false;
     }
@@ -155,7 +171,6 @@ export default function ConfirmResetPage() {
     typeof window !== "undefined" &&
     !window.location.hash.includes("access_token")
   ) {
-    // Return null as before, but we've already set an error and redirect in the useEffect
     return null;
   }
 
@@ -199,36 +214,38 @@ export default function ConfirmResetPage() {
 
               {successMessage && (
                 <>
-                <div className={authStyles.authSuccess}>{successMessage}</div>
-                <div className={authStyles.authFooter}>
-                <p>
-                  <Link href="/login" className={authStyles.authLink}>
-                    Back
-                  </Link>
-                </p>
-              </div>
-              </>
+                  <ApiMessage
+                    response={{ type: "success", message: successMessage }}
+                  />
+                  <div className={authStyles.authFooter}>
+                    <p>
+                      <Link href="/login" className={authStyles.authLink}>
+                        Back
+                      </Link>
+                    </p>
+                  </div>
+                </>
               )}
 
               {!successMessage && (
-                   <>             
-                <ConfirmResetForm
-                  formData={formData}
-                  formErrors={formErrors}
-                  handleChange={handleChange}
-                  handleSubmit={handleSubmit}
-                  isSubmitting={isSubmitting || loading}
-                  apiError={apiError}
-                />
-                              <div className={authStyles.authFooter}>
-                <p>
-                  Remember your password?{" "}
-                  <Link href="/login" className={authStyles.authLink}>
-                    Back
-                  </Link>
-                </p>
-              </div>
-              </>
+                <>
+                  <ConfirmResetForm
+                    formData={formData}
+                    formErrors={formErrors}
+                    handleChange={handleChange}
+                    handleSubmit={handleSubmit}
+                    isSubmitting={isSubmitting || loading}
+                    apiError={apiError}
+                  />
+                  <div className={authStyles.authFooter}>
+                    <p>
+                      Remember your password?{" "}
+                      <Link href="/login" className={authStyles.authLink}>
+                        Back
+                      </Link>
+                    </p>
+                  </div>
+                </>
               )}
             </div>
           </ConsoleSection>
@@ -236,4 +253,6 @@ export default function ConfirmResetPage() {
       </div>
     </>
   );
-}
+};
+
+export default ConfirmResetPage;

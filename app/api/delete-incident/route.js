@@ -5,25 +5,25 @@ import { CORS_HEADERS } from "@/app/utils/auth/config";
 /**
  * Handles OPTIONS requests for CORS preflight
  */
-export async function OPTIONS() {
+export const OPTIONS = async () => {
   return new Response(null, {
     status: 204,
     headers: CORS_HEADERS,
   });
-}
+};
 
 /**
  * Deletes one or more tech incidents
  */
-export async function DELETE(request) {
+export const DELETE = async (request) => {
   try {
     const { ids } = await request.json();
-    
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "No valid incident IDs provided",
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         }),
         {
           status: 400,
@@ -32,8 +32,10 @@ export async function DELETE(request) {
       );
     }
 
-    const deletionResult = await fetchFromSupabase("tech-incidents", "DELETE", { ids });
-    
+    const deletionResult = await fetchFromSupabase("tech-incidents", "DELETE", {
+      ids,
+    });
+
     return new Response(
       JSON.stringify({
         data: deletionResult,
@@ -60,4 +62,4 @@ export async function DELETE(request) {
       }
     );
   }
-}
+};

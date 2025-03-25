@@ -32,13 +32,15 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
         const newData = { ...formData, [name]: value };
 
         try {
-          const dataWithFileState = fileState ? { ...newData, fileState } : newData;
+          const dataWithFileState = fileState
+            ? { ...newData, fileState }
+            : newData;
           const fieldErrors = validateFn(dataWithFileState, name) || {};
 
           setFormErrors((previousErrors) => {
             // Create a fresh copy to avoid mutating state directly
             const newErrors = { ...previousErrors };
-            
+
             // Remove old error before potentially adding new one
             delete newErrors[name];
 
@@ -65,7 +67,7 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
     (changeEvent) => {
       const { name, value, type, checked } = changeEvent.target;
       const inputValue = type === "checkbox" ? checked : value;
-      
+
       setFormData((prevData) => ({
         ...prevData,
         [name]: inputValue,
@@ -74,7 +76,9 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
       if (validateFn) {
         try {
           const newData = { ...formData, [name]: inputValue };
-          const dataWithFileState = fileState ? { ...newData, fileState } : newData;
+          const dataWithFileState = fileState
+            ? { ...newData, fileState }
+            : newData;
           const fieldErrors = validateFn(dataWithFileState, name) || {};
 
           setFormErrors((prevErrors) => {
@@ -85,7 +89,7 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
             if (fieldErrors[name]) {
               newErrors[name] = fieldErrors[name];
             }
-            
+
             return newErrors;
           });
         } catch (error) {
@@ -111,7 +115,9 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
 
       if (validateFn) {
         try {
-          const dataWithFileState = fileState ? { ...formData, fileState } : formData;
+          const dataWithFileState = fileState
+            ? { ...formData, fileState }
+            : formData;
           const fieldErrors = validateFn(dataWithFileState, name) || {};
 
           if (Object.keys(fieldErrors).length > 0) {
@@ -180,14 +186,18 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
         submitEvent.preventDefault();
       }
 
-      setIsSubmitting(true);
+      let formSubmissionPromise;
 
       try {
+        setIsSubmitting(true);
+
         if (validateFn) {
           let errors = {};
 
           try {
-            const dataWithFileState = fileState ? { ...formData, fileState } : formData;
+            const dataWithFileState = fileState
+              ? { ...formData, fileState }
+              : formData;
             errors = validateFn(dataWithFileState) || {};
           } catch (validationError) {
             console.warn("Form validation error:", validationError);
@@ -211,15 +221,21 @@ export const useForm = (initialValues, validateFn, onSubmit, options = {}) => {
         }
 
         if (onSubmit) {
-          const result = await Promise.resolve(onSubmit(formData));
+          formSubmissionPromise = Promise.resolve(onSubmit(formData));
+          const result = await formSubmissionPromise;
           return result;
         }
       } catch (error) {
+        console.warn("Form submission error:", error);
         throw error;
       } finally {
-        if (isMounted.current) {
-          setIsSubmitting(false);
-        }
+        // Always reset the submitting state in the next event loop
+        // This ensures it happens after any state updates from error handling
+        setTimeout(() => {
+          if (isMounted.current) {
+            setIsSubmitting(false);
+          }
+        }, 0);
       }
     },
     [formData, onSubmit, validateFn, fileState]

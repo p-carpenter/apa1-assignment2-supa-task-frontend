@@ -1,20 +1,31 @@
 import React from "react";
 
 /**
- * Returns a severity icon component based on severity level
+ * Returns a severity icon component based on severity level for use in 2000sDetailsWindow.jsx
  * @param {string} severity - Severity level (Low, Moderate, High, Critical)
- * @returns {React.JSX.Element} - SVG icon component
+ * @returns {JSX.Element} - SVG icon component
  */
 export const getSeverityIcon = (severity) => {
   // Convert string severity to numeric
   let level = 0;
 
   if (typeof severity === "string") {
-    if (severity === "Low") level = 1;
-    else if (severity === "Moderate") level = 2;
-    else if (severity === "High" || severity === "Critical") level = 3;
-  } else if (typeof severity === "number") {
-    level = Math.min(Math.max(Math.round(severity), 0), 3);
+    switch (severity) {
+      case "Low":
+        level = 1;
+        break;
+      case "Moderate":
+        level = 2;
+        break;
+      case "High":
+        level = 3;
+        break;
+      case "Critical":
+        level = 4;
+        break;
+      default:
+        level = 0;
+    }
   }
 
   // Return the specific icon component based on level

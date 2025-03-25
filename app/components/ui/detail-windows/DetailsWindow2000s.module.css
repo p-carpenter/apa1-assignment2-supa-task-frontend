@@ -151,7 +151,6 @@
   overflow: hidden;
 }
 
-/* Glossy overlay for icons */
 .categoryIcon::after {
   content: "";
   position: absolute;
@@ -404,7 +403,6 @@
   overflow: hidden;
 }
 
-/* Top glossy highlight with sharp cutoff for buttons */
 .xpButton::before {
   content: "";
   position: absolute;
@@ -418,7 +416,6 @@
   pointer-events: none;
 }
 
-/* Bottom subtle lighter blue glow for buttons */
 .xpButton::after {
   content: "";
   position: absolute;

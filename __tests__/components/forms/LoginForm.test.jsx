@@ -103,20 +103,4 @@ describe("LoginForm", () => {
     expect(screen.getByTestId("login-button")).toBeDisabled();
     expect(screen.getByText("AUTHENTICATING...")).toBeInTheDocument();
   });
-
-  it("shows link to signup page", () => {
-    render(<LoginForm {...mockProps} />);
-
-    const signupLink = screen.getByText("Register account");
-    expect(signupLink).toBeInTheDocument();
-    expect(signupLink.closest("a")).toHaveAttribute("href", "/signup");
-  });
-
-  it("shows link to reset password page", () => {
-    render(<LoginForm {...mockProps} />);
-
-    const resetLink = screen.getByText("Reset password");
-    expect(resetLink).toBeInTheDocument();
-    expect(resetLink.closest("a")).toHaveAttribute("href", "/reset_password");
-  });
 });

@@ -8,10 +8,15 @@ import { Button, CircuitBackground } from "../components/ui";
 import buttonStyles from "../components/ui/buttons/Button.module.css";
 
 /**
- * AppShell Component
- * Provides both global context providers and core UI shell elements
+ * Provides the application shell with global context providers and core UI elements
+ * Wraps the entire application with necessary context providers for auth, incidents, and theming
+ * Conditionally renders navigation elements based on current route
+ *
+ * @param {ReactNode} props.children - Application content to wrap with providers and shell UI
+ * @param {Object} [props.initialUser=null] - Pre-fetched user data for auth context initialisation
+ * @param {Object} [props.initialSession=null] - Pre-fetched session data for auth context initialisation
  */
-export default function AppShell({ children, initialUser = null, initialSession = null }) {
+const AppShell = ({ children, initialUser = null, initialSession = null }) => {
   const pathname = usePathname();
   const isHomePage = pathname === "/";
 
@@ -30,4 +35,6 @@ export default function AppShell({ children, initialUser = null, initialSession 
       </IncidentProvider>
     </AuthProvider>
   );
-}
+};
+
+export default AppShell;

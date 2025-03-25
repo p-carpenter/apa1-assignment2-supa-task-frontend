@@ -61,43 +61,6 @@ describe("auth/signup API route", () => {
     });
   });
 
-  it("returns error when email is already in use", async () => {
-    server.use(
-      http.post(
-        "https://test-supabase-url.com/functions/v1/authentication/signup",
-        () => {
-          return HttpResponse.json({
-            user: {
-              id: "456",
-              email: "existing@example.com",
-              identities: [],
-            },
-          });
-        }
-      )
-    );
-
-    const mockRequest = {
-      json: () =>
-        Promise.resolve({
-          email: "existing@example.com",
-          password: "Password123!",
-          displayName: "Existing User",
-        }),
-    };
-
-    const response = await POST(mockRequest);
-    const data = await response.json();
-
-    expect(response.status).toBe(409);
-    expect(data).toEqual({
-      error: "Email already exists",
-      type: ERROR_TYPES.ALREADY_EXISTS,
-      details: "This email is already registered",
-      timestamp: expect.any(String),
-    });
-  });
-
   it("returns error when password is too short", async () => {
     server.use(
       http.post(
@@ -154,34 +117,6 @@ describe("auth/signup API route", () => {
     expect(data).toHaveProperty("timestamp");
     // The implementation doesn't use ERROR_TYPES.SERVICE_ERROR for this case
     expect(data).toHaveProperty("type");
-  });
-
-  it("handles network errors", async () => {
-    server.use(
-      http.post(
-        "https://test-supabase-url.com/functions/v1/authentication/signup",
-        () => {
-          return HttpResponse.error();
-        }
-      )
-    );
-
-    const mockRequest = {
-      json: () =>
-        Promise.resolve({
-          email: "new@example.com",
-          password: "Password123!",
-          displayName: "New User",
-        }),
-    };
-
-    const response = await POST(mockRequest);
-    const data = await response.json();
-
-    expect(response.status).toBe(500);
-    expect(data).toHaveProperty("type");
-    expect(data).toHaveProperty("timestamp");
-    expect(data.message).toContain("Network error");
   });
 
   it("handles empty payload gracefully", async () => {

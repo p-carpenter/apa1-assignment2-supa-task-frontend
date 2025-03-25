@@ -19,7 +19,9 @@ const mockButtonComponent = jest.fn(({ href, children }) => (
   </a>
 ));
 
-const mockCircuitBackgroundComponent = jest.fn(() => <div data-testid="circuit-background" />);
+const mockCircuitBackgroundComponent = jest.fn(() => (
+  <div data-testid="circuit-background" />
+));
 
 jest.mock("@/app/components/ui", () => ({
   Button: (props) => mockButtonComponent(props),
@@ -27,11 +29,17 @@ jest.mock("@/app/components/ui", () => ({
 }));
 
 // Mock contexts
-const mockAuthProvider = jest.fn(({ children, initialUser, initialSession }) => (
-  <div data-testid="auth-provider" data-initial-user={JSON.stringify(initialUser)} data-initial-session={JSON.stringify(initialSession)}>
-    {children}
-  </div>
-));
+const mockAuthProvider = jest.fn(
+  ({ children, initialUser, initialSession }) => (
+    <div
+      data-testid="auth-provider"
+      data-initial-user={JSON.stringify(initialUser)}
+      data-initial-session={JSON.stringify(initialSession)}
+    >
+      {children}
+    </div>
+  )
+);
 
 const mockAuthHook = jest.fn().mockReturnValue({
   user: { id: "test-user", email: "test@example.com" },
@@ -45,7 +53,10 @@ jest.mock("@/app/contexts/AuthContext", () => ({
 }));
 
 const mockIncidentProvider = jest.fn(({ children, incidents }) => (
-  <div data-testid="incident-provider" data-incidents={JSON.stringify(incidents)}>
+  <div
+    data-testid="incident-provider"
+    data-incidents={JSON.stringify(incidents)}
+  >
     {children}
   </div>
 ));
@@ -108,9 +119,9 @@ describe("AppShell Component", () => {
       decade: 2020,
       IncidentDetailsWindows: () => <div>Mock Window</div>,
     });
-    
+
     // Mock console.error to prevent React error logs during ErrorBoundary tests
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, "error").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -145,16 +156,20 @@ describe("AppShell Component", () => {
     usePathname.mockReturnValue("/catalog");
     render(<TestComponent />);
     expect(screen.getByTestId("home-button")).toBeInTheDocument();
-    expect(mockButtonComponent).toHaveBeenCalledWith(expect.objectContaining({
-      href: "/"
-    }));
+    expect(mockButtonComponent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        href: "/",
+      })
+    );
   });
 
   it("provides context access to children", () => {
     const ContextConsumer = () => {
       const { decade } = require("@/app/contexts/ThemeContext").useTheme();
-      const { isAuthenticated } = require("@/app/contexts/AuthContext").useAuth();
-      const { currentDecade } = require("@/app/contexts/IncidentContext").useIncidents();
+      const { isAuthenticated } =
+        require("@/app/contexts/AuthContext").useAuth();
+      const { currentDecade } =
+        require("@/app/contexts/IncidentContext").useIncidents();
 
       return (
         <div>
@@ -178,15 +193,25 @@ describe("AppShell Component", () => {
     expect(screen.getByTestId("current-decade")).toHaveTextContent("2020");
   });
 
-  it("initializes auth context with null values by default", () => {
-    render(<AppShell><div>Test</div></AppShell>);
-    
-    expect(screen.getByTestId("auth-provider")).toHaveAttribute("data-initial-user", "null");
-    expect(screen.getByTestId("auth-provider")).toHaveAttribute("data-initial-session", "null");
+  it("initialises auth context with null values by default", () => {
+    render(
+      <AppShell>
+        <div>Test</div>
+      </AppShell>
+    );
+
+    expect(screen.getByTestId("auth-provider")).toHaveAttribute(
+      "data-initial-user",
+      "null"
+    );
+    expect(screen.getByTestId("auth-provider")).toHaveAttribute(
+      "data-initial-session",
+      "null"
+    );
     expect(mockAuthProvider).toHaveBeenCalledWith(
       expect.objectContaining({
         initialUser: null,
-        initialSession: null
+        initialSession: null,
       })
     );
   });
@@ -194,31 +219,31 @@ describe("AppShell Component", () => {
   it("passes initialUser and initialSession to AuthProvider", () => {
     const initialUser = { id: "user123", name: "Test User" };
     const initialSession = { token: "abc123" };
-    
+
     render(
       <AppShell initialUser={initialUser} initialSession={initialSession}>
         <div>Test</div>
       </AppShell>
     );
-    
+
     expect(screen.getByTestId("auth-provider")).toHaveAttribute(
-      "data-initial-user", 
+      "data-initial-user",
       JSON.stringify(initialUser)
     );
     expect(screen.getByTestId("auth-provider")).toHaveAttribute(
-      "data-initial-session", 
+      "data-initial-session",
       JSON.stringify(initialSession)
     );
     expect(mockAuthProvider).toHaveBeenCalledWith(
       expect.objectContaining({
         initialUser,
-        initialSession
+        initialSession,
       })
     );
   });
 
   // Edge cases and more comprehensive tests
-  
+
   it("handles null or undefined children", () => {
     render(<AppShell>{null}</AppShell>);
     expect(screen.getByTestId("auth-provider")).toBeInTheDocument();
@@ -241,7 +266,7 @@ describe("AppShell Component", () => {
         <div data-testid="child2">Child 2</div>
       </AppShell>
     );
-    
+
     expect(screen.getByTestId("child1")).toBeInTheDocument();
     expect(screen.getByTestId("child2")).toBeInTheDocument();
   });
@@ -253,33 +278,39 @@ describe("AppShell Component", () => {
       isAuthenticated: true,
       isLoading: false,
     });
-    
+
     const { rerender } = render(
       <TestComponent>
         <div data-testid="auth-state">
-          {require("@/app/contexts/AuthContext").useAuth().isAuthenticated ? "Authenticated" : "Not Authenticated"}
+          {require("@/app/contexts/AuthContext").useAuth().isAuthenticated
+            ? "Authenticated"
+            : "Not Authenticated"}
         </div>
       </TestComponent>
     );
-    
+
     expect(screen.getByTestId("auth-state")).toHaveTextContent("Authenticated");
-    
+
     // Test with unauthenticated user
     mockAuthHook.mockReturnValueOnce({
       user: null,
       isAuthenticated: false,
       isLoading: false,
     });
-    
+
     rerender(
       <TestComponent>
         <div data-testid="auth-state">
-          {require("@/app/contexts/AuthContext").useAuth().isAuthenticated ? "Authenticated" : "Not Authenticated"}
+          {require("@/app/contexts/AuthContext").useAuth().isAuthenticated
+            ? "Authenticated"
+            : "Not Authenticated"}
         </div>
       </TestComponent>
     );
-    
-    expect(screen.getByTestId("auth-state")).toHaveTextContent("Not Authenticated");
+
+    expect(screen.getByTestId("auth-state")).toHaveTextContent(
+      "Not Authenticated"
+    );
   });
 
   it("handles different decades in theme context", () => {
@@ -289,12 +320,12 @@ describe("AppShell Component", () => {
       isLoading: false,
       currentDecade: 1980,
     });
-    
+
     mockThemeHook.mockReturnValueOnce({
       decade: 1980,
       IncidentDetailsWindows: () => <div>1980s Window</div>,
     });
-    
+
     render(
       <TestComponent>
         <div data-testid="decade-display">
@@ -302,7 +333,7 @@ describe("AppShell Component", () => {
         </div>
       </TestComponent>
     );
-    
+
     expect(screen.getByTestId("decade-display")).toHaveTextContent("1980");
   });
 
@@ -312,15 +343,17 @@ describe("AppShell Component", () => {
       isLoading: true,
       currentDecade: 2020,
     });
-    
+
     render(
       <TestComponent>
         <div data-testid="loading-state">
-          {require("@/app/contexts/IncidentContext").useIncidents().isLoading ? "Loading" : "Not Loading"}
+          {require("@/app/contexts/IncidentContext").useIncidents().isLoading
+            ? "Loading"
+            : "Not Loading"}
         </div>
       </TestComponent>
     );
-    
+
     expect(screen.getByTestId("loading-state")).toHaveTextContent("Loading");
   });
 
@@ -331,21 +364,27 @@ describe("AppShell Component", () => {
       isLoading: true, // This test expects isLoading to be true
       currentDecade: 2020,
     }));
-    
+
     const NestedConsumer = () => {
-      const { isAuthenticated } = require("@/app/contexts/AuthContext").useAuth();
-      const { isLoading } = require("@/app/contexts/IncidentContext").useIncidents();
+      const { isAuthenticated } =
+        require("@/app/contexts/AuthContext").useAuth();
+      const { isLoading } =
+        require("@/app/contexts/IncidentContext").useIncidents();
       const { decade } = require("@/app/contexts/ThemeContext").useTheme();
-      
+
       return (
         <div>
-          <span data-testid="nested-auth">{isAuthenticated ? "Auth" : "No Auth"}</span>
-          <span data-testid="nested-loading">{isLoading ? "Loading" : "Not Loading"}</span>
+          <span data-testid="nested-auth">
+            {isAuthenticated ? "Auth" : "No Auth"}
+          </span>
+          <span data-testid="nested-loading">
+            {isLoading ? "Loading" : "Not Loading"}
+          </span>
           <span data-testid="nested-decade">{decade}</span>
         </div>
       );
     };
-    
+
     render(
       <AppShell>
         <div>
@@ -355,7 +394,7 @@ describe("AppShell Component", () => {
         </div>
       </AppShell>
     );
-    
+
     expect(screen.getByTestId("nested-auth")).toHaveTextContent("Auth");
     expect(screen.getByTestId("nested-loading")).toHaveTextContent("Loading");
     expect(screen.getByTestId("nested-decade")).toHaveTextContent("2020");
@@ -365,19 +404,19 @@ describe("AppShell Component", () => {
     // We need to clear the render tree between tests to avoid duplicate elements
     const { unmount } = render(<TestComponent />);
     unmount();
-    
+
     // Test with path with trailing slash
     usePathname.mockReturnValue("/path/");
     const { unmount: unmount1 } = render(<TestComponent />);
     expect(screen.getByTestId("home-button")).toBeInTheDocument();
     unmount1();
-    
+
     // Test with path with query parameters
     usePathname.mockReturnValue("/path?query=test");
     const { unmount: unmount2 } = render(<TestComponent />);
     expect(screen.getByTestId("home-button")).toBeInTheDocument();
     unmount2();
-    
+
     // Test with complex path
     usePathname.mockReturnValue("/path/to/nested/route");
     render(<TestComponent />);

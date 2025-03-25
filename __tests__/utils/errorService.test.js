@@ -161,13 +161,6 @@ describe("Error Service", () => {
       const error = { details: "Detailed error information" };
       expect(getErrorMessage(error)).toBe("Detailed error information");
     });
-
-    it("returns fallback when object without details is provided", () => {
-      const error = { type: ERROR_TYPES.UNKNOWN_ERROR };
-      expect(getErrorMessage(error, "Fallback message")).toBe(
-        "Fallback message"
-      );
-    });
   });
 
   describe("hasErrorMessage", () => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { ApiErrorMessage } from "../ui/errors";
+import { ApiMessage } from "./ApiMessage";
 import { SeverityInfo } from "../ui/shared";
 import formStyles from "./FormStyles.module.css";
 import {
@@ -24,6 +24,11 @@ const categories = [
 
 const severityOptions = ["Low", "Moderate", "High", "Critical"];
 
+/**
+ * Component for rendering severity field label with info button.
+ *
+ * @param {Function} toggleSeverityInfo - Function to toggle severity info panel visibility
+ */
 const SeverityLabel = ({ toggleSeverityInfo }) => (
   <>
     Severity
@@ -48,6 +53,28 @@ const SeverityLabel = ({ toggleSeverityInfo }) => (
   </>
 );
 
+/**
+ * Form component for creating and editing security incident records.
+ * Includes fields for incident details, severity classification, and artifact uploads.
+ *
+ * @param {Object} formData - The current form data state including all form fields
+ * @param {Object} formErrors - Form validation errors
+ * @param {boolean} isSubmitting - Whether the form is currently submitting
+ * @param {Function} handleChange - Function to handle input changes
+ * @param {Function} handleSubmit - Function to handle form submission
+ * @param {Function} handleDateChange - Function to handle date field changes
+ * @param {Function} handleArtifactTypeChange - Function to handle artifact type selection changes
+ * @param {Object} fileState - State for file upload (file object and errors)
+ * @param {Function} handleFileChange - Function to handle file selection changes
+ * @param {boolean} showSeverityInfo - Whether to show severity level information
+ * @param {Function} toggleSeverityInfo - Function to toggle severity info visibility
+ * @param {Object|null} apiError - Error response from the API
+ * @param {Function} onClose - Function to handle form cancellation
+ * @param {string} submitLabel - Text for the submit button
+ * @param {string} loadingLabel - Text for the submit button when form is submitting
+ * @param {boolean} [isEditMode=false] - Whether the form is in edit mode
+ * @param {Object|null} [incident=null] - Existing incident data for edit mode
+ */
 const IncidentManagementForm = ({
   // Form state
   formData,
@@ -87,7 +114,7 @@ const IncidentManagementForm = ({
       noValidate
       data-testid="form"
     >
-      {apiError && <ApiErrorMessage error={apiError} />}
+      {apiError && <ApiMessage response={apiError} />}
 
       <TextField
         data-testid="incident-name-input"

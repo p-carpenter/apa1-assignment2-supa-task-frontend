@@ -1,6 +1,13 @@
 import React from "react";
 import styles from "./Filters.module.css";
 
+/**
+ * Renders a dropdown select control for sorting incident data
+ * Provides options for sorting by date, name, and severity in ascending or descending order
+ *
+ * @param {string} props.sortOrder - Current sort order value in format "field-direction" (e.g., "year-desc")
+ * @param {Function} props.onSortChange - Handler function called when sort selection changes
+ */
 const SortControls = ({ sortOrder, onSortChange }) => {
   return (
     <div className={styles.multiSelectDropdown}>
