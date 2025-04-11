@@ -34,12 +34,9 @@ const IncidentDetailsWindows = {
   ),
 };
 
-const StandardArtifactWidth = 863;
-
 // Theme context structure
 const ThemeContext = createContext({
   decade: 1990,
-  artifactWidth: StandardArtifactWidth,
   IncidentDetailsWindows: IncidentDetailsWindows[1990],
 });
 
@@ -60,7 +57,6 @@ export const ThemeProvider = ({ children }) => {
       value={{
         decade: decadeKey,
         IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
-        artifactWidth: StandardArtifactWidth,
       }}
     >
       {children}

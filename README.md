@@ -2,9 +2,9 @@
 
 ![](/public/readme-assets/homepage.gif)
 
-A digital museum website showcasing significant technological failures throughout computing history. This website provides an interactive, historically-themed interface for exploring and cataloging technology incidents.
+A digital museum website showcasing significant technological failures ("incidents") throughout computing history. This website provides an interactive, historically-themed interface for exploring and cataloguing technology incidents.
 
-## 📑 Table of Contents
+## Table of Contents
 
 - [Overview](#overview)
 - [Features](#features)
@@ -21,30 +21,37 @@ A digital museum website showcasing significant technological failures throughou
   - [Updating or Deleting Incidents](#updating-or-deleting-incidents)
 - [API Routes](#api-routes)
 - [Era-Specific Theming](#era-specific-theming)
+- [Authentication](#authentication)
+- [Database Schema](#database-schema)
+- [State Management](#state-management)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Accessibility](#accessibility)
+- [Code Standards](#code-standards)
+- [Performance](#performance)
 - [Future Enhancements](#future-enhancements)
 - [Contributing](#contributing)
 
-## 🌟 Overview
+## Overview
 
-The Tech Incidents Archive is a digital museum dedicated to documenting significant technological failures and their impact on modern computing safety standards. It presents incidents through era-appropriate interfaces, showcasing events like the Y2K Bug, the Morris Worm, and various hardware/software failures throughout tech history.
+The Tech Incidents Archive presents incidents through a museum exhibit-themed gallery, showcasing events like the Y2K Bug, the Morris Worm, and other famous hardware/software failures throughout tech history. Some of the incidents displayed in the gallery allow users to interact with the artifacts and become immersed in the incident. Detail windows to the right of the artifacts are themed according to the decade.
 
-The application features a retro computing aesthetic with Windows 95-style interface elements for incidents from the 1990s and terminal-style displays for 1980s incidents.
+Registered users are able to edit, add and delete incidents in the catalog.
 
-## ✨ Features
+## Features
 
 - **Interactive Museum Interface**: Designed as a digital museum with a retro computing aesthetic
-- **Era-Specific Visualization**: Different UI themes based on the decade of the incident (1980s terminal, 1990s Windows 95)
+- **Era-Specific Visualisation**: Different detail window themes based on the decade of the incident
 - **Comprehensive Catalog**: Browse all incidents with sorting and filtering capabilities
 - **Advanced Search**: Find incidents by name, description, or category
 - **Year-Based Navigation**: Browse incidents organized by year
 - **Detailed Gallery View**: Explore incidents with era-appropriate visual presentations
 - **Contribute after Registration**: Sign up to add, view, update, and delete incident records
-- **Responsive Design**: Works on various screen sizes
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-- **Frontend Framework**: [Next.js](https://nextjs.org/) (v15.1.7)
-- **UI Library**: [React](https://reactjs.org/) (v19.0.0)
+- **Frontend Framework**: [Next.js](https://nextjs.org/)
+- **UI Library**: [React](https://reactjs.org/)
 - **Styling**:
   - CSS Modules
 - **Backend**:
@@ -54,43 +61,30 @@ The application features a retro computing aesthetic with Windows 95-style inter
 - **Storage** (for community-added optional artifact images): [Supabase](https://supabase.com/)
 - **Icons**: [Lucide React](https://lucide.dev/docs/lucide-react)
 
-## 📂 Project Structure
+## Project Structure
 
-```
-app/
-├── api/                    # Next.js API routes for proxy endpoints
-│   ├── delete-incident/    # Endpoint to delete incidents
-│   ├── new-incident/       # Endpoint to create new incidents
-│   ├── fetch-incidents/     # Endpoint to fetch all incidents
-│   └── update-incident/    # Endpoint to update incidents
-├── catalog/                # Catalog page to browse all incidents
-├── components/             # Reusable UI components
-│   ├── artifacts/          # Components for displaying incident artifacts
-│   ├── layouts/            # Page layout components
-│   └── ui/                 # UI components (buttons, cards, etc.)
-│       ├── console/        # Terminal-style components for 80s theme
-│       ├── themes/         # Decade-specific theme components
-│       └── ...             # Other UI component categories
-├── contexts/               # React context providers
-│   ├── IncidentContext.jsx # Context for incident data management
-│   └── ThemeContext.jsx    # Context for theme management
-├── gallery/                # Gallery page for detailed incident viewing
-├── hooks/                  # Custom React hooks
-├── utils/                  # Utility functions
-│   ├── navigation/         # Navigation utilities
-│   └── ...                 # Other utility categories
-├── globals.css             # Global styles
-├── homepage.styles.css     # Homepage-specific styles
-├── layout.js               # Root layout component
-└── page.js                 # Homepage component
-```
+- `/app`: Main application code
+  - `/api`: API route handlers for Supabase interactions
+  - `/catalog`: Catalog page components for browsing incidents
+  - `/components`: Reusable UI components
+    - `/forms`: Form components for user inputs
+    - `/layouts`: Layout components for page structure
+    - `/ui`: UI elements and interactive components
+  - `/contexts`: React contexts for state management
+    - `AuthContext.jsx`: Authentication state management
+    - `IncidentContext.jsx`: Incident data state management
+    - `ThemeContext.jsx`: Era-specific theme management
+  - `/gallery`: Gallery view components
+  - `/hooks`: Custom React hooks
+  - `/login`, `/signup`, `/profile`, `/reset_password`: Authentication-related pages
+  - `/utils`: Utility functions for data processing and formatting
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18.0.0 or later)
-- [npm](https://www.npmjs.com/) (v7 or later)
+- [Node.js](https://nodejs.org/)
+- [npm](https://www.npmjs.com/)
 - A [Supabase](https://supabase.com/) account and project
 
 ### Installation
@@ -126,7 +120,7 @@ SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-## 📋 Usage
+## Usage
 
 ### Viewing Incidents
 
@@ -153,48 +147,129 @@ The application supports adding new incidents through a form interface:
    - Name
    - Incident Date
    - Category
-   - Severity (1-5)
+   - Severity (Low-Critical)
    - Description
-   - Cause
-   - Consequences
-   - Time to Resolve
 2. Optionally add artifact content (code, images)
 3. Submit the form to create a new incident record
 
 ### Updating or Deleting Incidents
 
-1. In the detailed incident view, use the options to edit or delete the incident
+1. In selection mode, use the options to edit or delete the incident
 2. The edit form will be pre-populated with the incident's existing data
 3. Make changes and submit, or confirm deletion if deleting
 
-## 🔌 API Routes
+## API Routes
 
 The application uses the following API routes:
+_Incident routes_:
 
-- `GET /api/tech-incidents`: Fetch all incidents
+- `GET /api/fetch-incidents`: Fetch all incidents
 - `POST /api/new-incident`: Create a new incident
 - `PUT /api/update-incident`: Update an existing incident
 - `DELETE /api/delete-incident`: Delete an incident
 
-All these routes interact with Supabase Edge Functions for database operations.
+  _Authentication routes_:
 
-## 🎨 Era-Specific Theming
+- `GET /api/auth/user`: Get the current authenticated user's details
+- `POST /api/auth/signup`: Sign up with email and password
+- `POST /api/auth/signout`: Sign out of the application
+- `POST /api/auth/signin`: Sign into the application
+- `POST /api/auth/protected`: Submit data to a protected endpoint
+- `GET /api/auth/protected`: Get data from a protected endpoint
+- `POST /api/auth/password-recovery`: Send email with link to reset password
+- `POST /api/auth/password-recovery/confirm: Create new password
 
-The application features different visual themes based on the decade of the incident:
+All of these routes interact with Supabase Edge Functions for database operations.
 
-- **1980s**: Norton Commander-style dual-window interface
-- **1990s**: Windows 95-style interface with classic window controls, menu bars, and pixel art
+## Era-Specific Theming
+
+The incident's detail window in the gallery features different visual themes based on the decade of the incident:
+
+- **1980s**: 1980s Apple System II OS interface
+- **1990s**: Windows 98 interface
+- **2000s**: Frutiger Aero-style interface with category-specific icons
+- **2010s**: Material Design/flat design interface with severity-specific header colour
+- **2020s**: Dark/light themed (adapts to system preference with toggle) interface with catalog and severity specific colours
 
 The theme is automatically selected based on the incident's date, through the Theme Provider (app/contexts/ThemeContext.jsx).
 
-![](/public/readme-assets/gallery-themes.gif)
+## Authentication
 
-## 🔮 Future Enhancements
+The application uses Supabase Authentication for user management:
 
-- Additional era themes (2000s, 2010s)
-- User accounts
+- **User Roles**: Public (view-only) and Member (can contribute)
+- **Authentication Flow**:
+  - Email/password registration and login (with email confirmation)
+  - Password recovery via email
+  - Session persistence using Supabase Auth
+- **Protected Routes**: Only authenticated users can add, edit, or delete incidents, and view their profile
+- **Auth Context**: The `AuthContext` provides authentication state throughout the application
+- **Server Validation**: All protected API routes verify authentication server-side
 
-## 🤝 Contributing
+## Database Schema
+
+The Supabase database includes the following main tables:
+
+- **incidents**: Stores incident records
+
+  - `id`: Unique identifier (UUID)
+  - `created_at`: Record creation timestamp
+  - `incident_name`: Incident name
+  - `incident_date`: Date when incident occurred
+  - `category`: Type of incident (Hardware, Software, Security, etc.)
+  - `severity`: Impact level (Low, Medium, High, Critical)
+  - `description`: Detailed description
+  - `artifact_type`: Optional 'image' or 'code' artifact type
+  - `artifact_content`: Optional technical details or code samples
+
+## State Management
+
+The application uses several React contexts for state management:
+
+- **AuthContext**: Manages authentication state
+
+  - Current user information
+  - Login/logout functionality
+  - Authentication status checks
+
+- **IncidentContext**: Manages incident data
+
+  - Fetching and caching incidents
+  - CRUD operations for incidents
+  - Filtering and sorting functionality
+
+- **ThemeContext**: Handles era-specific theming
+  - Determines appropriate theme based on incident date
+  - Provides theme variables to styled components
+
+## Testing
+
+The application includes testing setup with:
+
+- **Unit Tests**: Test individual components and utility functions
+- **Integration Tests**: Test interactions between components
+- **Mock Services**: Mock implementations of Supabase services
+
+To run tests:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm test -- --coverage
+```
+
+## Code Standards
+
+Code quality is maintained through:
+
+- **Prettier**: For consistent code formatting
+- **Next.js Best Practices**: Following recommended patterns from their documentation
+- **Component Structure**: Consistent organisation of component files
+- **CSS Modules**: Scoped styling to prevent conflicts
+
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 

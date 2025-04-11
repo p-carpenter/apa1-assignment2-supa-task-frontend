@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
-import GalleryNavButtons from "@/app/components/ui/gallery-navigation/GalleryNavButtons";
+import GalleryNavButtons from "@/app/gallery/GalleryNavButtons";
 
 jest.mock("next/link", () => {
   return ({ href, children, className }) => (
@@ -43,7 +43,7 @@ describe("GalleryNavButtons", () => {
     render(<GalleryNavButtons {...mockProps} />);
 
     const currentYearButton = screen.getByRole("button", { name: /2001/ });
-    expect(currentYearButton).toHaveClass("year-button--active");
+    expect(currentYearButton).toHaveClass("activeYearButton");
   });
 
   it("displays incident count indicators for years with multiple incidents", () => {

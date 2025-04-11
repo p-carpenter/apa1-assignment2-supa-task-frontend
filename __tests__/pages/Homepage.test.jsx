@@ -98,54 +98,38 @@ describe("Homepage", () => {
     ).toBeInTheDocument();
   });
 
-  it("displays loading state during authentication check", async () => {
+  it("navigates to register page when 'Contribute to the Archive' link is clicked when unauthenticated", () => {
     const { useAuth } = require("@/app/contexts/AuthContext");
     useAuth.mockReturnValue({
       isAuthenticated: false,
-      user: null,
-      loading: true,
+      user: { email: "test@example.com", displayName: "TestUser" },
+      loading: false,
     });
-
     render(<Home />);
 
-    expect(screen.getByText("Verifying credentials...")).toBeInTheDocument();
+    const registerLink = screen.getByText("Contribute to the Archive");
+    const registerElement = registerLink.closest("a");
+
+    fireEvent.click(registerElement);
+
+    expect(registerElement).toHaveAttribute("href", "/signup");
   });
 
-  it("opens info modal when 'What is' link is clicked", async () => {
-    render(<Home />);
-
-    const learnMoreButton = screen.getByText(
-      "What is the Tech Incidents Archive?"
-    );
-    fireEvent.click(learnMoreButton);
-
-    expect(
-      screen.getByText(/The Tech Incidents Archive is a digital museum/)
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Y2K Bug/)).toBeInTheDocument();
-
-    const closeButton = screen.getByText("Close");
-    expect(closeButton).toBeInTheDocument();
-
-    fireEvent.click(closeButton);
-
-    await waitFor(() => {
-      expect(
-        screen.queryByText(/The Tech Incidents Archive is a digital museum/)
-      ).not.toBeInTheDocument();
+  it("navigates to catalog page when 'Contribute to the Archive' link is clicked when authenticated", () => {
+    const { useAuth } = require("@/app/contexts/AuthContext");
+    useAuth.mockReturnValue({
+      isAuthenticated: true,
+      user: { email: "test@example.com", displayName: "TestUser" },
+      loading: false,
     });
-  });
-
-  it("changes donation button text when clicked", async () => {
     render(<Home />);
 
-    const dismissButton = screen.getByText("Maybe Later");
-    fireEvent.click(dismissButton);
+    const catalogLink = screen.getByText("Contribute to the Archive");
+    const catalogElement = catalogLink.closest("a");
 
-    expect(screen.getByText("Donate £100")).toBeInTheDocument();
-    expect(screen.getByText("Donate £100").className).toContain(
-      "donate big-donate"
-    );
+    fireEvent.click(catalogElement);
+
+    expect(catalogElement).toHaveAttribute("href", "/catalog");
   });
 
   it("navigates to gallery when 'EXPLORE ARCHIVE' button is clicked", () => {

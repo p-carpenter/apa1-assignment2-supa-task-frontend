@@ -1,194 +1,151 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
-import "../resetpassword.module.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import { ConfirmResetForm } from "@/app/components/forms";
+import { useForm } from "@/app/hooks/useForm";
+import { validateAuthForm } from "@/app/utils/validation/formValidation";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
 
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-} from "../../components/ui";
+} from "../../components/ui/console";
 
-export default function ConfirmResetPage() {
-  const { isAuthenticated, loading } = useAuth();
+/**
+ * Password reset confirmation page
+ * Allows users to set a new password after receiving a reset token via email
+ * Extracts the token from the URL hash and validates it before allowing password reset
+ */
+const ConfirmResetPage = () => {
+  const { isAuthenticated, loading, handleResetPasswordConfirm } = useAuth();
   const router = useRouter();
 
   const [token, setToken] = useState("");
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
+  const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submissionInProgress = useRef(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const hash = window.location.hash;
-      console.log("Hash:", hash);
 
       if (hash && hash.includes("access_token=")) {
         const extractedToken = hash.replace("#access_token=", "");
-        console.log(
-          "Token found in hash:",
-          extractedToken.substring(0, 10) + "..."
-        );
         setToken(extractedToken);
-      } else {
-        console.log("No token found in hash");
       }
     }
   }, []);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push("/profile");
-    }
-
     if (
       typeof window !== "undefined" &&
       !token &&
       !window.location.hash.includes("access_token")
     ) {
-      console.log("No token found, redirecting to reset_password");
+      setApiError({
+        message:
+          "Password reset token is missing or invalid. Please request a new password reset.",
+        type: ERROR_TYPES.TOKEN_EXPIRED,
+      });
+
       router.push("/reset_password");
     }
   }, [isAuthenticated, loading, router, token]);
 
-  const validateField = (name, value) => {
-    let error = null;
-
-    switch (name) {
-      case "email":
-        if (!value.trim()) {
-          error = "Email is required.";
-        } else {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(value)) {
-            error = "Please enter a valid email address.";
-          }
-        }
-        break;
-
-      case "password":
-        if (!value.trim()) {
-          error = "Password is required.";
-        } else if (value.length < 8) {
-          error = "Password must be at least 8 characters long.";
-        } else {
-          const hasNumber = /[0-9]/.test(value);
-          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
-            value
-          );
-          const hasUpperCase = /[A-Z]/.test(value);
-
-          if (!hasNumber) {
-            error = "Password must contain at least one number.";
-          } else if (!hasSpecialChar) {
-            error = "Password must contain at least one special character.";
-          } else if (!hasUpperCase) {
-            error = "Password must contain at least one uppercase letter.";
-          }
-        }
-        break;
-
-      case "confirmPassword":
-        if (!value.trim()) {
-          error = "Please confirm your password.";
-        } else if (value !== formData.password) {
-          error = "Passwords do not match.";
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    return error;
-  };
-
-  const validateFields = () => {
-    const errors = {};
-
-    const emailError = validateField("email", formData.email);
-    if (emailError) errors.email = emailError;
-
-    const passwordError = validateField("password", formData.password);
-    if (passwordError) errors.password = passwordError;
-
-    const confirmPasswordError = validateField(
-      "confirmPassword",
-      formData.confirmPassword
-    );
-    if (confirmPasswordError) errors.confirmPassword = confirmPasswordError;
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    const error = validateField(name, value);
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: error,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    if (!validateFields()) {
+  /**
+   * Handles the form submission for password reset confirmation
+   * @param {Object} formData - The form data containing email and new password
+   */
+  const handleFormSubmit = async (formData) => {
+    if (submissionInProgress.current) {
       return;
     }
 
-    setIsSubmitting(true);
+    submissionInProgress.current = true;
+    setApiError(null);
+    setSuccessMessage("");
 
     try {
-      const response = await fetch("/api/auth/password-recovery/confirm", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          token,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Something went wrong");
+      if (formData.password !== formData.confirmPassword) {
+        const error = {
+          type: ERROR_TYPES.BAD_REQUEST,
+          message: "Passwords do not match.",
+        };
+        setApiError(error);
+        submissionInProgress.current = false;
+        return;
       }
 
+      await handleResetPasswordConfirm({
+        email: formData.email,
+        password: formData.password,
+        token,
+      });
+      submissionInProgress.current = false;
       setSuccessMessage(
         "Your password has been successfully reset. You can now login with your new password."
       );
     } catch (err) {
-      setErrorMessage(err.message || "Failed to process request");
+      submissionInProgress.current = false;
+      // Handle different error types
+      let standardError;
+      if (
+        err.message === "Token has expired" ||
+        err.type === ERROR_TYPES.TOKEN_EXPIRED
+      ) {
+        standardError = {
+          type: ERROR_TYPES.TOKEN_EXPIRED,
+          message:
+            "Password reset token has expired. Please request a new one.",
+        };
+      } else if (err.message === "Unexpected error") {
+        standardError = {
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message:
+            "An unexpected error occurred. Please try again or request a new reset link.",
+        };
+      } else {
+        standardError = processApiError(err, {
+          defaultMessage: "Failed to reset password. Please try again.",
+        });
+      }
+
+      setApiError(standardError);
     } finally {
-      setIsSubmitting(false);
+      submissionInProgress.current = false;
     }
   };
 
-  const hasError = (fieldName) => {
-    return !!formErrors[fieldName];
+  const initialFormState = {
+    email: "",
+    password: "",
+    confirmPassword: "",
   };
+
+  const { formData, formErrors, isSubmitting, handleChange, handleSubmit } =
+    useForm(
+      initialFormState,
+      (data, fieldName) =>
+        validateAuthForm(data, fieldName, {
+          options: {
+            requirePasswordConfirmation: true,
+            minLength: 8,
+            requireUppercase: true,
+            requireNumbers: true,
+            requireSpecial: true,
+          },
+        }),
+      handleFormSubmit
+    );
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
@@ -202,8 +159,8 @@ export default function ConfirmResetPage() {
     window.location.hash.includes("access_token")
   ) {
     return (
-      <div className="loading-container">
-        <div className="auth-loading"></div>
+      <div className={loadingStyles.loadingContainer}>
+        <div className={authStyles.authLoading}></div>
         <p>Loading password reset form...</p>
       </div>
     );
@@ -219,13 +176,11 @@ export default function ConfirmResetPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-password-reset"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --recovery --reset"
@@ -239,129 +194,65 @@ export default function ConfirmResetPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Create a new password for your account.
               </div>
-              <div className="output-text highlight">ENTER NEW PASSWORD</div>
+              <div
+                className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
+              >
+                ENTER NEW PASSWORD
+              </div>
             </CommandOutput>
 
-            <div className="auth-form-container">
-              <div className="auth-header">
-                <h2 className="auth-title">RESET PASSWORD</h2>
-                <p className="auth-subtitle">Create a new secure password</p>
+            <div className={authStyles.formContainer}>
+              <div className={authStyles.header}>
+                <h2 className={authStyles.title}>RESET PASSWORD</h2>
+                <p className={authStyles.subtitle}>
+                  Create a new secure password
+                </p>
               </div>
 
-              {errorMessage && <div className="auth-error">{errorMessage}</div>}
               {successMessage && (
-                <div className="auth-success">{successMessage}</div>
+                <>
+                  <ApiMessage
+                    response={{ type: "success", message: successMessage }}
+                  />
+                  <div className={authStyles.authFooter}>
+                    <p>
+                      <Link href="/login" className={authStyles.authLink}>
+                        Back
+                      </Link>
+                    </p>
+                  </div>
+                </>
               )}
 
               {!successMessage && (
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      <span className="prompt">$</span> EMAIL
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      className={`form-input ${hasError("email") ? "input-error" : ""}`}
-                      placeholder="user@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.email && (
-                      <div className="form-error">{formErrors.email}</div>
-                    )}
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="password" className="form-label">
-                      <span className="prompt">$</span> NEW PASSWORD
-                    </label>
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      autoComplete="new-password"
-                      className={`form-input ${hasError("password") ? "input-error" : ""}`}
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.password && (
-                      <div className="form-error">{formErrors.password}</div>
-                    )}
-                    <p
-                      style={{
-                        fontSize: "0.7rem",
-                        marginTop: "4px",
-                        color: "#888",
-                      }}
-                    >
-                      Password must be at least 8 characters and include one
-                      number, one special character, and one uppercase letter.
+                <>
+                  <ConfirmResetForm
+                    formData={formData}
+                    formErrors={formErrors}
+                    handleChange={handleChange}
+                    handleSubmit={handleSubmit}
+                    isSubmitting={isSubmitting || loading}
+                    apiError={apiError}
+                  />
+                  <div className={authStyles.authFooter}>
+                    <p>
+                      Remember your password?{" "}
+                      <Link href="/login" className={authStyles.authLink}>
+                        Back
+                      </Link>
                     </p>
                   </div>
-
-                  <div className="form-group">
-                    <label htmlFor="confirmPassword" className="form-label">
-                      <span className="prompt">$</span> CONFIRM PASSWORD
-                    </label>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      autoComplete="new-password"
-                      className={`form-input ${
-                        hasError("confirmPassword") ? "input-error" : ""
-                      }`}
-                      placeholder="••••••••"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.confirmPassword && (
-                      <div className="form-error">
-                        {formErrors.confirmPassword}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="auth-button"
-                    disabled={isSubmitting}
-                    data-testid="confirm-reset-button"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="auth-loading"></span>
-                        PROCESSING...
-                      </>
-                    ) : (
-                      "RESET PASSWORD"
-                    )}
-                  </button>
-                </form>
+                </>
               )}
-
-              <div className="auth-footer">
-                <p>
-                  Remember your password?{" "}
-                  <Link href="/login" className="auth-link">
-                    Back to login
-                  </Link>
-                </p>
-              </div>
             </div>
           </ConsoleSection>
         </ConsoleWindow>
       </div>
     </>
   );
-}
+};
+
+export default ConfirmResetPage;

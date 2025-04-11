@@ -1,104 +1,111 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import Link from "next/link";
-import "./resetpassword.module.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import { ResetPasswordForm } from "@/app/components/forms";
+import { useForm } from "@/app/hooks/useForm";
+import { validateResetPasswordForm } from "@/app/utils/validation/formValidation";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
 
-import { ConsoleWindow, ConsoleSection, CommandOutput } from "../components/ui";
+import {
+  ConsoleWindow,
+  ConsoleSection,
+  CommandOutput,
+} from "../components/ui/console";
 
-export default function ResetPasswordPage() {
-  const { isAuthenticated, loading } = useAuth();
+/**
+ * Password reset request page
+ * Allows users to request a password reset by providing their email address
+ * Sends a password reset link to the user's email when submitted
+ */
+const ResetPasswordPage = () => {
+  const { isAuthenticated, loading, handleResetPassword } = useAuth();
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
-    email: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
+  const [apiError, setApiError] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const submissionInProgress = useRef(false);
   useEffect(() => {
     if (!loading && isAuthenticated) {
       router.push("/profile");
     }
   }, [isAuthenticated, loading, router]);
 
-  const validateEmail = (email) => {
-    if (!email.trim()) {
-      return "Email is required.";
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return "Please enter a valid email address.";
-    }
-
-    return null;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (name === "email") {
-      const error = validateEmail(value);
-      setFormErrors((prev) => ({
-        ...prev,
-        email: error,
-      }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    const emailError = validateEmail(formData.email);
-    if (emailError) {
-      setFormErrors({ email: emailError });
+  /**
+   * Handles the form submission for password reset request
+   * @param {Object} formData - The form data containing email
+   * @returns {Object} Result object indicating success
+   */
+  const handleFormSubmit = async (formData) => {
+    if (submissionInProgress.current) {
       return;
     }
 
-    setIsSubmitting(true);
+    submissionInProgress.current = true;
+    setApiError(null);
+    setSuccessMessage("");
 
     try {
-      const response = await fetch("/api/auth/password-recovery", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: formData.email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Something went wrong");
-      }
+      await handleResetPassword(formData.email);
 
       setSuccessMessage(
         "Password reset instructions have been sent to your email."
       );
 
-      setFormData({ email: "" });
+      submissionInProgress.current = false;
+      return { success: true };
     } catch (err) {
-      setErrorMessage(err.message || "Failed to process request");
+      submissionInProgress.current = false;
+
+      // Handle the error differently based on the type
+      let standardError;
+      if (err.message === "Network error") {
+        standardError = {
+          type: ERROR_TYPES.NETWORK_ERROR,
+          message: "Network error. Please check your connection and try again.",
+          details: "Network error. Please check your connection and try again.",
+        };
+      } else if (err.message === "Unexpected error") {
+        standardError = {
+          type: ERROR_TYPES.UNKNOWN_ERROR,
+          message: "An unexpected error occurred. Please try again.",
+          details: "An unexpected error occurred. Please try again.",
+        };
+      } else if (err.message === "Failed to send reset email") {
+        standardError = {
+          type: ERROR_TYPES.BAD_REQUEST,
+          message: "Failed to send reset email. Please try again later.",
+          details: "Failed to send reset email. Please try again later.",
+        };
+      } else {
+        standardError = processApiError(err, {
+          defaultMessage:
+            "Failed to send password reset instructions. Please try again.",
+        });
+      }
+
+      setApiError(standardError);
+      throw standardError;
     } finally {
-      setIsSubmitting(false);
+      submissionInProgress.current = false;
     }
   };
 
-  const hasError = (fieldName) => {
-    return !!formErrors[fieldName];
-  };
+  const initialFormState = { email: "" };
+
+  const {
+    formData,
+    formErrors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    resetForm,
+  } = useForm(initialFormState, validateResetPasswordForm, handleFormSubmit);
 
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
@@ -108,13 +115,11 @@ export default function ResetPasswordPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-password-recovery"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --recovery --request"
@@ -128,71 +133,43 @@ export default function ResetPasswordPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Request a password reset link to be sent to your email.
               </div>
-              <div className="output-text highlight">
+              <div
+                className={`${terminalStyles.outputText} ${terminalStyles.highlight}`}
+              >
                 ENTER YOUR EMAIL ADDRESS
               </div>
             </CommandOutput>
 
-            <div className="auth-form-container">
-              <div className="auth-header">
-                <h2 className="auth-title">RECOVER ACCESS</h2>
-                <p className="auth-subtitle">
+            <div className={authStyles.formContainer}>
+              <div className={authStyles.header}>
+                <h2 className={authStyles.title}>RECOVER ACCESS</h2>
+                <p className={authStyles.subtitle}>
                   We&apos;ll send you password reset instructions to your email.
                 </p>
               </div>
 
-              {errorMessage && <div className="auth-error">{errorMessage}</div>}
-              {successMessage && (
-                <div className="auth-success">{successMessage}</div>
+              {successMessage ? (
+                <ApiMessage
+                  response={{ type: "success", message: successMessage }}
+                />
+              ) : (
+                <ResetPasswordForm
+                  formData={formData}
+                  formErrors={formErrors}
+                  handleChange={handleChange}
+                  handleSubmit={handleSubmit}
+                  isSubmitting={isSubmitting || loading}
+                  apiError={apiError}
+                />
               )}
 
-              {!successMessage && (
-                <form className="auth-form" onSubmit={handleSubmit} noValidate>
-                  <div className="form-group">
-                    <label htmlFor="email" className="form-label">
-                      <span className="prompt">$</span> EMAIL
-                    </label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      autoComplete="email"
-                      className={`form-input ${hasError("email") ? "input-error" : ""}`}
-                      placeholder="user@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      disabled={isSubmitting}
-                    />
-                    {formErrors.email && (
-                      <div className="form-error">{formErrors.email}</div>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="auth-button"
-                    disabled={isSubmitting}
-                    data-testid="reset-password-button"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="auth-loading"></span>
-                        PROCESSING...
-                      </>
-                    ) : (
-                      "SEND RESET LINK"
-                    )}
-                  </button>
-                </form>
-              )}
-
-              <div className="auth-footer">
+              <div className={authStyles.authFooter}>
                 <p>
                   Remember your password?{" "}
-                  <Link href="/login" className="auth-link">
+                  <Link href="/login" className={authStyles.authLink}>
                     Back to login
                   </Link>
                 </p>
@@ -203,4 +180,6 @@ export default function ResetPasswordPage() {
       </div>
     </>
   );
-}
+};
+
+export default ResetPasswordPage;

@@ -1,75 +1,104 @@
 /**
- * Formats an ISO date string into a human-readable format
- * @param {string} isoDateString - The ISO date string to format
- * @param {string} format - Format style ('short', 'medium', 'long', 'full') or custom format string
- * @returns {string} Formatted date string
+ * Formats a date to medium display format (DD MMM YYYY, e.g., "13 Jan 2023").
+ *
+ * @param {string|Date|number} date - A date string (any valid format including ISO), Date object, or timestamp.
+ * @returns {string} Formatted date in medium format (DD-MMM-YYYY) or an empty string if invalid.
  */
-export function formatDate(isoDateString, format = "medium") {
-  if (!isoDateString) return "";
+export const formatDateForDisplay = (date) => {
+  if (!date) return "";
+
+  let dateObj;
 
   try {
-    const date = new Date(isoDateString);
+    if (date instanceof Date) {
+      dateObj = date;
+    } else if (typeof date === "string") {
+      // Try to parse as an ISO string or any other valid date string
+      dateObj = new Date(date);
 
-    if (isNaN(date.getTime())) {
-      return isoDateString;
-    }
-
-    // Predefined format options
-    const options = {
-      short: { month: "numeric", day: "numeric", year: "numeric" },
-      medium: { month: "short", day: "numeric", year: "numeric" },
-      long: { month: "long", day: "numeric", year: "numeric" },
-      full: { weekday: "long", month: "long", day: "numeric", year: "numeric" },
-    };
-
-    return date.toLocaleDateString(
-      undefined,
-      options[format] || options.medium
-    );
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return isoDateString;
-  }
-}
-
-/**
- * Extract year from an ISO date string
- * @param {string} isoDateString - The ISO date string
- * @returns {number|null} The year or null if invalid
- */
-export function extractYear(isoDateString) {
-  if (!isoDateString) return null;
-
-  try {
-    const date = new Date(isoDateString);
-    return isNaN(date.getTime()) ? null : date.getFullYear();
-  } catch (error) {
-    console.error("Error extracting year:", error);
-    return null;
-  }
-}
-
-/**
- * Calculate decade from a year or date string
- * @param {number|string} yearOrDate - Year number or ISO date string
- * @returns {number|null} The decade (e.g., 2020) or null if invalid
- */
-export function calculateDecade(yearOrDate) {
-  if (!yearOrDate) return null;
-
-  try {
-    let year;
-    if (typeof yearOrDate === "number") {
-      year = yearOrDate;
+      // Special handling for DD-MM-YYYY format which JavaScript doesn't parse well
+      if (isNaN(dateObj.getTime()) && /^\d{2}-\d{2}-\d{4}$/.test(date)) {
+        const [day, month, year] = date.split("-").map(Number);
+        dateObj = new Date(year, month - 1, day);
+      }
     } else {
-      const date = new Date(yearOrDate);
-      if (isNaN(date.getTime())) return null;
-      year = date.getFullYear();
+      dateObj = new Date(date);
     }
 
-    return Math.floor(year / 10) * 10;
+    if (isNaN(dateObj.getTime())) {
+      console.warn(`Invalid date input: ${date}`);
+      return "";
+    }
+
+    return dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
   } catch (error) {
-    console.error("Error calculating decade:", error);
+    console.warn(`Error formatting date: ${error.message}`);
+    return "";
+  }
+};
+
+/**
+ * Parses a date string in DD-MM-YYYY format into a Date object.
+ *
+ * @param {string} dateString - A date string in DD-MM-YYYY format.
+ * @returns {Date|null} Parsed Date object or null if invalid.
+ */
+export const parseDate = (dateString) => {
+  if (!dateString || !/^\d{2}-\d{2}-\d{4}$/.test(dateString)) {
+    console.warn(`Invalid format: ${dateString}`);
     return null;
   }
-}
+
+  const [day, month, year] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  // Ensure the parsed date matches the expected values (prevents invalid rollovers)
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() + 1 !== month ||
+    date.getDate() !== day
+  ) {
+    console.warn(`Invalid date: ${dateString}`);
+    return null;
+  }
+
+  return date;
+};
+
+/**
+ * Formats a date input dynamically with automatic hyphen insertion.
+ * Automatically detects ISO dates and converts them to DD-MM-YYYY format.
+ *
+ * @param {string} input - Raw user input for a date or ISO date string.
+ * @returns {string} Formatted input with hyphens (DD-MM-YYYY).
+ */
+export const formatDateInput = (input) => {
+  if (!input) return "";
+
+  // Check if input looks like an ISO date (YYYY-MM-DD)
+  const isoDatePattern = /^\d{4}-\d{2}-\d{2}/;
+  if (isoDatePattern.test(input)) {
+    try {
+      const date = new Date(input);
+      if (!isNaN(date.getTime())) {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
+    } catch (error) {
+      console.warn(`Error processing ISO date: ${error.message}`);
+      // Fall through to regular formatting if date parsing fails
+    }
+  }
+
+  const digits = input.replace(/\D/g, "");
+
+  return [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)]
+    .filter(Boolean)
+    .join("-");
+};

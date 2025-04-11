@@ -23,7 +23,8 @@ export async function middleware(request) {
 
   if (isProtectedPath && !isAuthenticated) {
     const url = new URL("/login", request.url);
-    url.searchParams.set("from", pathname);
+    url.searchParams.set("error", "not_authenticated");
+    url.searchParams.set("from", pathname); // Preserve original page for redirection after login
     return NextResponse.redirect(url);
   }
 

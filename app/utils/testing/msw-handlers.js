@@ -103,7 +103,47 @@ export const handlers = [
     }
   ),
 
+  http.post("https://test-supabase-url.com/functions/v1/authentication/signup",
+    async({req}) => {
+      const { email, password } = await req.json();
+      if (!email || !password) {
+        return new HttpResponse(
+          JSON.stringify({ error: "Email and password are required" }),
+          { status: 400 }
+        );
+      }
+       return HttpResponse.json({
+          success: true,
+          user: { id: "user-123", email: email, password: password },
+          session: null,
+        });
+    }
+  ),
+
   // API route handlers
+  http.get("/api/fetch-incidents", async () => {
+    return HttpResponse.json({
+      data: [
+        {
+          id: "1",
+          name: "Mock Incident 1",
+          category: "Software",
+          severity: "3",
+          incident_date: "2000-01-01",
+          description: "Mock description 1",
+        },
+        {
+          id: "2",
+          name: "Mock Incident 2",
+          category: "Hardware",
+          severity: "4",
+          incident_date: "1990-05-15",
+          description: "Mock description 2",
+        },
+      ],
+    });
+  }),
+
   http.post("/api/new-incident", async ({ request }) => {
     const body = await request.json();
 

@@ -1,83 +1,88 @@
-export async function PUT(req) {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
+/**
+ * Handles OPTIONS requests for CORS preflight
+ * Required to support cross-origin requests in production environment
+ */
+export const OPTIONS = async () => {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+};
+
+/**
+ * Updates an existing tech incident in the database
+ *
+ * Supports both metadata updates and file uploads for artifacts
+ * Implements validation for:
+ * - Required fields
+ * - File size limits
+ * - Request structure
+ *
+ * @returns {Response} JSON response with updated data or error details
+ */
+export const PUT = async (request) => {
   try {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // Allow all origins for testing
-      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
+    const requestData = await request.json();
 
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
+    if (!requestData.id) {
+      const validationError = new Error("Incident ID is required");
+      validationError.status = 400;
+      throw validationError;
     }
 
-    const body = await req.json();
-    console.log("Update request body:", body);
+    if (!requestData.update) {
+      const validationError = new Error("Update data is required");
+      validationError.status = 400;
+      throw validationError;
+    }
 
-    // Extract the id and update data
-    const { id, update } = body;
+    const { id, update } = requestData;
+    let payload = { id, update };
 
-    if (!id) {
-      return new Response(
-        JSON.stringify({ error: "Incident ID is required" }),
-        {
-          status: 400,
-          headers: corsHeaders,
+    if (update.artifactType === "image" && requestData.fileData) {
+      payload.fileData = requestData.fileData;
+      payload.fileName = requestData.fileName || "unknown.jpg";
+      payload.fileType = requestData.fileType || "image/jpeg";
+
+      if (typeof payload.fileData === "string") {
+        const approximateFileSize = payload.fileData.length * 0.75;
+        const maxSizeBytes = 5 * 1024 * 1024; // 5MB limit
+
+        if (approximateFileSize > maxSizeBytes) {
+          const fileSizeError = new Error("File size exceeds 5MB limit");
+          fileSizeError.status = 413; // Payload Too Large
+          throw fileSizeError;
         }
-      );
-    }
-
-    // Create the payload with the necessary data
-    const payload = { id, update };
-
-    if (update.artifactType === "image" && body.fileData) {
-      payload.fileData = body.fileData;
-      payload.fileName = body.fileName;
-      payload.fileType = body.fileType;
-    }
-
-    // Forward the request to Supabase Edge Function
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/tech-incidents`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
       }
+    }
+
+    const updatedData = await fetchFromSupabase(
+      "tech-incidents",
+      "PUT",
+      payload
     );
 
-    if (!response.ok) {
-      console.error("Supabase update error:", response.status);
-      return new Response(
-        JSON.stringify({ error: `Supabase error: ${response.status}` }),
-        {
-          status: 500,
-          headers: corsHeaders,
-        }
-      );
-    }
-
-    // Get updated data and return it
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({
+        data: updatedData,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
   } catch (error) {
-    const corsHeaders = {
-      "Access-Control-Allow-Origin": "*", // Allow all origins for testing
-      "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    };
+    console.error("Update incident error:", error);
 
-    console.error("Update error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: corsHeaders,
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to update incident",
     });
+
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: standardError.status || 500, headers: CORS_HEADERS }
+    );
   }
-}
+};

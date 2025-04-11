@@ -19,4 +19,19 @@ describe("SearchFilter", () => {
 
     expect(handleSearch).toHaveBeenCalledWith("test query");
   });
+
+  it("searches result after 100ms timeout", async () => {
+    jest.useFakeTimers();
+    const handleSearch = jest.fn();
+    render(<SearchFilter searchQuery="" onSearchChange={handleSearch} />);
+
+    const searchInput = screen.getByPlaceholderText(/search/i);
+    fireEvent.change(searchInput, { target: { value: "test query" } });
+
+    jest.advanceTimersByTime(100);
+
+    expect(handleSearch).toHaveBeenCalledWith("test query");
+  }
+);
+
 });

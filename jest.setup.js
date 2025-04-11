@@ -1,16 +1,12 @@
 import "@testing-library/jest-dom";
-import "jest-localstorage-mock";
 import { server } from "./app/utils/testing/test-utils";
-// Import node-fetch properly
 import fetch, { Response, Request, Headers } from "node-fetch";
 
-// Set up global fetch for Node environment
 global.fetch = fetch;
 global.Headers = Headers;
 global.Request = Request;
 global.Response = Response;
 
-// Set up environment variables for tests
 process.env.SUPABASE_URL = "https://test-supabase-url.com";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
@@ -34,7 +30,6 @@ afterAll(() => {
   server.close();
 });
 
-// Mock window.matchMedia which is not implemented in JSDOM
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
@@ -49,7 +44,6 @@ Object.defineProperty(window, "matchMedia", {
   })),
 });
 
-// Mock ResizeObserver which is not implemented in JSDOM
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
   unobserve: jest.fn(),

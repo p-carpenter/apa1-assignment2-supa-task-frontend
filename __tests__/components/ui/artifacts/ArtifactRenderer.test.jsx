@@ -70,69 +70,7 @@ describe("ArtifactRenderer", () => {
     expect(screen.getByText("No artifact available")).toBeInTheDocument();
   });
 
-  it("applies correct padding class based on paddingSize prop", () => {
-    const imageMock = {
-      id: "1",
-      artifactType: "image",
-      artifactContent: "/test-image.jpg",
-    };
-
-    const { container, rerender } = render(
-      <ArtifactRenderer artifact={imageMock} paddingSize="small" />
-    );
-
-    expect(container.firstChild).toHaveClass("artifact-padding-small");
-
-    // Test another padding size
-    rerender(<ArtifactRenderer artifact={imageMock} paddingSize="large" />);
-    expect(container.firstChild).toHaveClass("artifact-padding-large");
-  });
-
-  it("toggles expanded state on click", () => {
-    const mockArtifact = {
-      id: "1",
-      artifactType: "image",
-      artifactContent: "/test-image.jpg",
-    };
-
-    const { container } = render(<ArtifactRenderer artifact={mockArtifact} />);
-
-    // Initially not expanded
-    expect(container.firstChild).not.toHaveClass("artifact-expanded");
-
-    // Click to expand
-    fireEvent.click(container.firstChild);
-    expect(container.firstChild).toHaveClass("artifact-expanded");
-
-    // Click again to collapse
-    fireEvent.click(container.firstChild);
-    expect(container.firstChild).not.toHaveClass("artifact-expanded");
-  });
-
-  it("calls onExpand callback when expanded state changes", () => {
-    const mockArtifact = {
-      id: "1",
-      artifactType: "image",
-      artifactContent: "/test-image.jpg",
-    };
-
-    const onExpandMock = jest.fn();
-
-    const { container } = render(
-      <ArtifactRenderer artifact={mockArtifact} onExpand={onExpandMock} />
-    );
-
-    // Click to expand
-    fireEvent.click(container.firstChild);
-    expect(onExpandMock).toHaveBeenCalledWith(true);
-
-    // Click to collapse
-    fireEvent.click(container.firstChild);
-    expect(onExpandMock).toHaveBeenCalledWith(false);
-  });
-
-  // New tests for iframe height handling
-  it("sets iframe scrolling attribute to 'no'", () => {
+  it("sets iframe scrolling attribute to 'auto'", () => {
     const codeMock = {
       id: "2",
       name: "Test Code",
@@ -143,11 +81,10 @@ describe("ArtifactRenderer", () => {
     render(<ArtifactRenderer artifact={codeMock} />);
 
     const iframe = screen.getByTitle("Test Code");
-    expect(iframe).toHaveAttribute("scrolling", "no");
+    expect(iframe).toHaveAttribute("scrolling", "auto");
   });
 
   it("adjusts iframe height based on content", async () => {
-    // Create a code artifact mock
     const codeMock = {
       id: "2",
       name: "Test Code",
@@ -156,7 +93,6 @@ describe("ArtifactRenderer", () => {
         "<html><body style='height: 500px; margin: 0;'>Test Content</body></html>",
     };
 
-    // Mock iframe contentDocument
     const mockContentDocument = {
       body: {
         scrollHeight: 500,
@@ -169,13 +105,10 @@ describe("ArtifactRenderer", () => {
       },
     };
 
-    // Render component
     const { container } = render(<ArtifactRenderer artifact={codeMock} />);
 
-    // Get the iframe element
     const iframe = screen.getByTitle("Test Code");
 
-    // Mock iframe properties and methods
     Object.defineProperty(iframe, "contentDocument", {
       value: mockContentDocument,
       writable: true,
@@ -186,18 +119,15 @@ describe("ArtifactRenderer", () => {
       writable: true,
     });
 
-    // Simulate iframe onload event
     await act(async () => {
       iframe.onload();
     });
 
-    // Check if iframe style was updated
     expect(iframe.style.height).toBe("500px");
     expect(iframe.style.width).toBe("800px");
   });
 
   it("handles large iframe content appropriately", async () => {
-    // Create a code artifact with large content
     const codeMock = {
       id: "3",
       name: "Large Code Example",
@@ -206,7 +136,6 @@ describe("ArtifactRenderer", () => {
         "<html><body style='height: 2000px; width: 1000px; margin: 0;'>Large Content</body></html>",
     };
 
-    // Mock iframe contentDocument with large dimensions
     const mockContentDocument = {
       body: {
         scrollHeight: 2000,
@@ -219,15 +148,12 @@ describe("ArtifactRenderer", () => {
       },
     };
 
-    // Render component
     render(
       <ArtifactRenderer artifact={codeMock} maxWidth={900} maxHeight={1500} />
     );
 
-    // Get the iframe element
     const iframe = screen.getByTitle("Large Code Example");
 
-    // Mock iframe properties
     Object.defineProperty(iframe, "contentDocument", {
       value: mockContentDocument,
       writable: true,
@@ -238,7 +164,6 @@ describe("ArtifactRenderer", () => {
       writable: true,
     });
 
-    // Simulate iframe onload event
     await act(async () => {
       iframe.onload();
     });
@@ -257,25 +182,20 @@ describe("ArtifactRenderer", () => {
       artifactContent: "<html><body>Test Content</body></html>",
     };
 
-    // Render component
     render(<ArtifactRenderer artifact={codeMock} />);
 
-    // Get the iframe element
     const iframe = screen.getByTitle("Error Test");
 
-    // Mock iframe to throw an error when trying to access contentDocument
     Object.defineProperty(iframe, "contentDocument", {
       get: () => {
         throw new Error("Cannot access contentDocument");
       },
     });
 
-    // Simulate iframe onload event
     await act(async () => {
       iframe.onload();
     });
 
-    // Should have called console.warn
     expect(console.warn).toHaveBeenCalled();
   });
 
@@ -290,124 +210,177 @@ describe("ArtifactRenderer", () => {
     render(<ArtifactRenderer artifact={codeMock} />);
 
     const iframe = screen.getByTitle("Full Height Test");
-    expect(iframe).toHaveClass("artifact-code-full-height");
+    expect(iframe).toHaveClass("codeFullHeight");
   });
+});
 
-  it("detects small images and adds padding class automatically", async () => {
+describe("ArtifactRenderer image resizing", () => {
+  const renderWithImageLoaded = async (props, imgDimensions) => {
+    const { container } = render(<ArtifactRenderer {...props} />);
+
+    const img = screen.getByAltText(props.artifact.name);
+
+    Object.defineProperty(img, "complete", { value: true });
+
+    Object.defineProperty(img, "naturalWidth", {
+      value: imgDimensions.naturalWidth,
+    });
+
+    Object.defineProperty(img, "naturalHeight", {
+      value: imgDimensions.naturalHeight,
+    });
+
+    fireEvent.load(img);
+
+    await waitFor(() => {});
+    return { container, img };
+  };
+
+  it("resizes small images to scale up when scaleUpSmallImages is true", async () => {
     const smallImageMock = {
-      id: "6",
+      id: "1",
       name: "Small Image",
       artifactType: "image",
       artifactContent: "/small-image.jpg",
-      width: 200,
-      height: 150,
     };
 
-    // Create a test helper to allow controlling img.complete and naturalDimensions
-    const renderWithImageLoaded = async (props) => {
-      const { container } = render(<ArtifactRenderer {...props} />);
-
-      // Find image and mock its properties
-      const img = screen.getByAltText("Small Image");
-
-      // Set image properties
-      Object.defineProperty(img, "complete", { value: true });
-      Object.defineProperty(img, "naturalWidth", { value: 200 });
-      Object.defineProperty(img, "naturalHeight", { value: 150 });
-
-      // Trigger load event
-      fireEvent.load(img);
-
-      // Wait for state updates
-      await waitFor(() => {});
-
-      return { container, img };
-    };
-
-    // Render with auto padding size
-    const { container } = await renderWithImageLoaded({
-      artifact: smallImageMock,
-      paddingSize: "auto",
-    });
-
-    // Mock container dimensions for padding calculations
-    const containerElement = container.firstChild;
-    Object.defineProperty(containerElement, "clientWidth", { value: 800 });
-    Object.defineProperty(containerElement, "clientHeight", { value: 600 });
-
-    // Force re-render of padding detection
-    await act(async () => {
-      // Get image and re-trigger load to force padding recalculation
-      const img = screen.getByAltText("Small Image");
-      fireEvent.load(img);
-    });
-
-    // Allow effect hooks to run
-    await waitFor(() => {});
-
-    // Small images should get padding with auto detection
-    expect(container.firstChild).toHaveClass("artifact-with-padding");
-  });
-
-  it("obeys explicit padding size settings", async () => {
-    const imageMock = {
-      id: "7",
-      name: "Padding Test",
-      artifactType: "image",
-      artifactContent: "/test-image.jpg",
-      width: 800,
-      height: 600,
-    };
-
-    // Render with explicit padding size
-    const { container } = render(
-      <ArtifactRenderer artifact={imageMock} paddingSize="xl" />
+    // Default ideal dimensions from component are 863x650
+    const { img } = await renderWithImageLoaded(
+      {
+        artifact: smallImageMock,
+        scaleUpSmallImages: true,
+        idealWidth: 863,
+        idealHeight: 650,
+      },
+      { naturalWidth: 150, naturalHeight: 200 }
     );
 
-    // Should have explicit padding class regardless of image size
-    expect(container.firstChild).toHaveClass("artifact-padding-xl");
-
-    // Wait for all effects to complete
-    await waitFor(() => {});
-
-    // Should not have automatic padding class
-    expect(container.firstChild).not.toHaveClass("artifact-with-padding");
+    await waitFor(() => {
+      expect(img.style.width).toBe("487.5px");
+      expect(img.style.height).toBe("650px");
+    });
   });
 
-  //   // Key test for iframe height
-  //   it("adjusts iframe height based on actual content height", async () => {
-  //     // Create test with large iframe content
-  //     const largeCodeArtifact = {
-  //       id: "large",
-  //       name: "Large Document",
-  //       artifactType: "code",
-  //       artifactContent:
-  //         "<html><body style='height: 2000px;'>Large content</body></html>",
-  //     };
+  it("does not scale up small images when scaleUpSmallImages is false", async () => {
+    const smallImageMock = {
+      id: "2",
+      name: "Small Image",
+      artifactType: "image",
+      artifactContent: "/small-image.jpg",
+    };
 
-  //     render(<ArtifactRenderer artifact={largeCodeArtifact} maxHeight={500} />);
+    const { img } = await renderWithImageLoaded(
+      {
+        artifact: smallImageMock,
+        scaleUpSmallImages: false,
+        idealWidth: 863,
+        idealHeight: 650,
+      },
+      { naturalWidth: 200, naturalHeight: 150 }
+    );
 
-  //     // Get the iframe
-  //     const iframe = screen.getByTitle("Large Document");
+    // Small images should keep their original size when scaling is disabled
+    await waitFor(() => {
+      expect(img.style.width).toBe("200px");
+      expect(img.style.height).toBe("150px");
+    });
+  });
 
-  //     // Mock contentDocument
-  //     Object.defineProperty(iframe, "contentDocument", {
-  //       value: {
-  //         body: {
-  //           scrollHeight: 2000,
-  //           offsetHeight: 2000,
-  //           clientHeight: 2000,
-  //           addEventListener: jest.fn(),
-  //         },
-  //       },
-  //     });
+  it("scales down large images to fit within maxWidth and maxHeight", async () => {
+    const largeImageMock = {
+      id: "3",
+      name: "Large Image",
+      artifactType: "image",
+      artifactContent: "/large-image.jpg",
+    };
 
-  //     // Trigger onload
-  //     await act(async () => {
-  //       iframe.onload();
-  //     });
+    const { img } = await renderWithImageLoaded(
+      {
+        artifact: largeImageMock,
+        maxWidth: 800,
+        maxHeight: 600,
+      },
+      { naturalWidth: 1600, naturalHeight: 900 }
+    );
 
-  //     // Check iframe is adjusted to full content height despite maxHeight
-  //     expect(iframe.style.height).toBe("2000px");
-  //   });
+    await waitFor(() => {
+      expect(img.style.width).toBe("800px");
+      expect(img.style.height).toBe("450px");
+    });
+  });
+
+  it("scales down very tall images based on height constraint", async () => {
+    const tallImageMock = {
+      id: "4",
+      name: "Tall Image",
+      artifactType: "image",
+      artifactContent: "/tall-image.jpg",
+    };
+
+    const { img } = await renderWithImageLoaded(
+      {
+        artifact: tallImageMock,
+        maxWidth: 800,
+        maxHeight: 600,
+      },
+      { naturalWidth: 500, naturalHeight: 1200 }
+    );
+
+    await waitFor(() => {
+      expect(img.style.width).toBe("250px");
+      expect(img.style.height).toBe("600px");
+    });
+  });
+
+  it("maintains original dimensions for images near ideal size", async () => {
+    const idealSizeImageMock = {
+      id: "5",
+      name: "Ideal Size Image",
+      artifactType: "image",
+      artifactContent: "/ideal-size-image.jpg",
+    };
+
+    const { img } = await renderWithImageLoaded(
+      {
+        artifact: idealSizeImageMock,
+        idealWidth: 863,
+        idealHeight: 650,
+      },
+      { naturalWidth: 820, naturalHeight: 630 }
+    );
+
+    // Should maintain original dimensions as they're within 10% of ideal
+    await waitFor(() => {
+      expect(img.style.width).toBe("820px");
+      expect(img.style.height).toBe("630px");
+    });
+  });
+
+  it("handles images between min and max size without resizing", async () => {
+    const mediumImageMock = {
+      id: "6",
+      name: "Medium Image",
+      artifactType: "image",
+      artifactContent: "/medium-image.jpg",
+    };
+
+    const { img } = await renderWithImageLoaded(
+      {
+        artifact: mediumImageMock,
+        maxWidth: 1000,
+        maxHeight: 800,
+        idealWidth: 863,
+        idealHeight: 650,
+        scaleUpSmallImages: false,
+      },
+      { naturalWidth: 700, naturalHeight: 500 }
+    );
+
+    // Since the image is smaller than max dimensions but larger than what would trigger scaling up,
+    // it should maintain original dimensions
+    await waitFor(() => {
+      expect(img.style.width).toBe("700px");
+      expect(img.style.height).toBe("500px");
+    });
+  });
 });

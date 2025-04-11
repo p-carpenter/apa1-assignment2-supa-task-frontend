@@ -1,31 +1,116 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
+import { useForm } from "@/app/hooks/useForm";
 import { SignupForm } from "@/app/components/forms";
-import "./signup.styles.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+import { validateAuthForm } from "@/app/utils/validation/formValidation";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { ApiMessage } from "@/app/components/forms/ApiMessage";
+import { FormFooterLinks } from "@/app/components/forms/fields";
 
-// Import reusable components
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-  CatalogHeader,
-} from "../components/ui";
-import { Button } from "../components/ui/buttons";
+} from "../components/ui/console";
 
-export default function SignupPage() {
-  const { isAuthenticated, loading } = useAuth();
-  const router = useRouter();
+/**
+ * User registration page component
+ * Provides a form for new users to create an account with email and password
+ * Handles form validation and account creation process
+ */
+const SignupPage = () => {
+  const { isLoading: authLoading, signUp } = useAuth();
+  const [apiError, setApiError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState("");
+  const submissionInProgress = useRef(false);
 
-  useEffect(() => {
-    if (!loading && isAuthenticated) {
-      router.push("/profile");
+  /**
+   * Handles the form submission for user registration
+   * @param {Object} formData - The form data containing email and password
+   * @returns {Object} Result of the signup operation
+   */
+  const handleFormSubmit = async (formData) => {
+    if (submissionInProgress.current) {
+      return;
     }
-  }, [isAuthenticated, loading, router]);
 
-  // Define status items for the console footer
+    submissionInProgress.current = true;
+    setApiError(null);
+    setSuccessMessage("");
+
+    try {
+      const result = await signUp({
+        email: formData.email,
+        password: formData.password,
+        displayName: formData.email.split("@")[0],
+      });
+
+      setSuccessMessage("Account created successfully! You can now login.");
+
+      return result;
+    } catch (err) {
+      submissionInProgress.current = false;
+      if (err.message === "Password doesn't meet security requirements") {
+        setApiError({
+          type: ERROR_TYPES.BAD_REQUEST,
+          message: err.message,
+        });
+      } else {
+        const standardError = processApiError(err, {
+          defaultMessage: "Failed to create account",
+        });
+        setApiError(standardError);
+      }
+    } finally {
+      submissionInProgress.current = false;
+    }
+  };
+
+  const initialFormState = {
+    email: "",
+    password: "",
+    confirmPassword: "",
+  };
+
+  /**
+   * Validates the signup form fields with enhanced password requirements
+   * @param {Object} data - The form data to validate
+   * @param {string} fieldName - The name of the field to validate
+   * @returns {Object} Validation errors for the form
+   */
+  const formValidationFunction = (data, fieldName) => {
+    return validateAuthForm(data, fieldName, {
+      options: {
+        requirePasswordConfirmation: true,
+        minLength: 8,
+        requireUppercase: true,
+        requireNumbers: true,
+        requireSpecial: true,
+      },
+    });
+  };
+
+  const {
+    formData,
+    formErrors,
+    isSubmitting,
+    handleChange: formHandleChange,
+    handleSubmit,
+  } = useForm(initialFormState, formValidationFunction, handleFormSubmit);
+
+  /**
+   * Handles form field changes
+   * @param {Event} e - The change event
+   */
+  const handleChange = (e) => {
+    formHandleChange(e);
+  };
+
   const statusItems = [
     "TECH INCIDENTS ARCHIVE",
     "USER REGISTRATION",
@@ -34,13 +119,11 @@ export default function SignupPage() {
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-registration"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --register"
@@ -54,16 +137,38 @@ export default function SignupPage() {
               showGlitch={true}
               showLoadingBar={true}
             >
-              <div className="output-text">
+              <div className={terminalStyles.outputText}>
                 Create a new account to become a member of the Archive and
                 contribute.
               </div>
             </CommandOutput>
 
-            <SignupForm />
+            <SignupForm
+              formData={formData}
+              formErrors={formErrors}
+              handleChange={handleChange}
+              handleSubmit={handleSubmit}
+              isSubmitting={isSubmitting || authLoading}
+              apiError={apiError}
+              successMessage={successMessage}
+            />
+
+            {!successMessage && (
+              <FormFooterLinks
+                links={[
+                  {
+                    label: "Already have an account?",
+                    href: "/login",
+                    text: "Login here",
+                  },
+                ]}
+              />
+            )}
           </ConsoleSection>
         </ConsoleWindow>
       </div>
     </>
   );
-}
+};
+
+export default SignupPage;

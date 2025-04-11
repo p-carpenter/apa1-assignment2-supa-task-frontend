@@ -4,25 +4,31 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/contexts/AuthContext";
 import ProfileInfo from "./ProfileInfo";
-import "./profile.styles.css";
+import authStyles from "@/app/components/forms/Auth.module.css";
+import loadingStyles from "@/app/components/ui/shared/Loading.module.css";
+import terminalStyles from "@/app/components/ui/console/Terminal.module.css";
 
 import {
   ConsoleWindow,
   ConsoleSection,
   CommandOutput,
-  CatalogHeader,
-} from "../components/ui";
-import { Button } from "../components/ui/buttons";
+} from "../components/ui/console";
 
-export default function ProfilePage() {
-  const { isAuthenticated, loading, user } = useAuth();
+/**
+ * User profile page component that displays user information
+ * Shows user profile details within a console-themed interface
+ * Requires authentication - redirects to login if user is not authenticated
+ */
+const ProfilePage = () => {
+  const { loading, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push("/login");
+    if (!loading && !user) {
+      const from = encodeURIComponent(window.location.pathname);
+      router.push(`/login?from=${from}`);
     }
-  }, [isAuthenticated, loading, router]);
+  }, [user, loading, router]);
 
   const username = user?.displayName || user?.email?.split("@")[0] || "Guest";
 
@@ -34,21 +40,20 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="auth-page-container">
-        <div className="loading-container">Loading...</div>
+      <div>
+        <div className={loadingStyles.loadingContainer}>Authenticating...</div>
       </div>
     );
   }
+  if (!user) return null;
 
   return (
     <>
-      <div className="circuit-background"></div>
-
-      <div className="auth-page-container">
+      <div className={authStyles.pageContainer}>
         <ConsoleWindow
           title="tech-incidents-profile"
           statusItems={statusItems}
-          className="auth-console"
+          className={authStyles.console}
         >
           <ConsoleSection
             command="security --profile"
@@ -57,12 +62,8 @@ export default function ProfilePage() {
               flags: ["--profile"],
             }}
           >
-            <CommandOutput
-              title="USER PROFILE"
-              showGlitch={true}
-              showLoadingBar={true}
-            >
-              <div className="output-text">
+            <CommandOutput title="USER PROFILE" showLoadingBar={true}>
+              <div className={terminalStyles.outputText}>
                 Welcome back to the Tech Incidents Archive.
               </div>
             </CommandOutput>
@@ -73,4 +74,6 @@ export default function ProfilePage() {
       </div>
     </>
   );
-}
+};
+
+export default ProfilePage;

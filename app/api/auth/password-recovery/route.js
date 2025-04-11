@@ -1,51 +1,69 @@
-export async function POST(request) {
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
+
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
+export const OPTIONS = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+};
+
+/**
+ * Handles password recovery requests by sending reset instructions
+ */
+export const POST = async (request) => {
   try {
     const { email } = await request.json();
 
+    // Simple validation - require an email
     if (!email) {
-      return new Response(JSON.stringify({ error: "Email is required" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Call the Supabase Edge Function for password recovery
-    const response = await fetch(
-      `${process.env.SUPABASE_URL}/functions/v1/password-recovery`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ email }),
-      }
-    );
-
-    if (!response.ok) {
-      const error = await response.json();
       return new Response(
-        JSON.stringify({ error: error.error || "Failed to initiate password reset" }),
-        {
-          status: response.status,
-          headers: { "Content-Type": "application/json" },
-        }
+        JSON.stringify({
+          error: "Email is required",
+          type: ERROR_TYPES.BAD_REQUEST,
+          status: 400,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 400, headers: CORS_HEADERS }
       );
     }
 
-    // Return success response
+    try {
+      await fetchFromSupabase("password-recovery", "POST", { email });
+
+      return new Response(
+        JSON.stringify({
+          message: "Password reset instructions sent",
+          success: true,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 200, headers: CORS_HEADERS }
+      );
+    } catch (supabaseError) {
+      // Re-throw other errors
+      throw supabaseError;
+    }
+  } catch (error) {
+    console.error("Password recovery error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to send password reset instructions",
+    });
+
     return new Response(
-      JSON.stringify({ message: "Password reset instructions sent" }),
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
       {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
-  } catch (error) {
-    console.error("Password reset request error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
   }
-}
+};

@@ -56,9 +56,7 @@ const config = {
       {
         pageTitle: "Test Report",
         includeFailureMsg: true,
-        includeStackTrace: true,
         includeSuiteFailure: true,
-        includeConsoleLog: true,
       },
     ],
   ],

@@ -1,73 +1,65 @@
-export async function DELETE(req) {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-  const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-  };
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
+export const OPTIONS = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+};
 
+/**
+ * Deletes one or more tech incidents
+ */
+export const DELETE = async (request) => {
   try {
-    if (req.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
-    }
+    const { ids } = await request.json();
 
-    const body = await req.json();
-    console.log("Delete request body:", body);
-
-    // Handle both single id and array of ids
-    const { id, ids } = body;
-    let idsToDelete = [];
-
-    if (id) {
-      idsToDelete = [id];
-    } else if (ids && Array.isArray(ids)) {
-      idsToDelete = ids;
-    }
-
-    if (idsToDelete.length === 0) {
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return new Response(
-        JSON.stringify({ error: "No valid incident IDs provided" }),
+        JSON.stringify({
+          error: "No valid incident IDs provided",
+          timestamp: new Date().toISOString(),
+        }),
         {
           status: 400,
-          headers: corsHeaders,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         }
       );
     }
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/tech-incidents`,
+    const deletionResult = await fetchFromSupabase("tech-incidents", "DELETE", {
+      ids,
+    });
+
+    return new Response(
+      JSON.stringify({
+        data: deletionResult,
+        success: true,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
+  } catch (error) {
+    console.error("Delete incident error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to delete incident",
+    });
+
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
       {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ids: idsToDelete }),
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
-
-    if (!response.ok) {
-      console.error("Supabase delete error:", response.status);
-      return new Response(
-        JSON.stringify({ error: `Supabase error: ${response.status}` }),
-        {
-          status: 500,
-          headers: corsHeaders,
-        }
-      );
-    }
-
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: corsHeaders,
-    });
-  } catch (error) {
-    console.error("Delete error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: corsHeaders,
-    });
   }
-}
+};

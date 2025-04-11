@@ -1,17 +1,25 @@
-export const categoryIcons = {
-  Hardware: "🔧", // wrench
-  Software: "💻", // laptop
-  Network: "🌐", // globe
-  Security: "🔒", // lock
-  Infrastructure: "🏗️", // building construction
-  Database: "💾", // floppy disk
-  "UI/UX": "👁️", // eye
-  System: "⚙️", // gear
-  Game: "🎮", // game controller
-  Default: "📁", // folder
+import React from "react";
+
+const categoryIcons = {
+  Hardware: "🔧",
+  Software: "💻",
+  "Human Error": "👤",
+  Security: "🔒",
+  Infrastructure: "🏗️",
+  "External Factors": "🌍",
 };
 
+/**
+ * Returns a category icon component for use in 2000sDetailsWindow.jsx
+ * @param {string} category - Category name
+ * @returns {JSX.Element} - Icon span element
+ */
 export const getCategoryIcon = (category) => {
-  if (!category) return categoryIcons.Default;
-  return categoryIcons[category] || categoryIcons.Default;
+  const icon = category ? categoryIcons[category] || "❓" : "❓";
+
+  return (
+    <span role="img" aria-label={category || "Category"}>
+      {icon}
+    </span>
+  );
 };

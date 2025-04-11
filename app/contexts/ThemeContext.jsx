@@ -1,83 +1,83 @@
 "use client";
 
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useMemo } from "react";
 import { useIncidents } from "./IncidentContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
-import MacintoshDetailsWindow from "@/app/components/ui/decades/MacintoshDetailsWindow";
-import AeroDetailsWindow from "@/app/components/ui/decades/AeroDetailsWindow";
-import MaterialDetailsWindow from "@/app/components/ui/decades/MaterialDetailsWindow";
-import GlassmorphicDetailsWindow from "@/app/components/ui/decades/GlassmorphicDetailsWindow";
-import Win98DetailsWindow from "@/app/components/ui/decades/Win98DetailsWindow";
+import DetailsWindow1980s from "@/app/components/ui/detail-windows/DetailsWindow1980s";
+import DetailsWindow2000s from "@/app/components/ui/detail-windows/DetailsWindow2000s";
+import DetailsWindow2010s from "@/app/components/ui/detail-windows/DetailsWindow2010s";
+import DetailsWindow2020s from "@/app/components/ui/detail-windows/DetailsWindow2020s";
+import DetailsWindow1990s from "@/app/components/ui/detail-windows/DetailsWindow1990s";
 
+/**
+ * Mapping of decade to corresponding detail window component
+ * @type {Object.<number, React.ComponentType>}
+ */
 const IncidentDetailsWindows = {
-  1980: MacintoshDetailsWindow,
-  1990: Win98DetailsWindow,
-  2000: AeroDetailsWindow,
-  2010: MaterialDetailsWindow,
-  2020: GlassmorphicDetailsWindow,
+  1980: DetailsWindow1980s,
+  1990: DetailsWindow1990s,
+  2000: DetailsWindow2000s,
+  2010: DetailsWindow2010s,
+  2020: DetailsWindow2020s,
 };
 
-const StandardArtifactWidth = 863;
-
-// const DecadeConfigurations = {
-//   1980: {
-//     maxHeight: 600,
-//     frameType: "dos",
-//     contentPadding: "medium",
-//   },
-//   1990: {
-//     maxHeight: 640,
-//     frameType: "win95",
-//     contentPadding: "small",
-//   },
-//   2000: {
-//     maxHeight: 680,
-//     frameType: "geocities",
-//     contentPadding: "medium",
-//   },
-//   2010: {
-//     maxHeight: 690,
-//     frameType: "android",
-//     contentPadding: "small",
-//   },
-//   2020: {
-//     maxHeight: 700,
-//     frameType: "zoom",
-//     contentPadding: "small",
-//   },
-// };
-
-// Theme context structure
-const ThemeContext = createContext({
+/**
+ * Default context value using 1990s theme
+ * @type {Object}
+ */
+const defaultContextValue = {
   decade: 1990,
-  getPaddingSizeForArtifact: getPaddingSizeForArtifact,
-  artifactWidth: StandardArtifactWidth,
-  // decadeConfig: DecadeConfigurations[1990],
   IncidentDetailsWindows: IncidentDetailsWindows[1990],
-});
+};
 
+/**
+ * Context for decade-specific UI themes
+ * @type {React.Context}
+ */
+const ThemeContext = createContext(defaultContextValue);
+
+/**
+ * Custom hook to use the theme context
+ *
+ * @returns {Object} Theme context value with decade and detail component
+ */
 export const useTheme = () => useContext(ThemeContext);
 
+/**
+ * Provider component for decade-specific UI themes
+ *
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components
+ * @returns {JSX.Element} Theme provider component
+ */
 export const ThemeProvider = ({ children }) => {
   const { currentDecade } = useIncidents();
 
-  // Determine the correct decade to use
-  const decadeKey = Object.keys(IncidentDetailsWindows).includes(
-    String(currentDecade)
-  )
-    ? currentDecade
-    : 2020;
+  /**
+   * Determines the appropriate theme based on the current decade
+   */
+  const value = useMemo(() => {
+    const decadeKey = getValidDecadeKey(currentDecade);
 
-  const value = {
-    decade: decadeKey,
-    IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
-    getPaddingSizeForArtifact: getPaddingSizeForArtifact,
-    artifactWidth: StandardArtifactWidth,
-    // decadeConfig: DecadeConfigurations[decadeKey] || DecadeConfigurations[1990],
-  };
+    return {
+      decade: decadeKey,
+      IncidentDetailsWindows: IncidentDetailsWindows[decadeKey],
+    };
+  }, [currentDecade]);
 
   return (
     <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
+};
+
+/**
+ * Gets a valid decade key for theme selection
+ *
+ * @param {number|null} decade - Current decade
+ * @returns {number} Valid decade key (defaults to 2020 if invalid)
+ */
+const getValidDecadeKey = (decade) => {
+  return Object.keys(IncidentDetailsWindows).includes(String(decade))
+    ? decade
+    : 2020;
 };

@@ -1,0 +1,274 @@
+.terminalHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 15px;
+  background-color: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.terminalDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.terminalDot:nth-child(1) {
+  background-color: #c3b0a2;
+}
+
+.terminalDot:nth-child(2) {
+  background-color: #d2c1b0;
+}
+
+.terminalDot:nth-child(3) {
+  background-color: #e0d0c0;
+}
+
+.terminalTitle {
+  margin-left: 15px;
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  font-weight: 500;
+  flex-grow: 1;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.commandLine {
+  display: flex;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: "IBM Plex Mono", monospace;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prompt {
+  color: #635a50;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.command {
+  font-weight: bold;
+  color: #9c6b4e;
+}
+
+.parameter {
+  color: #8a6246;
+}
+
+.argument {
+  color: var(--color-text);
+}
+
+.commandOutput {
+  margin: 0.5rem 0 0.75rem;
+  font-family: "IBM Plex Mono", monospace;
+  color: #453c33;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.outputText {
+  color: #7c6b4e;
+  margin: 0.3rem 0;
+}
+
+.outputText.highlight {
+  color: #7c6b4e;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  margin-top: 0.8rem;
+  font-weight: 600;
+}
+
+.consoleFooter {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 1rem;
+  background-color: var(--color-bg-subtle);
+  border-top: 1px solid var(--color-border-light);
+  font-size: 0.75rem;
+  color: #635a50;
+  font-weight: 500;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+}
+
+/* Blinking animations */
+.blinkText {
+  animation: blinkAnimation 1.5s steps(5, start) infinite;
+  color: var(--color-accent);
+}
+
+.blinkOnce {
+  animation: blinkAnimation 0.8s steps(2, start) 2;
+}
+
+.blinkSlow {
+  animation: blinkAnimation 3s steps(2, start) infinite;
+}
+
+@keyframes blinkAnimation {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* Title and cursor */
+.title {
+  font-family: "VT323", "IBM Plex Mono", monospace;
+  font-size: 3.5rem;
+  margin: 0.8rem 0;
+  line-height: 1;
+  letter-spacing: 3px;
+  text-align: left;
+  text-transform: uppercase;
+  position: relative;
+  color: var(--color-accent);
+}
+
+.titleGlitch {
+  position: relative;
+  display: inline-block;
+  color: var(--color-accent);
+  text-shadow:
+    1px 1px 0px rgba(90, 83, 72, 0.4),
+    -1px -1px 0px rgba(255, 255, 255, 0.7);
+}
+
+.titleGlitch::before,
+.titleGlitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.titleGlitch::before {
+  animation: none;
+  color: var(--color-accent-secondary);
+  clip: rect(44px, 450px, 56px, 0);
+  left: 2px;
+}
+
+.titleGlitch::after {
+  animation: none;
+  color: #8b6350;
+  clip: rect(44px, 450px, 46px, 0);
+  left: -2px;
+}
+
+.titleGlitchh:hover::before,
+.titleGlitch:hover::after {
+  opacity: 0.7;
+  animation: glitchEffect 3s infinite;
+}
+
+@keyframes glitchEffect {
+  0% {
+    clip: rect(16px, 9999px, 94px, 0);
+  }
+  5% {
+    clip: rect(96px, 9999px, 78px, 0);
+  }
+  10% {
+    clip: rect(32px, 9999px, 16px, 0);
+  }
+  15% {
+    clip: rect(80px, 9999px, 91px, 0);
+  }
+  20% {
+    clip: rect(33px, 9999px, 65px, 0);
+  }
+  25% {
+    clip: rect(5px, 9999px, 54px, 0);
+  }
+  30% {
+    clip: rect(70px, 9999px, 92px, 0);
+  }
+  100% {
+    clip: rect(0px, 9999px, 0px, 0);
+  }
+}
+
+.cursor {
+  display: inline-block;
+  width: 15px;
+  height: 30px;
+  background-color: var(--color-accent);
+  animation: blink 1s step-end infinite;
+  margin-left: 5px;
+  transform: translateY(5px);
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Form notification message colours */
+.success {
+  color: #4caf50;
+  border-left: 3px solid #4caf50;
+  padding: 8px;
+  margin: 10px 0;
+  background-color: rgba(76, 175, 80, 0.1);
+  font-family: var(--font-mono);
+}
+
+.warning {
+  color: #ffc107;
+  border-left: 3px solid #ffc107;
+  padding: 8px;
+  margin: 10px 0;
+  background-color: rgba(255, 193, 7, 0.1);
+  font-family: var(--font-mono);
+}
+
+.error {
+  color: #f44336;
+  border-left: 3px solid #f44336;
+  padding: 8px;
+  margin: 10px 0;
+  background-color: rgba(244, 67, 54, 0.1);
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 900px) {
+  .consoleFooter {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .commandLine,
+  .commandOutput {
+    font-size: 0.8rem;
+  }
+
+  .title {
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+  }
+}

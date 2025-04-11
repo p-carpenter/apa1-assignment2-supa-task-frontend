@@ -1,81 +1,55 @@
-import { cookies } from 'next/headers';
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
+import { getServerSession } from "../../../utils/auth/server";
 
-export async function GET() {
+/**
+ * Retrieves the current authenticated user's information
+ */
+export const GET = async () => {
   try {
-    // Get tokens from cookies
-    const cookieStore = cookies();
-    const accessToken = cookieStore.get('sb-access-token')?.value;
-    const refreshToken = cookieStore.get('sb-refresh-token')?.value;
-    
-    if (!accessToken || !refreshToken) {
+    const { user, session } = await getServerSession();
+
+    if (!user) {
+      const error = new Error("No active session found");
+      error.status = 401;
+      const standardError = processApiError(error);
+
       return new Response(
-        JSON.stringify({ user: null, session: null }),
-        { 
-          status: 401,
-          headers: { 'Content-Type': 'application/json' }
+        JSON.stringify({
+          ...standardError,
+          timestamp: new Date().toISOString(),
+        }),
+        {
+          status: standardError.status,
+          headers: CORS_HEADERS,
         }
       );
     }
-    
-    try {
-      const response = await fetch(`${process.env.SUPABASE_URL}/functions/v1/authentication/user`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cookie': `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
-          'Authorization': `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-        },
-      });
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          return new Response(
-            JSON.stringify({ user: null, session: null }),
-            { 
-              status: 401,
-              headers: { 'Content-Type': 'application/json' }
-            }
-          );
-        }
-        
-        const error = await response.json();
-        return new Response(
-          JSON.stringify({ error: error.error || 'Failed to get user' }),
-          { 
-            status: response.status,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
-      }
-      
-      const data = await response.json();
-      return new Response(
-        JSON.stringify(data),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    } catch (fetchError) {
-      // Network errors specifically go here
-      console.error('Network error:', fetchError);
-      return new Response(
-        JSON.stringify({ error: 'Internal server error' }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-  } catch (error) {
-    // General errors go here
-    console.error('Get user error:', error);
+
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
+      JSON.stringify({
+        user,
+        session,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
+  } catch (error) {
+    console.error("User fetch error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to verify authentication status",
+    });
+
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: standardError.status,
+        headers: CORS_HEADERS,
       }
     );
   }
-}
+};

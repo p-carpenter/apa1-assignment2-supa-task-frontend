@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/app/contexts/ThemeContext";
 import { handlers } from "./msw-handlers";
 import { AuthProvider } from "@/app/contexts/AuthContext";
 
-// Mock data for testing
 export const mockIncidents = [
   {
     id: "1",
@@ -27,9 +26,7 @@ export const mockIncidents = [
   },
 ];
 
-// Set up custom render function with configurable providers
 const customRender = (ui, options = {}) => {
-  // Default options
   const defaultOptions = {
     withAuth: true,
     withIncidents: true,
@@ -41,12 +38,10 @@ const customRender = (ui, options = {}) => {
   const Wrapper = ({ children }) => {
     let wrappedComponent = children;
 
-    // Add ThemeProvider if requested
     if (defaultOptions.withTheme) {
       wrappedComponent = <ThemeProvider>{wrappedComponent}</ThemeProvider>;
     }
 
-    // Add IncidentProvider if requested
     if (defaultOptions.withIncidents) {
       wrappedComponent = (
         <IncidentProvider incidents={mockIncidents}>
@@ -55,7 +50,6 @@ const customRender = (ui, options = {}) => {
       );
     }
 
-    // Add AuthProvider if requested
     if (defaultOptions.withAuth) {
       wrappedComponent = <AuthProvider>{wrappedComponent}</AuthProvider>;
     }

@@ -1,261 +1,110 @@
 "use client";
 
-import React, { useState } from "react";
-import { useAuth } from "@/app/contexts/AuthContext";
+import React from "react";
 import Link from "next/link";
+import { ApiMessage } from "./ApiMessage";
+import authStyles from "./Auth.module.css";
+import { TextField, PasswordField, FormButtons, PromptLabel } from "./fields";
 
-function SignupForm() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
-  });
-  const [formErrors, setFormErrors] = useState({});
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { register } = useAuth();
-
-  const validateField = (name, value) => {
-    let error = null;
-
-    switch (name) {
-      case "email":
-        if (!value.trim()) {
-          error = "Email is required.";
-        } else {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(value)) {
-            error = "Please enter a valid email address.";
-          }
-        }
-        break;
-
-      case "password":
-        if (!value.trim()) {
-          error = "Password is required.";
-        } else {
-          const hasMinLength = value.length >= 8;
-          const hasNumber = /\d/.test(value);
-          const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
-            value
-          );
-          const hasUpperCase = /[A-Z]/.test(value);
-
-          setFormErrors((prev) => ({
-            ...prev,
-            passwordMinLength: hasMinLength
-              ? null
-              : "Password must be at least 8 characters long.",
-            passwordNumber: hasNumber
-              ? null
-              : "Password must contain at least one number.",
-            passwordSpecialChar: hasSpecialChar
-              ? null
-              : "Password must contain at least one special character.",
-            passwordUpperCase: hasUpperCase
-              ? null
-              : "Password must contain at least one uppercase letter.",
-          }));
-
-          if (!hasMinLength || !hasNumber || !hasSpecialChar || !hasUpperCase) {
-            error = "Please ensure all password requirements are met.";
-          }
-        }
-        break;
-
-      case "confirmPassword":
-        if (!value.trim()) {
-          error = "Please confirm your password.";
-        } else if (value !== formData.password) {
-          error = "Passwords do not match.";
-        }
-        break;
-
-      default:
-        break;
-    }
-
-    return error;
-  };
-
-  const validateFields = () => {
-    const errors = {};
-    Object.keys(formData).forEach((field) => {
-      const error = validateField(field, formData[field]);
-      if (error) errors[field] = error;
-    });
-
-    setFormErrors((prev) => ({ ...prev, ...errors }));
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: validateField(name, value),
-    }));
-
-    if (name === "password" && formData.confirmPassword) {
-      setFormErrors((prev) => ({
-        ...prev,
-        confirmPassword:
-          formData.confirmPassword !== value ? "Passwords do not match." : null,
-      }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrorMessage("");
-
-    if (!validateFields()) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await register({
-        email: formData.email,
-        password: formData.password,
-        displayName: formData.email.split("@")[0],
-      });
-    } catch (err) {
-      setErrorMessage(err.message || "Failed to create account");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const hasError = (fieldName) => !!formErrors[fieldName];
-
+/**
+ * Component for handling user registration and account creation.
+ *
+ * @param {Object} formData - The current form data state
+ * @param {Object} formErrors - Form validation errors
+ * @param {Function} handleChange - Function to handle input changes
+ * @param {Function} handleSubmit - Function to handle form submission
+ * @param {boolean} isSubmitting - Whether the form is currently submitting
+ * @param {Object|null} apiError - Error response from the API
+ * @param {string|null} successMessage - Success message to display after registration
+ */
+const SignupForm = ({
+  formData,
+  formErrors,
+  handleChange,
+  handleSubmit,
+  isSubmitting,
+  apiError,
+  successMessage,
+}) => {
   return (
-    <div className="auth-form-container">
-      <div className="auth-header">
-        <h2 className="auth-title">CREATE ACCOUNT</h2>
-        <p className="auth-subtitle">Register for archive access</p>
+    <div className={authStyles.formContainer}>
+      <div className={authStyles.header}>
+        <h2 className={authStyles.title}>
+          {successMessage ? "ACCOUNT CREATED" : "CREATE ACCOUNT"}
+        </h2>
+        <p className={authStyles.subtitle}>
+          {successMessage
+            ? "Registration complete"
+            : "Register for archive access"}
+        </p>
       </div>
 
-      {errorMessage && <div className="auth-error">{errorMessage}</div>}
+      {apiError && <ApiMessage response={apiError} />}
 
-      <form className="auth-form" onSubmit={handleSubmit} noValidate>
-        {/* Email Field */}
-        <div className="form-group">
-          <label htmlFor="email" className="form-label">
-            <span className="prompt">$</span> EMAIL
-          </label>
-          <input
+      {successMessage ? (
+        <>
+          <ApiMessage response={{ type: "success", message: successMessage }} />
+          <div className={authStyles.authFooter}>
+            <p>
+              <Link href="/login" className={authStyles.authLink}>
+                Proceed to login
+              </Link>
+            </p>
+          </div>
+        </>
+      ) : (
+        <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
+          <TextField
+            data-testid="email-field"
             id="email"
             name="email"
             type="email"
+            label={<PromptLabel>EMAIL</PromptLabel>}
             autoComplete="email"
-            className={`form-input ${hasError("email") ? "input-error" : ""}`}
-            placeholder="your@email.com"
             value={formData.email}
             onChange={handleChange}
+            placeholder="your@email.com"
             disabled={isSubmitting}
-            aria-describedby={hasError("email") ? "email-error" : undefined}
+            error={formErrors.email}
           />
-          {hasError("email") && (
-            <div id="email-error" className="form-error">
-              {formErrors.email}
-            </div>
-          )}
-        </div>
 
-        {/* Password Field */}
-        <div className="form-group">
-          <label htmlFor="password" className="form-label">
-            <span className="prompt">$</span> PASSWORD
-          </label>
-          <input
+          <PasswordField
+            data-testid="password-field"
             id="password"
             name="password"
-            type="password"
+            label={<PromptLabel>PASSWORD</PromptLabel>}
             autoComplete="new-password"
-            className={`form-input ${hasError("password") ? "input-error" : ""}`}
-            placeholder="••••••••"
             value={formData.password}
             onChange={handleChange}
             disabled={isSubmitting}
-            aria-describedby={
-              hasError("password") ? "password-error" : undefined
-            }
+            error={formErrors.password}
+            helperText="Password must be at least 8 characters and include one number, one special character, and one uppercase letter."
           />
-          {hasError("password") && (
-            <div id="password-error" className="form-error">
-              {formErrors.password}
-            </div>
-          )}
-          {formErrors.passwordMinLength && (
-            <div className="form-error">{formErrors.passwordMinLength}</div>
-          )}
-          {formErrors.passwordNumber && (
-            <div className="form-error">{formErrors.passwordNumber}</div>
-          )}
-          {formErrors.passwordSpecialChar && (
-            <div className="form-error">{formErrors.passwordSpecialChar}</div>
-          )}
-          {formErrors.passwordUpperCase && (
-            <div className="form-error">{formErrors.passwordUpperCase}</div>
-          )}
-        </div>
 
-        {/* Confirm Password Field */}
-        <div className="form-group">
-          <label htmlFor="confirmPassword" className="form-label">
-            <span className="prompt">$</span> CONFIRM PASSWORD
-          </label>
-          <input
+          <PasswordField
+            data-testid="confirmPassword-field"
             id="confirmPassword"
             name="confirmPassword"
-            type="password"
+            label={<PromptLabel>CONFIRM PASSWORD</PromptLabel>}
             autoComplete="new-password"
-            className={`form-input ${hasError("confirmPassword") ? "input-error" : ""}`}
-            placeholder="Re-enter password"
             value={formData.confirmPassword}
             onChange={handleChange}
+            placeholder="Re-enter password"
             disabled={isSubmitting}
-            aria-describedby={
-              hasError("confirmPassword") ? "confirmPassword-error" : undefined
-            }
+            error={formErrors.confirmPassword}
           />
-          {hasError("confirmPassword") && (
-            <div id="confirmPassword-error" className="form-error">
-              {formErrors.confirmPassword}
-            </div>
-          )}
-        </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="auth-button"
-          disabled={isSubmitting}
-          data-testid="signup-button"
-        >
-          {isSubmitting ? "REGISTERING..." : "CREATE ACCOUNT"}
-        </button>
-      </form>
-
-      <div className="auth-footer">
-        <p>
-          Already have an account?{" "}
-          <Link href="/login" className="auth-link">
-            Login here
-          </Link>
-        </p>
-      </div>
+          <FormButtons
+            submitLabel="CREATE ACCOUNT"
+            loadingLabel="REGISTERING..."
+            useAuthStyle={true}
+            testId="signup-button"
+            isSubmitting={isSubmitting}
+          />
+        </form>
+      )}
     </div>
   );
-}
+};
 
 export default SignupForm;

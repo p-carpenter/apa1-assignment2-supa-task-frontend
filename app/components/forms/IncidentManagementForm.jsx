@@ -1,0 +1,294 @@
+import React from "react";
+import { ApiMessage } from "./ApiMessage";
+import { SeverityInfo } from "../ui/shared";
+import formStyles from "./FormStyles.module.css";
+import {
+  TextField,
+  TextArea,
+  SelectField,
+  DateField,
+  FileField,
+  FormButtons,
+  FormRow,
+} from "./fields";
+
+// Constants for reuse
+const categories = [
+  "Software",
+  "Hardware",
+  "Infrastructure",
+  "Security",
+  "Human Error",
+  "External Factors",
+];
+
+const severityOptions = ["Low", "Moderate", "High", "Critical"];
+
+/**
+ * Component for rendering severity field label with info button.
+ *
+ * @param {Function} toggleSeverityInfo - Function to toggle severity info panel visibility
+ */
+const SeverityLabel = ({ toggleSeverityInfo }) => (
+  <>
+    Severity
+    <button
+      onClick={toggleSeverityInfo}
+      style={{
+        marginLeft: "5px",
+        background: "none",
+        border: "none",
+        color: "#666",
+        fontSize: "0.8rem",
+        padding: "0 3px",
+        cursor: "pointer",
+        fontWeight: "bold",
+        borderRadius: "50%",
+      }}
+      title="View severity level descriptions"
+      type="button"
+    >
+      ?
+    </button>
+  </>
+);
+
+/**
+ * Form component for creating and editing security incident records.
+ * Includes fields for incident details, severity classification, and artifact uploads.
+ *
+ * @param {Object} formData - The current form data state including all form fields
+ * @param {Object} formErrors - Form validation errors
+ * @param {boolean} isSubmitting - Whether the form is currently submitting
+ * @param {Function} handleChange - Function to handle input changes
+ * @param {Function} handleSubmit - Function to handle form submission
+ * @param {Function} handleDateChange - Function to handle date field changes
+ * @param {Function} handleArtifactTypeChange - Function to handle artifact type selection changes
+ * @param {Object} fileState - State for file upload (file object and errors)
+ * @param {Function} handleFileChange - Function to handle file selection changes
+ * @param {boolean} showSeverityInfo - Whether to show severity level information
+ * @param {Function} toggleSeverityInfo - Function to toggle severity info visibility
+ * @param {Object|null} apiError - Error response from the API
+ * @param {Function} onClose - Function to handle form cancellation
+ * @param {string} submitLabel - Text for the submit button
+ * @param {string} loadingLabel - Text for the submit button when form is submitting
+ * @param {boolean} [isEditMode=false] - Whether the form is in edit mode
+ * @param {Object|null} [incident=null] - Existing incident data for edit mode
+ */
+const IncidentManagementForm = ({
+  // Form state
+  formData,
+  formErrors,
+  isSubmitting,
+
+  // Form handlers
+  handleChange,
+  handleSubmit,
+  handleDateChange,
+  handleArtifactTypeChange,
+
+  // File state and handlers
+  fileState,
+  handleFileChange,
+
+  // Severity info state and handler
+  showSeverityInfo,
+  toggleSeverityInfo,
+
+  // Error handling
+  apiError,
+
+  // UI customization
+  onClose,
+  submitLabel,
+  loadingLabel,
+
+  // Edit mode specific props
+  isEditMode = false,
+  incident = null,
+}) => {
+  return (
+    <form
+      className={formStyles.form}
+      onSubmit={handleSubmit}
+      noValidate
+      data-testid="form"
+    >
+      {apiError && <ApiMessage response={apiError} />}
+
+      <TextField
+        data-testid="incident-name-input"
+        id="name"
+        name="name"
+        label="Incident Name"
+        value={formData.name}
+        onChange={handleChange}
+        placeholder="e.g., Morris Worm, Y2K Bug"
+        error={formErrors.name}
+        required
+        disabled={isSubmitting}
+      />
+
+      <FormRow>
+        <DateField
+          data-testid="incident-date-input"
+          id="incident_date"
+          name="incident_date"
+          label="Date"
+          value={formData.incident_date}
+          onChange={handleDateChange}
+          placeholder="DD-MM-YYYY"
+          maxLength="10"
+          error={formErrors.incident_date}
+          required
+          className={formStyles.thirdWidth}
+          helperText="Year must be between 1980-2029"
+          disabled={isSubmitting}
+        />
+
+        <SelectField
+          id="category"
+          name="category"
+          label="Category"
+          value={formData.category}
+          onChange={handleChange}
+          options={categories}
+          className={formStyles.thirdWidth}
+          required
+          disabled={isSubmitting}
+        />
+
+        <SelectField
+          id="severity"
+          name="severity"
+          label={<SeverityLabel toggleSeverityInfo={toggleSeverityInfo} />}
+          value={formData.severity}
+          onChange={handleChange}
+          options={severityOptions}
+          className={formStyles.thirdWidth}
+          required
+          disabled={isSubmitting}
+        />
+      </FormRow>
+
+      {showSeverityInfo && <SeverityInfo onClose={toggleSeverityInfo} />}
+
+      <TextArea
+        data-testid="incident-date-input"
+        id="description"
+        name="description"
+        label="Description"
+        value={formData.description}
+        onChange={handleChange}
+        placeholder="Provide a description of the incident..."
+        error={formErrors.description}
+        required
+        disabled={isSubmitting}
+      />
+
+      <SelectField
+        id="artifactType"
+        name="artifactType"
+        label="Artifact Type"
+        value={formData.artifactType}
+        onChange={handleArtifactTypeChange}
+        options={[
+          { value: "none", label: "None" },
+          { value: "code", label: "Code (HTML)" },
+          { value: "image", label: "Image" },
+        ]}
+        disabled={isSubmitting}
+      />
+
+      {formData.artifactType === "code" && (
+        <TextArea
+          id="artifactContent"
+          name="artifactContent"
+          label="HTML Code"
+          value={formData.artifactContent}
+          onChange={handleChange}
+          placeholder="Enter HTML code here..."
+          error={formErrors.artifactContent}
+          disabled={isSubmitting}
+          helperText="HTML max individual dimensions: 863px (width), 768px (height). Anything larger and the page layout may break."
+        />
+      )}
+
+      {formData.artifactType === "image" &&
+      isEditMode &&
+      incident?.artifactContent ? (
+        <div className={formStyles.formGroup}>
+          <label className={formStyles.formLabel} htmlFor="file">
+            Upload New Image
+          </label>
+          <div
+            style={{
+              display: "flex",
+              gap: "1rem",
+              alignItems: "flex-start",
+            }}
+          >
+            <div style={{ flex: "1" }}>
+              <FileField
+                id="file"
+                name="file"
+                onChange={handleFileChange}
+                accept="image/*"
+                error={formErrors.file || fileState.error}
+                helperText="Max file size: 5MB"
+                disabled={isSubmitting}
+                hideLabel
+              />
+            </div>
+
+            <div style={{ flex: "1", textAlign: "center" }}>
+              <small
+                style={{
+                  fontSize: "0.75rem",
+                  color: "#666",
+                  display: "block",
+                  marginBottom: "5px",
+                }}
+              >
+                Current image
+              </small>
+              <img
+                src={incident.artifactContent}
+                alt="Current artifact"
+                style={{
+                  maxHeight: "80px",
+                  maxWidth: "100%",
+                  objectFit: "contain",
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        formData.artifactType === "image" && (
+          <FileField
+            id="file"
+            name="file"
+            label="Upload Image"
+            onChange={handleFileChange}
+            accept="image/*"
+            disabled={isSubmitting}
+            error={formErrors.file || fileState.error}
+            helperText="Max file size: 5MB"
+          />
+        )
+      )}
+
+      <FormButtons
+        data-testid="submit-incident-btn"
+        onClose={onClose}
+        isSubmitting={isSubmitting}
+        submitLabel={submitLabel}
+        loadingLabel={loadingLabel}
+        showCancelButton={true}
+      />
+    </form>
+  );
+};
+
+export default IncidentManagementForm;

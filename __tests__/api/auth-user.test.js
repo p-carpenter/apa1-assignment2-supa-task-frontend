@@ -6,6 +6,46 @@ import { GET } from "@/app/api/auth/user/route";
 process.env.SUPABASE_URL = "https://test-supabase-url.com";
 process.env.SUPABASE_ANON_KEY = "test-anon-key";
 
+// Mock getServerSession function
+jest.mock("@/app/utils/auth/server", () => ({
+  getServerSession: jest.fn(async () => {
+    // This will be mocked differently for each test case
+    return { user: null, session: null };
+  }),
+}));
+
+// Mock the processApiError function
+jest.mock("@/app/utils/errors/errorService", () => ({
+  processApiError: jest.fn((error, options = {}) => {
+    if (error.message === "No active session found") {
+      return {
+        error: "Please sign in to continue.",
+        type: "auth_required",
+        status: 401,
+      };
+    }
+    if (error.status === 401) {
+      return {
+        error: "Please sign in to continue.",
+        type: "auth_required",
+        status: 401,
+      };
+    }
+    if (error.status === 500 || error.message === "Failed to fetch") {
+      return {
+        error: "Internal server error",
+        type: "service_unavailable",
+        status: 500,
+      };
+    }
+    return {
+      error: options.defaultMessage || error.message || "Unknown error",
+      type: "unknown_error",
+      status: error.status || 500,
+    };
+  }),
+}));
+
 // Mock the cookies
 const mockCookieStore = {
   has: jest.fn(),
@@ -24,19 +64,6 @@ describe("auth/user API route", () => {
     // Reset mocks
     jest.clearAllMocks();
     mockCookieStore.get.mockReset();
-
-    // Setup default handlers
-    server.use(
-      http.get(
-        "https://test-supabase-url.com/functions/v1/authentication/user",
-        () => {
-          return HttpResponse.json({
-            user: { id: "123", email: "test@example.com" },
-            session: { token: "abc" },
-          });
-        }
-      )
-    );
   });
 
   it("successfully retrieves the current user", async () => {
@@ -45,6 +72,13 @@ describe("auth/user API route", () => {
       .mockImplementationOnce(() => ({ value: "test-access-token" }))
       .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
+    // Mock successful session
+    const { getServerSession } = require("@/app/utils/auth/server");
+    getServerSession.mockImplementationOnce(async () => ({
+      user: { id: "123", email: "test@example.com" },
+      session: { token: "abc" },
+    }));
+
     const response = await GET();
     const data = await response.json();
 
@@ -52,45 +86,59 @@ describe("auth/user API route", () => {
     expect(data).toEqual({
       user: { id: "123", email: "test@example.com" },
       session: { token: "abc" },
+      timestamp: expect.any(String),
     });
-    expect(mockCookieStore.get).toHaveBeenCalledWith("sb-access-token");
-    expect(mockCookieStore.get).toHaveBeenCalledWith("sb-refresh-token");
   });
 
-  it("returns null user when not authenticated", async () => {
+  it("returns error when not authenticated", async () => {
     // Mock missing tokens in cookies
     mockCookieStore.get
       .mockImplementationOnce(() => undefined)
       .mockImplementationOnce(() => undefined);
 
+    // Mock no session
+    const { getServerSession } = require("@/app/utils/auth/server");
+    getServerSession.mockImplementationOnce(async () => ({
+      user: null,
+      session: null,
+    }));
+
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(401);
-    expect(data).toEqual({ user: null, session: null });
+    expect(data).toEqual({
+      error: "Please sign in to continue.",
+      type: "auth_required",
+      status: 401,
+      timestamp: expect.any(String),
+    });
   });
 
-  it("returns null user when token is invalid", async () => {
+  it("returns error when token is invalid", async () => {
     // Mock tokens in cookies
     mockCookieStore.get
       .mockImplementationOnce(() => ({ value: "invalid-access-token" }))
       .mockImplementationOnce(() => ({ value: "invalid-refresh-token" }));
 
-    // Set up an error response
-    server.use(
-      http.get(
-        "https://test-supabase-url.com/functions/v1/authentication/user",
-        () => {
-          return new HttpResponse(null, { status: 401 });
-        }
-      )
-    );
+    // Mock session error
+    const { getServerSession } = require("@/app/utils/auth/server");
+    getServerSession.mockImplementationOnce(async () => {
+      const error = new Error("Session expired");
+      error.status = 401;
+      throw error;
+    });
 
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(401);
-    expect(data).toEqual({ user: null, session: null });
+    expect(data).toEqual({
+      error: "Please sign in to continue.",
+      type: "auth_required",
+      status: 401,
+      timestamp: expect.any(String),
+    });
   });
 
   it("handles API errors", async () => {
@@ -99,23 +147,24 @@ describe("auth/user API route", () => {
       .mockImplementationOnce(() => ({ value: "test-access-token" }))
       .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
-    // Set up an error response
-    server.use(
-      http.get(
-        "https://test-supabase-url.com/functions/v1/authentication/user",
-        () => {
-          return new HttpResponse(JSON.stringify({ error: "Server error" }), {
-            status: 500,
-          });
-        }
-      )
-    );
+    // Mock server error
+    const { getServerSession } = require("@/app/utils/auth/server");
+    getServerSession.mockImplementationOnce(async () => {
+      const error = new Error("Server error");
+      error.status = 500;
+      throw error;
+    });
 
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data).toEqual({ error: "Server error" });
+    expect(data).toEqual({
+      error: "Internal server error",
+      type: "service_unavailable",
+      status: 500,
+      timestamp: expect.any(String),
+    });
   });
 
   it("handles network errors", async () => {
@@ -124,23 +173,21 @@ describe("auth/user API route", () => {
       .mockImplementationOnce(() => ({ value: "test-access-token" }))
       .mockImplementationOnce(() => ({ value: "test-refresh-token" }));
 
-    // Update expected data to match what the route actually returns
-    const expectedData = { error: "Internal server error" };
-
-    // Set up network error using MSW
-    server.use(
-      http.get(
-        "https://test-supabase-url.com/functions/v1/authentication/user",
-        () => {
-          return HttpResponse.error();
-        }
-      )
-    );
+    // Mock network error
+    const { getServerSession } = require("@/app/utils/auth/server");
+    getServerSession.mockImplementationOnce(async () => {
+      throw new Error("Failed to fetch");
+    });
 
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data).toEqual(expectedData);
+    expect(data).toEqual({
+      error: "Internal server error",
+      type: "service_unavailable",
+      status: 500,
+      timestamp: expect.any(String),
+    });
   });
 });

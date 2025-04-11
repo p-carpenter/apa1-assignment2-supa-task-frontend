@@ -1,131 +1,145 @@
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { AUTH_COOKIE_NAMES, CORS_HEADERS } from "@/app/utils/auth/config";
 import { cookies } from "next/headers";
+import { ERROR_TYPES } from "@/app/utils/errors/errorTypes";
 
-export async function GET(request) {
+/**
+ * Handles OPTIONS requests for CORS preflight
+ */
+export const OPTIONS = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: CORS_HEADERS,
+  });
+};
+
+/**
+ * Retrieves protected data that requires authentication
+ */
+export const GET = async (request) => {
   try {
-    // Get tokens from cookies
-    const cookieStore = cookies();
-    const accessToken = cookieStore.get("sb-access-token")?.value;
-    const refreshToken = cookieStore.get("sb-refresh-token")?.value;
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+    const refreshToken = cookieStore.get(
+      AUTH_COOKIE_NAMES.REFRESH_TOKEN
+    )?.value;
 
     if (!accessToken || !refreshToken) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    try {
-      // Call Supabase edge function
-      const response = await fetch(
-        `${process.env.SUPABASE_URL}/functions/v1/validate-auth`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
-            Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        return new Response(
-          JSON.stringify({
-            error: error.error || "Failed to fetch protected data",
-          }),
-          {
-            status: response.status,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      const data = await response.json();
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (fetchError) {
-      // Network errors go here
-      console.error("Network error:", fetchError);
-      return new Response(JSON.stringify({ error: "Failed to fetch" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-  } catch (error) {
-    // General errors go here
-    console.error("Protected data error:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-}
-
-export async function POST(request) {
-  try {
-    const cookieStore = cookies();
-    const accessToken = cookieStore.get("sb-access-token")?.value;
-    const refreshToken = cookieStore.get("sb-refresh-token")?.value;
-
-    if (!accessToken || !refreshToken) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    try {
-      const body = await request.json();
-
-      const response = await fetch(
-        `${process.env.SUPABASE_URL}/functions/v1/validate-auth`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Cookie: `sb-access-token=${accessToken}; sb-refresh-token=${refreshToken}`,
-            Authorization: `Bearer ${process.env.SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify(body),
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        return new Response(
-          JSON.stringify({ error: error.error || "Failed to add item" }),
-          {
-            status: response.status,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
-
-      const data = await response.json();
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
-    } catch (fetchError) {
-      // Network errors go here
-      console.error("Network error:", fetchError);
       return new Response(
-        JSON.stringify({ error: "Failed to process request" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        }
+        JSON.stringify({
+          error: "Authentication required",
+          type: ERROR_TYPES.AUTH_REQUIRED,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 401, headers: CORS_HEADERS }
       );
     }
-  } catch (error) {
-    // General errors go here
-    console.error("Protected post error:", error);
-    return new Response(JSON.stringify({ error: "Internal Server Error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+
+    const data = await fetchFromSupabase("protected-data", "GET", null, {
+      Authorization: `Bearer ${accessToken}`,
+      Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
     });
+
+    return new Response(
+      JSON.stringify({
+        data,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
+  } catch (error) {
+    console.error("Protected route GET error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to access protected data",
+    });
+
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: standardError.status,
+        headers: CORS_HEADERS,
+      }
+    );
   }
-}
+};
+
+/**
+ * Submits data to a protected endpoint
+ */
+export const POST = async (request) => {
+  try {
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get(AUTH_COOKIE_NAMES.ACCESS_TOKEN)?.value;
+    const refreshToken = cookieStore.get(
+      AUTH_COOKIE_NAMES.REFRESH_TOKEN
+    )?.value;
+
+    if (!accessToken || !refreshToken) {
+      return new Response(
+        JSON.stringify({
+          error: "Authentication required",
+          type: ERROR_TYPES.AUTH_REQUIRED,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 401, headers: CORS_HEADERS }
+      );
+    }
+
+    const data = await request.json();
+
+    if (!data || typeof data !== "object") {
+      const validationError = new Error("Invalid data format");
+      validationError.status = 400;
+      validationError.type = ERROR_TYPES.BAD_REQUEST;
+      throw validationError;
+    }
+
+    try {
+      const response = await fetchFromSupabase("protected-data", "POST", data, {
+        Authorization: `Bearer ${accessToken}`,
+        Cookie: `${AUTH_COOKIE_NAMES.ACCESS_TOKEN}=${accessToken}; ${AUTH_COOKIE_NAMES.REFRESH_TOKEN}=${refreshToken}`,
+      });
+
+      return new Response(
+        JSON.stringify({
+          data: response,
+          success: true,
+          timestamp: new Date().toISOString(),
+        }),
+        { status: 201, headers: CORS_HEADERS }
+      );
+    } catch (error) {
+      if (error.status === 413) {
+        const sizeError = new Error("Data exceeds maximum allowed size");
+        sizeError.status = 413;
+        sizeError.type = ERROR_TYPES.FILE_TOO_LARGE;
+        throw sizeError;
+      }
+
+      // Re-throw the original error if no specific handling
+      throw error;
+    }
+  } catch (error) {
+    console.error("Protected route POST error:", error);
+
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to submit protected data",
+    });
+
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: standardError.status,
+        headers: CORS_HEADERS,
+      }
+    );
+  }
+};

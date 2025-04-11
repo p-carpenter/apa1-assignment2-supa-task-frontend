@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/app/contexts/ThemeContext";
 import { IncidentProvider } from "@/app/contexts/IncidentContext";
 import { useIncidents } from "@/app/contexts/IncidentContext";
 import { useTheme } from "@/app/contexts/ThemeContext";
-import { getPaddingSizeForArtifact } from "@/app/utils/ui/artifactUtils";
 
 jest.mock("@/app/contexts/IncidentContext", () => ({
   useIncidents: jest.fn(),
@@ -13,19 +12,19 @@ jest.mock("@/app/contexts/IncidentContext", () => ({
 
 jest.mock("@/app/contexts/ThemeContext");
 
-jest.mock("@/app/components/ui/decades/MacintoshDetailsWindow", () => () => (
+jest.mock("@/app/components/ui/detail-windows/DetailsWindow1980s", () => () => (
   <div data-testid="1980s-window">1980s Window</div>
 ));
-jest.mock("@/app/components/ui/decades/Win98DetailsWindow", () => () => (
+jest.mock("@/app/components/ui/detail-windows/DetailsWindow1990s", () => () => (
   <div data-testid="1990s-window">1990s Window</div>
 ));
-jest.mock("@/app/components/ui/decades/AeroDetailsWindow", () => () => (
+jest.mock("@/app/components/ui/detail-windows/DetailsWindow2000s", () => () => (
   <div data-testid="2000s-window">2000s Window</div>
 ));
-jest.mock("@/app/components/ui/decades/MaterialDetailsWindow", () => () => (
+jest.mock("@/app/components/ui/detail-windows/DetailsWindow2010s", () => () => (
   <div data-testid="2010s-window">2010s Window</div>
 ));
-jest.mock("@/app/components/ui/decades/GlassmorphicDetailsWindow", () => () => (
+jest.mock("@/app/components/ui/detail-windows/DetailsWindow2020s", () => () => (
   <div data-testid="2020s-window">2020s Window</div>
 ));
 
@@ -163,142 +162,5 @@ describe("ThemeContext", () => {
     );
 
     expect(screen.getByTestId("1990s-window")).toBeInTheDocument();
-  });
-
-  // Separate tests for the getPaddingSizeForArtifact utility function
-  describe("getPaddingSizeForArtifact", () => {
-    it("returns 'auto' for null artifacts", () => {
-      expect(getPaddingSizeForArtifact(null)).toBe("auto");
-    });
-
-    it("returns 'auto' for undefined artifacts", () => {
-      expect(getPaddingSizeForArtifact(undefined)).toBe("auto");
-    });
-
-    it("returns 'large' for small images", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          width: 200,
-          height: 150,
-        })
-      ).toBe("large");
-
-      // Test at the boundary
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          width: 299,
-          height: 199,
-        })
-      ).toBe("large");
-    });
-
-    it("returns 'auto' for standard size images", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          width: 300,
-          height: 200,
-        })
-      ).toBe("auto");
-    });
-
-    it("returns 'xl' for images with very small preferred height", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 100,
-        })
-      ).toBe("xl");
-
-      // Test at the boundary
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 149,
-        })
-      ).toBe("xl");
-    });
-
-    it("returns 'large' for images with small preferred height", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 150,
-        })
-      ).toBe("large");
-
-      // Test at the boundary
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 249,
-        })
-      ).toBe("large");
-    });
-
-    it("returns 'medium' for images with medium preferred height", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 250,
-        })
-      ).toBe("medium");
-
-      // Test at the boundary
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 399,
-        })
-      ).toBe("medium");
-    });
-
-    it("returns 'auto' for images with large preferred height", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 400,
-        })
-      ).toBe("auto");
-
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "image",
-          preferredHeight: 500,
-        })
-      ).toBe("auto");
-    });
-
-    it("returns 'auto' for code artifacts regardless of size", () => {
-      expect(getPaddingSizeForArtifact({ artifactType: "code" })).toBe("auto");
-
-      // Even with additional properties
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "code",
-          width: 100,
-          height: 100,
-        })
-      ).toBe("auto");
-    });
-
-    it("handles artifacts with unknown types", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          artifactType: "unknown-type",
-        })
-      ).toBe("auto");
-    });
-
-    it("handles artifacts with no type specified", () => {
-      expect(
-        getPaddingSizeForArtifact({
-          width: 300,
-          height: 200,
-        })
-      ).toBe("auto");
-    });
   });
 });

@@ -1,0 +1,90 @@
+.mainWindow {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  height: auto;
+}
+
+.windowBodyCompact {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  overflow-y: visible;
+  height: auto;
+}
+
+/* Horizontal metadata row */
+.metadataRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2px;
+  background: #ece9d8;
+  padding: 4px;
+  border: 1px solid #a9a9a9;
+  margin-bottom: 4px;
+}
+
+.metadataItem {
+  display: flex;
+  gap: 3px;
+  padding: 2px 3px;
+}
+
+.metadataLabel {
+  font-weight: bold;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.metadataItem span {
+  font-size: 13px;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #a9a9a9;
+  margin: 4px 0;
+}
+
+/* Content sections */
+.contentSections {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  height: auto;
+  overflow-y: visible;
+  --bg-color: #fff;
+  --link-color: #0066cc;
+  font-family: "W95FA", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.contentSection {
+  margin-bottom: 4px;
+  border-radius: 0;
+  background: white;
+  border: 2px inset #808080;
+}
+
+.contentSection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitleWrapper {
+  background-color: #c0c0c0;
+  border-bottom: 1px solid #a9a9a9;
+  padding: 3px 6px;
+  width: 100%;
+}
+
+.sectionTitleText {
+  font-weight: bold;
+  font-size: 14px;
+  color: #000080;
+}
+
+.sectionText {
+  padding: 4px 8px;
+  font-size: 15px;
+  line-height: 1.5;
+}

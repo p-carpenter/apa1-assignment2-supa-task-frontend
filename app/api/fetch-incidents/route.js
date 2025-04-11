@@ -1,58 +1,54 @@
-export async function GET(req) {
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
+import { fetchFromSupabase } from "@/app/utils/api/clientApi";
+import { processApiError } from "@/app/utils/errors/errorService";
+import { CORS_HEADERS } from "@/app/utils/auth/config";
 
-  const corsHeaders = {
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-  };
+export const OPTIONS = async () => {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+};
 
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
-  }
-
+export const GET = async (request) => {
   try {
-    console.log(
-      "🔎 Fetching from:",
-      `${SUPABASE_URL}/functions/v1/tech-incidents`
-    );
+    const incidentsData = await fetchFromSupabase("tech-incidents", "GET");
 
-    const response = await fetch(
-      `${SUPABASE_URL}/functions/v1/tech-incidents`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    if (!Array.isArray(incidentsData)) {
+      // Log warning to provide information to users but provide graceful fallback to client
+      console.warn(
+        "Invalid response format from Supabase. Returning empty array."
+      );
 
-    console.log("📡 Supabase response status:", response.status);
-
-    const data = await response.json();
-    console.log("📜 Supabase response body:", data);
-
-    if (!response.ok) {
-      console.error("🚨 Supabase Error:", data);
       return new Response(
         JSON.stringify({
-          error: `Supabase error: ${response.status}`,
-          details: data,
+          // Empty array instead of null/undefined for consistent client handling
+          data: [],
+          warning:
+            "Invalid response format from database. Data has been reset to an empty array.",
+          timestamp: new Date().toISOString(),
         }),
-        { status: response.status, headers: corsHeaders }
+        { status: 200, headers: CORS_HEADERS }
       );
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({
+        data: incidentsData,
+        timestamp: new Date().toISOString(),
+      }),
+      { status: 200, headers: CORS_HEADERS }
+    );
   } catch (error) {
-    console.error("❌ Fetch Error:", error);
-
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: corsHeaders,
+    const standardError = processApiError(error, {
+      defaultMessage: "Failed to fetch incidents",
     });
+
+    return new Response(
+      JSON.stringify({
+        ...standardError,
+        timestamp: new Date().toISOString(),
+      }),
+      {
+        status: standardError.status || 500,
+        headers: CORS_HEADERS,
+      }
+    );
   }
-}
+};

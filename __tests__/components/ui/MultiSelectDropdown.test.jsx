@@ -1,14 +1,15 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import MultiSelectDropdown from "@/app/components/ui/shared/MultiSelectDropdown";
+import MultiSelectDropdown from "@/app/components/ui/filters/MultiSelectDropdown";
+import styles from "@/app/components/ui/filters/Filters.module.css";
 
-describe("MSW Handlers", () => {
-  it("defines API handlers", () => {
-    // Just a placeholder test to ensure MSW is correctly set up
-    expect(true).toBe(true);
-  });
-});
-
+/**
+ * Test suite for the MultiSelectDropdown component
+ * 
+ * Tests focus on the critical state management and interaction behaviors,
+ * especially related to the "All" selection logic that is central to
+ * maintaining consistent filter states.
+ */
 describe("MultiSelectDropdown", () => {
   const options = ["Option 1", "Option 2", "Option 3"];
   const mockOnChange = jest.fn();
@@ -18,6 +19,7 @@ describe("MultiSelectDropdown", () => {
   });
 
   it("renders the dropdown with options", () => {
+    // Test initial render state without expanding dropdown
     render(
       <MultiSelectDropdown
         items={options}
@@ -32,6 +34,7 @@ describe("MultiSelectDropdown", () => {
   });
 
   it("opens the dropdown when clicked", () => {
+    // Verify dropdown visibility state changes after interaction
     render(
       <MultiSelectDropdown
         items={options}
@@ -41,13 +44,9 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Click the dropdown header to open it, not the label
-    const dropdownHeader = screen
-      .getByText("0 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Options should now be visible, including the "All" option
     expect(screen.getByText("All")).toBeInTheDocument();
     options.forEach((option) => {
       expect(screen.getByText(option)).toBeInTheDocument();
@@ -64,43 +63,17 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("0 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Select an option
     const option = screen.getByText("Option 1");
     fireEvent.click(option);
 
     expect(mockOnChange).toHaveBeenCalledWith(["Option 1"]);
   });
-
-  it("displays selected options with active class", () => {
-    render(
-      <MultiSelectDropdown
-        items={options}
-        selectedItems={["Option 2"]}
-        onSelectionChange={mockOnChange}
-        label="Test Dropdown"
-      />
-    );
-
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("1 selected")
-      .closest(".dropdown-header");
-    fireEvent.click(dropdownHeader);
-
-    // Check for active class on selected option
-    const selectedOption = screen
-      .getByText("Option 2")
-      .closest(".dropdown-option");
-    expect(selectedOption).toHaveClass("active");
-  });
-
-  it("removes option when clicked if already selected", () => {
+  
+  it("selects 'All' when all items are deselected", () => {
+    // Tests that removing the last selected item defaults to "All"
     render(
       <MultiSelectDropdown
         items={options}
@@ -110,21 +83,75 @@ describe("MultiSelectDropdown", () => {
       />
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("1 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Click already selected option
     const option = screen.getByText("Option 1");
     fireEvent.click(option);
 
-    // Should switch to "all" when no other options are selected
+    expect(mockOnChange).toHaveBeenCalledWith(["all"]);
+  });
+  
+  it("removes 'All' when selecting specific items", () => {
+    // Tests transition from "All" selection to specific filters
+    render(
+      <MultiSelectDropdown
+        items={options}
+        selectedItems={["all"]}
+        onSelectionChange={mockOnChange}
+        label="Test Dropdown"
+      />
+    );
+
+    const dropdownHeader = screen.getByTestId("dropdown-header");
+    fireEvent.click(dropdownHeader);
+
+    const option = screen.getByText("Option 2");
+    fireEvent.click(option);
+
+    expect(mockOnChange).toHaveBeenCalledWith(["Option 2"]);
+  });
+
+  it("displays selected options with active class", () => {
+    // Verifies visual distinction of selected items for user feedback
+    render(
+      <MultiSelectDropdown
+        items={options}
+        selectedItems={["Option 2"]}
+        onSelectionChange={mockOnChange}
+        label="Test Dropdown"
+      />
+    );
+
+    const dropdownHeader = screen.getByTestId("dropdown-header");
+    fireEvent.click(dropdownHeader);
+
+    const selectedOption = screen.getByText("Option 2");
+    expect(selectedOption).toHaveClass(styles.selected);
+  });
+
+  it("removes option when clicked if already selected", () => {
+    // Tests toggle behavior - selected items should be removed when clicked again
+    render(
+      <MultiSelectDropdown
+        items={options}
+        selectedItems={["Option 1"]}
+        onSelectionChange={mockOnChange}
+        label="Test Dropdown"
+      />
+    );
+
+    const dropdownHeader = screen.getByTestId("dropdown-header");
+    fireEvent.click(dropdownHeader);
+
+    const option = screen.getByText("Option 1");
+    fireEvent.click(option);
+
     expect(mockOnChange).toHaveBeenCalledWith(["all"]);
   });
 
   it("closes dropdown when clicking outside", () => {
+    // Ensures proper cleanup of UI state when user clicks elsewhere on the page
     render(
       <div>
         <MultiSelectDropdown
@@ -137,20 +164,14 @@ describe("MultiSelectDropdown", () => {
       </div>
     );
 
-    // Open dropdown
-    const dropdownHeader = screen
-      .getByText("0 selected")
-      .closest(".dropdown-header");
+    const dropdownHeader = screen.getByTestId("dropdown-header");
     fireEvent.click(dropdownHeader);
 
-    // Options should be visible (check for All option which is always there)
     expect(screen.getByText("All")).toBeInTheDocument();
 
-    // Click outside
     const outside = screen.getByTestId("outside");
     fireEvent.mouseDown(outside);
 
-    // Options should no longer be visible
     expect(screen.queryByText("All")).not.toBeInTheDocument();
   });
 });
